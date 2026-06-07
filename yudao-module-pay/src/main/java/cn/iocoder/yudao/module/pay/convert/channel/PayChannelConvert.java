@@ -8,8 +8,9 @@ import cn.iocoder.yudao.module.pay.dal.dataobject.channel.PayChannelDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface PayChannelConvert {
 
     PayChannelConvert INSTANCE = Mappers.getMapper(PayChannelConvert.class);

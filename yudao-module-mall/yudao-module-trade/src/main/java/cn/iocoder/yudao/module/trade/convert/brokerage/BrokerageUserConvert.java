@@ -1,5 +1,4 @@
 package cn.iocoder.yudao.module.trade.convert.brokerage;
-
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -14,6 +13,7 @@ import cn.iocoder.yudao.module.trade.service.brokerage.bo.UserBrokerageSummaryRe
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 import java.util.Map;
@@ -24,7 +24,7 @@ import java.util.Optional;
  *
  * @author owen
  */
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface BrokerageUserConvert {
 
     BrokerageUserConvert INSTANCE = Mappers.getMapper(BrokerageUserConvert.class);
@@ -33,14 +33,14 @@ public interface BrokerageUserConvert {
 
     List<BrokerageUserRespVO> convertList(List<BrokerageUserDO> list);
 
-    PageResult<BrokerageUserRespVO> convertPage(PageResult<BrokerageUserDO> page, Map<Long, MemberUserRespDTO> userMap, Map<Long, Long> brokerageUserCountMap, Map<Long, UserBrokerageSummaryRespBO> userOrderSummaryMap);
+    PageResult<BrokerageUserRespVO> convertPage(PageResult<BrokerageUserDO> page);
 
     default PageResult<BrokerageUserRespVO> convertPage(PageResult<BrokerageUserDO> pageResult,
                                                         Map<Long, MemberUserRespDTO> userMap,
                                                         Map<Long, Long> brokerageUserCountMap,
                                                         Map<Long, UserBrokerageSummaryRespBO> userOrderSummaryMap,
                                                         Map<Long, BrokerageWithdrawSummaryRespBO> withdrawMap) {
-        PageResult<BrokerageUserRespVO> result = convertPage(pageResult, userMap, brokerageUserCountMap, userOrderSummaryMap);
+        PageResult<BrokerageUserRespVO> result = convertPage(pageResult);
         for (BrokerageUserRespVO userVO : result.getList()) {
             // 用户信息
             copyTo(userMap.get(userVO.getId()), userVO);

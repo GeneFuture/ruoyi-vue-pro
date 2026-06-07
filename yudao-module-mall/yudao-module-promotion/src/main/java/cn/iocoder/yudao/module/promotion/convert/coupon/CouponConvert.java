@@ -11,6 +11,7 @@ import cn.iocoder.yudao.module.promotion.enums.coupon.CouponStatusEnum;
 import cn.iocoder.yudao.module.promotion.enums.coupon.CouponTemplateValidityTypeEnum;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -20,7 +21,7 @@ import java.util.Collection;
  *
  * @author 芋道源码
  */
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface CouponConvert {
 
     CouponConvert INSTANCE = Mappers.getMapper(CouponConvert.class);

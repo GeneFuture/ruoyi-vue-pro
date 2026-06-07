@@ -8,6 +8,7 @@ import cn.iocoder.yudao.module.member.controller.admin.group.vo.MemberGroupUpdat
 import cn.iocoder.yudao.module.member.dal.dataobject.group.MemberGroupDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 
@@ -16,7 +17,7 @@ import java.util.List;
  *
  * @author owen
  */
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface MemberGroupConvert {
 
     MemberGroupConvert INSTANCE = Mappers.getMapper(MemberGroupConvert.class);

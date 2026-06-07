@@ -29,6 +29,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +43,7 @@ import static cn.iocoder.yudao.framework.common.util.collection.MapUtils.findAnd
  *
  * @author HUIHUI
  */
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface CombinationActivityConvert {
 
     CombinationActivityConvert INSTANCE = Mappers.getMapper(CombinationActivityConvert.class);

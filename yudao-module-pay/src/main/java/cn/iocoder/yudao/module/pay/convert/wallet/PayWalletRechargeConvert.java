@@ -13,11 +13,12 @@ import cn.iocoder.yudao.module.pay.enums.DictTypeConstants;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 import java.util.Map;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface PayWalletRechargeConvert {
 
     PayWalletRechargeConvert INSTANCE = Mappers.getMapper(PayWalletRechargeConvert.class);

@@ -15,6 +15,7 @@ import cn.iocoder.yudao.module.trade.api.order.dto.TradeOrderRespDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,7 @@ import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.
  *
  * @author 芋道源码
  */
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface BargainRecordConvert {
 
     BargainRecordConvert INSTANCE = Mappers.getMapper(BargainRecordConvert.class);

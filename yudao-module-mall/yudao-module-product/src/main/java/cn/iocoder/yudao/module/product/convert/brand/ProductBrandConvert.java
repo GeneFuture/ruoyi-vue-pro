@@ -8,6 +8,7 @@ import cn.iocoder.yudao.module.product.controller.admin.brand.vo.ProductBrandUpd
 import cn.iocoder.yudao.module.product.dal.dataobject.brand.ProductBrandDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 
@@ -16,7 +17,7 @@ import java.util.List;
  *
  * @author 芋道源码
  */
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ProductBrandConvert {
 
     ProductBrandConvert INSTANCE = Mappers.getMapper(ProductBrandConvert.class);

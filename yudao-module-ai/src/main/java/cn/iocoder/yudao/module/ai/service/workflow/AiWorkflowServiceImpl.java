@@ -10,8 +10,8 @@ import cn.iocoder.yudao.module.ai.controller.admin.workflow.vo.AiWorkflowTestReq
 import cn.iocoder.yudao.module.ai.dal.dataobject.workflow.AiWorkflowDO;
 import cn.iocoder.yudao.module.ai.dal.mysql.workflow.AiWorkflowMapper;
 import cn.iocoder.yudao.module.ai.service.model.AiModelService;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import com.fasterxml.jackson.databind.JsonNode;
 import dev.tinyflow.core.Tinyflow;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -121,16 +121,15 @@ public class AiWorkflowServiceImpl implements AiWorkflowService {
     }
 
     private Tinyflow parseFlowParam(String graph) {
-        // TODO @lesan：可以使用 jackson 哇？
-        JSONObject json = JSONObject.parseObject(graph);
-        JSONArray nodeArr = json.getJSONArray("nodes");
-        Tinyflow tinyflow = new Tinyflow(json.toJSONString());
+        JsonNode json = JsonUtils.parseTree(graph);
+        JsonNode nodeArr = json.get("nodes");
+        Tinyflow tinyflow = new Tinyflow(graph);
         for (int i = 0; i < nodeArr.size(); i++) {
-            JSONObject node = nodeArr.getJSONObject(i);
-            switch (node.getString("type")) {
+            JsonNode node = nodeArr.get(i);
+            switch (node.get("type").asText()) {
                 case "llmNode":
-                    JSONObject data = node.getJSONObject("data");
-                    apiModelService.getLLmProvider4Tinyflow(tinyflow, data.getLong("llmId"));
+                    JsonNode data = node.get("data");
+                    apiModelService.getLLmProvider4Tinyflow(tinyflow, data.get("llmId").asLong());
                     break;
                 case "internalNode":
                     break;

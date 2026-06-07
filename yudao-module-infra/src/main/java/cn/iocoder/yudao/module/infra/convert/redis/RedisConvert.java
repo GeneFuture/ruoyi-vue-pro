@@ -4,11 +4,12 @@ import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.module.infra.controller.admin.redis.vo.RedisMonitorRespVO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 import java.util.ArrayList;
 import java.util.Properties;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface RedisConvert {
 
     RedisConvert INSTANCE = Mappers.getMapper(RedisConvert.class);

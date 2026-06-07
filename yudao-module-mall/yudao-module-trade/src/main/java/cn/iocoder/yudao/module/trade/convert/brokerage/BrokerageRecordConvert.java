@@ -1,5 +1,4 @@
 package cn.iocoder.yudao.module.trade.convert.brokerage;
-
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -14,6 +13,7 @@ import cn.iocoder.yudao.module.trade.enums.brokerage.BrokerageRecordStatusEnum;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,7 +25,7 @@ import java.util.Optional;
  *
  * @author owen
  */
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface BrokerageRecordConvert {
 
     BrokerageRecordConvert INSTANCE = Mappers.getMapper(BrokerageRecordConvert.class);

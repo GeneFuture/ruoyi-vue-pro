@@ -13,8 +13,9 @@ import cn.iocoder.yudao.module.system.api.social.dto.SocialWxJsapiSignatureRespD
 import cn.iocoder.yudao.module.system.enums.sms.SmsSceneEnum;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface AuthConvert {
 
     AuthConvert INSTANCE = Mappers.getMapper(AuthConvert.class);

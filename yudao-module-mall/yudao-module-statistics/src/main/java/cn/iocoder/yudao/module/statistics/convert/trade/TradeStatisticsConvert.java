@@ -12,8 +12,10 @@ import cn.iocoder.yudao.module.statistics.service.trade.bo.TradeSummaryRespBO;
 import cn.iocoder.yudao.module.statistics.service.trade.bo.WalletSummaryRespBO;
 import org.mapstruct.IterableMapping;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,7 +25,7 @@ import java.util.List;
  *
  * @author owen
  */
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface TradeStatisticsConvert {
 
     TradeStatisticsConvert INSTANCE = Mappers.getMapper(TradeStatisticsConvert.class);
@@ -49,6 +51,7 @@ public interface TradeStatisticsConvert {
 
     List<TradeTrendSummaryExcelVO> convertList02(List<TradeTrendSummaryRespVO> list);
 
+    @Mapping(target = "id", ignore = true)
     TradeStatisticsDO convert(LocalDateTime time, TradeOrderSummaryRespBO orderSummary,
                               AfterSaleSummaryRespBO afterSaleSummary, Integer brokerageSettlementPrice,
                               WalletSummaryRespBO walletSummary);
@@ -56,6 +59,10 @@ public interface TradeStatisticsConvert {
     @IterableMapping(qualifiedByName = "convert")
     List<TradeTrendSummaryRespVO> convertList(List<TradeStatisticsDO> list);
 
+    @Mapping(target = "date", ignore = true)
+    @Mapping(target = "turnoverPrice", ignore = true)
+    @Mapping(target = "expensePrice", ignore = true)
+    @Mapping(source = "rechargePayPrice", target = "rechargePrice")
     TradeTrendSummaryRespVO convertA(TradeStatisticsDO tradeStatistics);
 
     @Named("convert")

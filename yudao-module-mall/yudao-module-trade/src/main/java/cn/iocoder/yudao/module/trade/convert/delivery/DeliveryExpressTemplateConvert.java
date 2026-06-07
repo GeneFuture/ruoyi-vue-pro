@@ -1,5 +1,4 @@
 package cn.iocoder.yudao.module.trade.convert.delivery;
-
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
 import cn.iocoder.yudao.module.trade.controller.admin.delivery.vo.expresstemplate.*;
@@ -10,6 +9,7 @@ import cn.iocoder.yudao.module.trade.service.delivery.bo.DeliveryExpressTemplate
 import com.google.common.collect.Maps;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 import java.util.Map;
@@ -17,7 +17,7 @@ import java.util.Map;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertMultiMap;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.findFirst;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface DeliveryExpressTemplateConvert {
 
     DeliveryExpressTemplateConvert INSTANCE = Mappers.getMapper(DeliveryExpressTemplateConvert.class);

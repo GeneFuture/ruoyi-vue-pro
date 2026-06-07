@@ -8,6 +8,7 @@ import cn.iocoder.yudao.module.promotion.controller.app.bargain.vo.help.AppBarga
 import cn.iocoder.yudao.module.promotion.dal.dataobject.bargain.BargainHelpDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 import java.util.Map;
@@ -17,7 +18,7 @@ import java.util.Map;
  *
  * @author 芋道源码
  */
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface BargainHelpConvert {
 
     BargainHelpConvert INSTANCE = Mappers.getMapper(BargainHelpConvert.class);

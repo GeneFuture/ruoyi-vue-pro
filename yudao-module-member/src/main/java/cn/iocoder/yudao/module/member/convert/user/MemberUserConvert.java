@@ -13,6 +13,7 @@ import cn.iocoder.yudao.module.member.dal.dataobject.user.MemberUserDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
+import org.mapstruct.ReportingPolicy;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;
@@ -21,7 +22,7 @@ import java.util.Map;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertList;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertMap;
 
-@Mapper(uses = {AddressConvert.class})
+@Mapper(uses = {AddressConvert.class}, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface MemberUserConvert {
 
     MemberUserConvert INSTANCE = Mappers.getMapper(MemberUserConvert.class);

@@ -15,12 +15,13 @@ import cn.iocoder.yudao.module.system.dal.dataobject.oauth2.OAuth2ClientDO;
 import cn.iocoder.yudao.module.system.util.oauth2.OAuth2Utils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface OAuth2OpenConvert {
 
     OAuth2OpenConvert INSTANCE = Mappers.getMapper(OAuth2OpenConvert.class);

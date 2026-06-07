@@ -1,0 +1,1 @@
+  docker compose -f script/docker/docker-compose.yml up -d mysql redis

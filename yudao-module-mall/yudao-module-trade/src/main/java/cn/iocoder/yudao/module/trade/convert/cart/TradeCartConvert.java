@@ -10,6 +10,7 @@ import cn.iocoder.yudao.module.trade.controller.app.cart.vo.AppCartListRespVO;
 import cn.iocoder.yudao.module.trade.dal.dataobject.cart.CartDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +18,7 @@ import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertMap;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface TradeCartConvert {
 
     TradeCartConvert INSTANCE = Mappers.getMapper(TradeCartConvert.class);

@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__plugin_everything-claude-code_playwright__browser_navigate",
+      "Read(//private/tmp/**)",
+      "Bash(python3 *)",
+      "Bash(cp /tmp/iocoder-docs/md/mes__check-record.md /Users/admin/mytech/workspace/haizhou-work/haizhou-docs/iocoder文档/14_MES制造执行/)",
+      "Bash(cp /tmp/iocoder-docs/md/mes__check-plan.md /Users/admin/mytech/workspace/haizhou-work/haizhou-docs/iocoder文档/14_MES制造执行/)",
+      "Bash(cp /tmp/iocoder-docs/md/report__screen.md /Users/admin/mytech/workspace/haizhou-work/haizhou-docs/iocoder文档/02_框架功能/)"
+    ]
+  }
+}

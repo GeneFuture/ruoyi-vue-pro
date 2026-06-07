@@ -12,6 +12,7 @@ import cn.iocoder.yudao.module.promotion.controller.app.bargain.vo.activity.AppB
 import cn.iocoder.yudao.module.promotion.dal.dataobject.bargain.BargainActivityDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 import java.util.Map;
@@ -24,7 +25,7 @@ import static cn.iocoder.yudao.framework.common.util.collection.MapUtils.findAnd
  *
  * @author HUIHUI
  */
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface BargainActivityConvert {
 
     BargainActivityConvert INSTANCE = Mappers.getMapper(BargainActivityConvert.class);

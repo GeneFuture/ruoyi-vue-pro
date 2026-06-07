@@ -13,6 +13,7 @@ import cn.iocoder.yudao.module.statistics.service.member.bo.MemberAreaStatistics
 import cn.iocoder.yudao.module.statistics.service.pay.bo.RechargeSummaryRespBO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 import java.util.Map;
@@ -23,7 +24,7 @@ import java.util.Optional;
  *
  * @author owen
  */
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface MemberStatisticsConvert {
 
     MemberStatisticsConvert INSTANCE = Mappers.getMapper(MemberStatisticsConvert.class);

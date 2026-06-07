@@ -9,6 +9,7 @@ import cn.iocoder.yudao.module.product.dal.dataobject.spu.ProductSpuDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +17,7 @@ import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertMap;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ProductFavoriteConvert {
 
     ProductFavoriteConvert INSTANCE = Mappers.getMapper(ProductFavoriteConvert.class);

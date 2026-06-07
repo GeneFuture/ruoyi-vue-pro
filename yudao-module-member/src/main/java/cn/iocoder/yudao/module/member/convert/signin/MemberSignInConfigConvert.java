@@ -7,6 +7,7 @@ import cn.iocoder.yudao.module.member.controller.app.signin.vo.config.AppMemberS
 import cn.iocoder.yudao.module.member.dal.dataobject.signin.MemberSignInConfigDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 
@@ -15,7 +16,7 @@ import java.util.List;
  *
  * @author QingX
  */
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface MemberSignInConfigConvert {
 
     MemberSignInConfigConvert INSTANCE = Mappers.getMapper(MemberSignInConfigConvert.class);

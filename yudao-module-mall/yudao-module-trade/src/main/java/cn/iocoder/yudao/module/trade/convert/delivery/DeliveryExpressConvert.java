@@ -1,5 +1,4 @@
 package cn.iocoder.yudao.module.trade.convert.delivery;
-
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.trade.controller.admin.delivery.vo.express.*;
 import cn.iocoder.yudao.module.trade.controller.admin.delivery.vo.express.DeliveryExpressCreateReqVO;
@@ -10,10 +9,11 @@ import cn.iocoder.yudao.module.trade.controller.app.delivery.vo.express.AppDeliv
 import cn.iocoder.yudao.module.trade.dal.dataobject.delivery.DeliveryExpressDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface DeliveryExpressConvert {
 
     DeliveryExpressConvert INSTANCE = Mappers.getMapper(DeliveryExpressConvert.class);

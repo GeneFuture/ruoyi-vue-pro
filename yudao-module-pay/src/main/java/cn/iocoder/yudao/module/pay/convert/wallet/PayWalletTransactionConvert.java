@@ -7,8 +7,9 @@ import cn.iocoder.yudao.module.pay.dal.dataobject.wallet.PayWalletTransactionDO;
 import cn.iocoder.yudao.module.pay.service.wallet.bo.WalletTransactionCreateReqBO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface PayWalletTransactionConvert {
 
     PayWalletTransactionConvert INSTANCE = Mappers.getMapper(PayWalletTransactionConvert.class);

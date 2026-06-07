@@ -6,13 +6,14 @@ import cn.iocoder.yudao.module.member.controller.admin.config.vo.MemberConfigSav
 import cn.iocoder.yudao.module.member.dal.dataobject.config.MemberConfigDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 /**
  * 会员配置 Convert
  *
  * @author QingX
  */
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface MemberConfigConvert {
 
     MemberConfigConvert INSTANCE = Mappers.getMapper(MemberConfigConvert.class);

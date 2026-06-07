@@ -9,6 +9,7 @@ import cn.iocoder.yudao.module.product.dal.dataobject.sku.ProductSkuDO;
 import cn.iocoder.yudao.module.product.dal.dataobject.spu.ProductSpuDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -18,7 +19,7 @@ import java.math.RoundingMode;
  *
  * @author wangzhs
  */
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ProductCommentConvert {
 
     ProductCommentConvert INSTANCE = Mappers.getMapper(ProductCommentConvert.class);

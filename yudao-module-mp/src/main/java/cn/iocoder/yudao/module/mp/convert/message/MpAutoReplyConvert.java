@@ -10,8 +10,9 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface MpAutoReplyConvert {
 
     MpAutoReplyConvert INSTANCE = Mappers.getMapper(MpAutoReplyConvert.class);

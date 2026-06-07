@@ -12,6 +12,7 @@ import cn.iocoder.yudao.module.member.dal.dataobject.signin.MemberSignInRecordDO
 import cn.iocoder.yudao.module.member.dal.dataobject.user.MemberUserDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 import java.util.Comparator;
 import java.util.List;
@@ -24,7 +25,7 @@ import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.
  *
  * @author 芋道源码
  */
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface MemberSignInRecordConvert {
 
     MemberSignInRecordConvert INSTANCE = Mappers.getMapper(MemberSignInRecordConvert.class);

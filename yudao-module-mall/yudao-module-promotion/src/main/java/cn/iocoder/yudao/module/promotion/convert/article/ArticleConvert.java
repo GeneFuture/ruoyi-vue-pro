@@ -8,6 +8,7 @@ import cn.iocoder.yudao.module.promotion.controller.app.article.vo.article.AppAr
 import cn.iocoder.yudao.module.promotion.dal.dataobject.article.ArticleDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 
@@ -16,7 +17,7 @@ import java.util.List;
  *
  * @author HUIHUI
  */
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface ArticleConvert {
 
     ArticleConvert INSTANCE = Mappers.getMapper(ArticleConvert.class);

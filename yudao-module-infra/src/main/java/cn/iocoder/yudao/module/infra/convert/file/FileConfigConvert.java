@@ -5,13 +5,14 @@ import cn.iocoder.yudao.module.infra.dal.dataobject.file.FileConfigDO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
+import org.mapstruct.ReportingPolicy;
 
 /**
  * 文件配置 Convert
  *
  * @author 芋道源码
  */
-@Mapper
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface FileConfigConvert {
 
     FileConfigConvert INSTANCE = Mappers.getMapper(FileConfigConvert.class);
