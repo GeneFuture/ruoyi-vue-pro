@@ -6,7 +6,11 @@
       "Bash(python3 *)",
       "Bash(cp /tmp/iocoder-docs/md/mes__check-record.md /Users/admin/mytech/workspace/haizhou-work/haizhou-docs/iocoder文档/14_MES制造执行/)",
       "Bash(cp /tmp/iocoder-docs/md/mes__check-plan.md /Users/admin/mytech/workspace/haizhou-work/haizhou-docs/iocoder文档/14_MES制造执行/)",
-      "Bash(cp /tmp/iocoder-docs/md/report__screen.md /Users/admin/mytech/workspace/haizhou-work/haizhou-docs/iocoder文档/02_框架功能/)"
+      "Bash(cp /tmp/iocoder-docs/md/report__screen.md /Users/admin/mytech/workspace/haizhou-work/haizhou-docs/iocoder文档/02_框架功能/)",
+      "Bash(git push *)",
+      "Bash(ssh -T git@github.com -i ~/.ssh/id_ed25519)",
+      "Bash(ssh -T git@github.com -i ~/.ssh/id_rsa)",
+      "Bash(ssh -T git@github-genefuture)"
     ]
   }
 }
