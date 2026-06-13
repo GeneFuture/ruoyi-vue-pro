@@ -20,9 +20,6 @@ public class SessionFeeConfigPageReqVO extends PageParam {
     @Schema(description = "学费总额（元）")
     private BigDecimal tuitionAmount;
 
-    @Schema(description = "学费说明（JSON格式）", example = "{}")
-    private String tuitionDescription;
-
     @Schema(description = "定金金额（元）")
     private BigDecimal depositAmount;
 

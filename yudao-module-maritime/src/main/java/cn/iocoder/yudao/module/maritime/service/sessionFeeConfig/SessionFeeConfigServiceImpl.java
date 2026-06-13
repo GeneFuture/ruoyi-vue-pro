@@ -80,4 +80,24 @@ public class SessionFeeConfigServiceImpl implements SessionFeeConfigService {
         return sessionFeeConfigMapper.selectPage(pageReqVO);
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void saveFeeConfig(SessionFeeConfigSaveReqVO saveReqVO) {
+        SessionFeeConfigDO existing = sessionFeeConfigMapper.selectBySessionId(saveReqVO.getSessionId());
+        if (existing == null) {
+            SessionFeeConfigDO feeConfig = BeanUtils.toBean(saveReqVO, SessionFeeConfigDO.class);
+            feeConfig.setId(null);
+            sessionFeeConfigMapper.insert(feeConfig);
+        } else {
+            SessionFeeConfigDO updateObj = BeanUtils.toBean(saveReqVO, SessionFeeConfigDO.class);
+            updateObj.setId(existing.getId());
+            sessionFeeConfigMapper.updateById(updateObj);
+        }
+    }
+
+    @Override
+    public SessionFeeConfigDO getFeeConfigBySessionId(Long sessionId) {
+        return sessionFeeConfigMapper.selectBySessionId(sessionId);
+    }
+
 }

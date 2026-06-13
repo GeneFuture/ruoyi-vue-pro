@@ -1,10 +1,11 @@
 package cn.iocoder.yudao.module.maritime.controller.admin.sessionFeeConfig.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
-import java.util.*;
 import jakarta.validation.constraints.*;
+import lombok.*;
+
 import java.math.BigDecimal;
+import java.util.Map;
 
 @Schema(description = "管理后台 - 班期费用配置新增/修改 Request VO")
 @Data
@@ -21,8 +22,8 @@ public class SessionFeeConfigSaveReqVO {
     @NotNull(message = "学费总额（元）不能为空")
     private BigDecimal tuitionAmount;
 
-    @Schema(description = "学费说明（JSON格式，如：{\"理论课\":\"1000\",\"实操\":\"800\"}）", example = "{}")
-    private String tuitionDescription;
+    @Schema(description = "学费说明（key=名称, value=金额描述）", example = "{\"理论课\":\"1000\",\"实操\":\"800\"}")
+    private Map<String, String> tuitionDescription;
 
     @Schema(description = "定金金额（元）", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "定金金额（元）不能为空")

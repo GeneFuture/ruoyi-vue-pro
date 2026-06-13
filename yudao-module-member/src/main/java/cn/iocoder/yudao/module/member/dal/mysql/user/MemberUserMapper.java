@@ -26,6 +26,10 @@ public interface MemberUserMapper extends BaseMapperX<MemberUserDO> {
         return selectOne(MemberUserDO::getMobile, mobile);
     }
 
+    default MemberUserDO selectByReferralCode(String referralCode) {
+        return selectOne(MemberUserDO::getReferralCode, referralCode);
+    }
+
     default List<MemberUserDO> selectListByNicknameLike(String nickname) {
         return selectList(new LambdaQueryWrapperX<MemberUserDO>()
                 .likeIfPresent(MemberUserDO::getNickname, nickname));

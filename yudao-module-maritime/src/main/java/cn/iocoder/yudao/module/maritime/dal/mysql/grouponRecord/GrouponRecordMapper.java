@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.maritime.dal.mysql.grouponRecord;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -29,6 +30,15 @@ public interface GrouponRecordMapper extends BaseMapperX<GrouponRecordDO> {
                 .betweenIfPresent(GrouponRecordDO::getSuccessTime, reqVO.getSuccessTime())
                 .betweenIfPresent(GrouponRecordDO::getCreateTime, reqVO.getCreateTime())
                 .orderByDesc(GrouponRecordDO::getId));
+    }
+
+    /** 查询某班期当前进行中的拼团（未过期），按创建时间升序 */
+    default List<GrouponRecordDO> selectActiveBySessionId(Long sessionId) {
+        return selectList(new LambdaQueryWrapperX<GrouponRecordDO>()
+                .eq(GrouponRecordDO::getSessionId, sessionId)
+                .eq(GrouponRecordDO::getGrouponStatus, "IN_PROGRESS")
+                .gt(GrouponRecordDO::getExpireTime, LocalDateTime.now())
+                .orderByAsc(GrouponRecordDO::getCreateTime));
     }
 
 }

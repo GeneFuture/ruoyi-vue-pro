@@ -314,4 +314,43 @@ public class MemberUserServiceImpl implements MemberUserService {
         return true;
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void initReferralCodeIfAbsent(Long userId) {
+        MemberUserDO user = memberUserMapper.selectById(userId);
+        if (user == null || user.getReferralCode() != null) {
+            return;
+        }
+        String code = "REF-" + userId + "-" + RandomUtil.randomStringUpper(4);
+        MemberUserDO updateObj = new MemberUserDO();
+        updateObj.setId(userId);
+        updateObj.setReferralCode(code);
+        memberUserMapper.updateById(updateObj);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void bindReferredBy(Long userId, String referralCode) {
+        if (StrUtil.isBlank(referralCode)) {
+            return;
+        }
+        MemberUserDO user = memberUserMapper.selectById(userId);
+        if (user == null || user.getReferredBy() != null) {
+            return;
+        }
+        MemberUserDO referrer = memberUserMapper.selectByReferralCode(referralCode);
+        if (referrer == null || referrer.getId().equals(userId)) {
+            return;
+        }
+        MemberUserDO updateObj = new MemberUserDO();
+        updateObj.setId(userId);
+        updateObj.setReferredBy(referrer.getId());
+        memberUserMapper.updateById(updateObj);
+    }
+
+    @Override
+    public void updateUserOpenId(Long id, String openId) {
+        memberUserMapper.updateById(new MemberUserDO().setId(id).setOpenId(openId));
+    }
+
 }

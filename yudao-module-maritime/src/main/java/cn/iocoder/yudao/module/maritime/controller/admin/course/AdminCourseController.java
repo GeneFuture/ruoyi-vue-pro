@@ -69,4 +69,15 @@ public class AdminCourseController {
         return success(CourseConvert.INSTANCE.convertPage(pageResult));
     }
 
+    @PutMapping("/update-status")
+    @Operation(summary = "修改课程上下架状态")
+    @Parameter(name = "id", description = "课程ID", required = true)
+    @Parameter(name = "status", description = "状态（0=下架，1=上架）", required = true)
+    @PreAuthorize("@ss.hasPermission('maritime:course:update')")
+    public CommonResult<Boolean> updateCourseStatus(@RequestParam("id") Long id,
+                                                     @RequestParam("status") Integer status) {
+        courseService.updateCourseStatus(id, status);
+        return success(true);
+    }
+
 }

@@ -7,13 +7,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import com.baomidou.mybatisplus.annotation.*;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import cn.iocoder.yudao.framework.mybatis.core.type.EncryptTypeHandler;
 
 /**
  * 报名管理 DO
  *
  * @author Gene Ye
  */
-@TableName("maritime_enrollment")
+@TableName(value = "maritime_enrollment", autoResultMap = true)
 @KeySequence("maritime_enrollment_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -57,8 +58,9 @@ public class EnrollmentDO extends BaseDO {
      */
     private String realName;
     /**
-     * 身份证号（加密存储，EnrollmentDO 需配置 EncryptTypeHandler）
+     * 身份证号（AES 加密存储）
      */
+    @TableField(typeHandler = EncryptTypeHandler.class)
     private String idCard;
     /**
      * 手机号

@@ -11,12 +11,12 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- 注意：MySQL 8.0 不支持 ADD COLUMN IF NOT EXISTS，运行前确认列不存在
 ALTER TABLE member_user
   ADD COLUMN open_id            VARCHAR(64)  DEFAULT NULL COMMENT '微信 openid（用于自推检测、企业付款收款方标识）',
-  ADD COLUMN referral_code      VARCHAR(16)  DEFAULT NULL COMMENT '我的推荐码（支付定金后自动生成，格式 REF-{uid}-{4位随机码}）',
-  ADD COLUMN referred_by_id     BIGINT       DEFAULT NULL COMMENT '被谁推荐的（推荐人 member_user.id）',
+  ADD COLUMN referral_code      VARCHAR(20)  DEFAULT NULL COMMENT '我的推荐码（格式 REF-{uid}-{4位随机码}）',
+  ADD COLUMN referred_by        BIGINT       DEFAULT NULL COMMENT '被谁推荐的（推荐人 member_user.id）',
   ADD COLUMN is_referral_banned TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '是否禁止推荐（0正常 1禁推，账号封禁请用 status 字段）';
 
-ALTER TABLE member_user ADD UNIQUE INDEX uk_referral_code (referral_code);
-ALTER TABLE member_user ADD INDEX idx_referred_by (referred_by_id);
+ALTER TABLE member_user ADD UNIQUE INDEX uk_referral_code (referral_code, tenant_id);
+ALTER TABLE member_user ADD INDEX idx_referred_by (referred_by);
 ALTER TABLE member_user ADD INDEX idx_open_id (open_id);
 
 -- ========== 2. 课程模板表 ==========

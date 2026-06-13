@@ -27,4 +27,7 @@ public class AppAuthWeixinMiniAppLoginReqVO {
     @NotEmpty(message = "state 不能为空")
     private String state;
 
+    @Schema(description = "推荐码（可选，扫描分享码进入时传递）", example = "REF-123-ABCD")
+    private String referralCode;
+
 }

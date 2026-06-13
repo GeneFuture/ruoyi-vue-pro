@@ -88,6 +88,17 @@ public class AdminCourseSessionController {
         return success(BeanUtils.toBean(pageResult, CourseSessionRespVO.class));
     }
 
+    @PutMapping("/update-status")
+    @Operation(summary = "修改班期状态")
+    @Parameter(name = "id", description = "班期ID", required = true)
+    @Parameter(name = "sessionStatus", description = "目标状态（DRAFT/OPEN/PENDING_START/IN_PROGRESS/FINISHED/CANCELLED）", required = true)
+    @PreAuthorize("@ss.hasPermission('maritime:course-session:update')")
+    public CommonResult<Boolean> updateCourseSessionStatus(@RequestParam("id") Long id,
+                                                            @RequestParam("sessionStatus") String sessionStatus) {
+        courseSessionService.updateCourseSessionStatus(id, sessionStatus);
+        return success(true);
+    }
+
     @GetMapping("/export-excel")
     @Operation(summary = "导出班期管理 Excel")
     @PreAuthorize("@ss.hasPermission('maritime:course-session:export')")

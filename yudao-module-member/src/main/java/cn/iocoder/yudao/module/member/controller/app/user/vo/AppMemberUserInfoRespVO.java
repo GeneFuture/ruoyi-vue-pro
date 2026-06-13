@@ -38,6 +38,12 @@ public class AppMemberUserInfoRespVO {
     @Schema(description = "是否成为推广员", requiredMode = Schema.RequiredMode.REQUIRED, example = "true")
     private Boolean brokerageEnabled;
 
+    @Schema(description = "我的推荐码（格式：REF-{memberId}-{4位随机码}）", example = "REF-123-ABCD")
+    private String referralCode;
+
+    @Schema(description = "是否禁止推荐（true=已被禁推）", example = "false")
+    private Boolean isReferralBanned;
+
     @Schema(description = "用户 App - 会员等级")
     @Data
     public static class Level {

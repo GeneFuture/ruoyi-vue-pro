@@ -32,4 +32,18 @@ public interface EnrollmentOrderMapper extends BaseMapperX<EnrollmentOrderDO> {
                 .orderByDesc(EnrollmentOrderDO::getId));
     }
 
+    /** 查报名下所有订单，按创建时间倒序 */
+    default List<EnrollmentOrderDO> selectListByEnrollmentId(Long enrollmentId) {
+        return selectList(new LambdaQueryWrapperX<EnrollmentOrderDO>()
+                .eq(EnrollmentOrderDO::getEnrollmentId, enrollmentId)
+                .orderByDesc(EnrollmentOrderDO::getCreateTime));
+    }
+
+    /** 查报名下待支付订单（PENDING 状态） */
+    default List<EnrollmentOrderDO> selectPendingByEnrollmentId(Long enrollmentId) {
+        return selectList(new LambdaQueryWrapperX<EnrollmentOrderDO>()
+                .eq(EnrollmentOrderDO::getEnrollmentId, enrollmentId)
+                .eq(EnrollmentOrderDO::getOrderStatus, "PENDING"));
+    }
+
 }

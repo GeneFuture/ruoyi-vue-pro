@@ -14,6 +14,8 @@ import jakarta.servlet.http.*;
 import java.util.*;
 import java.io.IOException;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
@@ -96,9 +98,27 @@ public class AdminEnrollmentController {
               HttpServletResponse response) throws IOException {
         pageReqVO.setPageSize(PageParam.PAGE_SIZE_NONE);
         List<EnrollmentDO> list = enrollmentService.getEnrollmentPage(pageReqVO).getList();
-        // 导出 Excel
         ExcelUtils.write(response, "报名管理.xls", "数据", EnrollmentRespVO.class,
                         BeanUtils.toBean(list, EnrollmentRespVO.class));
+    }
+
+    @PutMapping("/confirm")
+    @Operation(summary = "人工确认报名（处理异常情况）")
+    @Parameter(name = "id", description = "报名ID", required = true, example = "1024")
+    @PreAuthorize("@ss.hasPermission('maritime:enrollment:update')")
+    public CommonResult<Boolean> confirmEnrollment(@RequestParam("id") Long id) {
+        enrollmentService.confirmEnrollmentByAdmin(id);
+        return success(true);
+    }
+
+    @PutMapping("/cancel")
+    @Operation(summary = "管理员取消报名")
+    @PreAuthorize("@ss.hasPermission('maritime:enrollment:update')")
+    public CommonResult<Boolean> cancelEnrollment(
+            @RequestParam("id") Long id,
+            @RequestParam("cancelReason") @NotBlank(message = "取消原因不能为空") String cancelReason) {
+        enrollmentService.cancelEnrollmentByAdmin(id, cancelReason);
+        return success(true);
     }
 
 }

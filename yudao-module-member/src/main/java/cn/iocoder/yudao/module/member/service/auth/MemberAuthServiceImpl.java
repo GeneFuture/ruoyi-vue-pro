@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.member.service.auth;
 
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.enums.TerminalEnum;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
@@ -144,9 +145,18 @@ public class MemberAuthServiceImpl implements MemberAuthService {
                 getClientIP(), TerminalEnum.WECHAT_MINI_PROGRAM.getTerminal());
         Assert.notNull(user, "获取用户失败，结果为空");
 
+        // 初始化推荐码（首次登录时生成）
+        userService.initReferralCodeIfAbsent(user.getId());
+        // 绑定推荐关系（如果携带了推荐码）
+        if (StrUtil.isNotBlank(reqVO.getReferralCode())) {
+            userService.bindReferredBy(user.getId(), reqVO.getReferralCode());
+        }
+
         // 绑定社交用户
         String openid = socialUserApi.bindSocialUser(new SocialUserBindReqDTO(user.getId(), getUserType().getValue(),
                 SocialTypeEnum.WECHAT_MINI_PROGRAM.getType(), reqVO.getLoginCode(), reqVO.getState()));
+        // 保存 openId（用于自推检测和企业付款）
+        userService.updateUserOpenId(user.getId(), openid);
 
         // 创建 Token 令牌，记录登录日志
         return createTokenAfterLoginSuccess(user, user.getMobile(), LoginLogTypeEnum.LOGIN_SOCIAL, openid);

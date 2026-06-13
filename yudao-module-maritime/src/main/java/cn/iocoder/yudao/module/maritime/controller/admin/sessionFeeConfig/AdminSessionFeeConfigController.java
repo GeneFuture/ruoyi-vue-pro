@@ -88,6 +88,23 @@ public class AdminSessionFeeConfigController {
         return success(BeanUtils.toBean(pageResult, SessionFeeConfigRespVO.class));
     }
 
+    @PutMapping("/save")
+    @Operation(summary = "保存费用配置（存在则更新，不存在则创建）")
+    @PreAuthorize("@ss.hasPermission('maritime:session-fee-config:update')")
+    public CommonResult<Boolean> saveFeeConfig(@Valid @RequestBody SessionFeeConfigSaveReqVO saveReqVO) {
+        sessionFeeConfigService.saveFeeConfig(saveReqVO);
+        return success(true);
+    }
+
+    @GetMapping("/get-by-session")
+    @Operation(summary = "按班期ID查询费用配置")
+    @Parameter(name = "sessionId", description = "班期ID", required = true)
+    @PreAuthorize("@ss.hasPermission('maritime:session-fee-config:query')")
+    public CommonResult<SessionFeeConfigRespVO> getFeeConfigBySession(@RequestParam("sessionId") Long sessionId) {
+        SessionFeeConfigDO feeConfig = sessionFeeConfigService.getFeeConfigBySessionId(sessionId);
+        return success(BeanUtils.toBean(feeConfig, SessionFeeConfigRespVO.class));
+    }
+
     @GetMapping("/export-excel")
     @Operation(summary = "导出班期费用配置 Excel")
     @PreAuthorize("@ss.hasPermission('maritime:session-fee-config:export')")

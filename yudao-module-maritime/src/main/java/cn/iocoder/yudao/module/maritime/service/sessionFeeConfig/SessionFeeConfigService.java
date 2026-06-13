@@ -59,4 +59,19 @@ public interface SessionFeeConfigService {
      */
     PageResult<SessionFeeConfigDO> getSessionFeeConfigPage(SessionFeeConfigPageReqVO pageReqVO);
 
+    /**
+     * 按 sessionId 保存费用配置（存在则更新，不存在则创建）
+     *
+     * @param saveReqVO 费用配置信息（sessionId 必传）
+     */
+    void saveFeeConfig(@Valid SessionFeeConfigSaveReqVO saveReqVO);
+
+    /**
+     * 按班期ID查询费用配置
+     *
+     * @param sessionId 班期编号
+     * @return 费用配置，不存在返回 null
+     */
+    SessionFeeConfigDO getFeeConfigBySessionId(Long sessionId);
+
 }

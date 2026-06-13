@@ -3,6 +3,7 @@ package cn.iocoder.yudao.module.maritime.service.session;
 import java.util.*;
 import jakarta.validation.*;
 import cn.iocoder.yudao.module.maritime.controller.admin.session.vo.*;
+import cn.iocoder.yudao.module.maritime.controller.app.session.vo.AppSessionDetailRespVO;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.session.CourseSessionDO;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
@@ -58,5 +59,21 @@ public interface CourseSessionService {
      * @return 班期管理分页
      */
     PageResult<CourseSessionDO> getCourseSessionPage(CourseSessionPageReqVO pageReqVO);
+
+    /**
+     * 获得班期详情（小程序端，含费用配置和进行中的拼团）
+     *
+     * @param id 班期编号
+     * @return 班期详情
+     */
+    AppSessionDetailRespVO getCourseSessionForApp(Long id);
+
+    /**
+     * 修改班期状态
+     *
+     * @param id            班期编号
+     * @param sessionStatus 目标状态（DRAFT/OPEN/PENDING_START/IN_PROGRESS/FINISHED/CANCELLED）
+     */
+    void updateCourseSessionStatus(Long id, String sessionStatus);
 
 }

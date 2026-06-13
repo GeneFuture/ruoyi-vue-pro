@@ -1,18 +1,19 @@
 package cn.iocoder.yudao.module.maritime.dal.dataobject.sessionFeeConfig;
 
-import lombok.*;
-import java.util.*;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import lombok.*;
+
+import java.math.BigDecimal;
+import java.util.Map;
 
 /**
  * 班期费用配置 DO
  *
  * @author Gene Ye
  */
-@TableName("maritime_session_fee_config")
+@TableName(value = "maritime_session_fee_config", autoResultMap = true)
 @KeySequence("maritime_session_fee_config_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -38,7 +39,8 @@ public class SessionFeeConfigDO extends BaseDO {
     /**
      * 学费说明（{"理论课":"1000","实操":"800"}）
      */
-    private String tuitionDescription;
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    private Map<String, String> tuitionDescription;
     /**
      * 定金金额（元）
      */

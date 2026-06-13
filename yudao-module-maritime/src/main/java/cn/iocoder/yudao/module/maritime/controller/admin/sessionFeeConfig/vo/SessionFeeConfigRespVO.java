@@ -25,9 +25,9 @@ public class SessionFeeConfigRespVO {
     @ExcelProperty("学费总额（元）")
     private BigDecimal tuitionAmount;
 
-    @Schema(description = "学费说明（JSON格式）", example = "{}")
+    @Schema(description = "学费说明（key=名称, value=金额描述）")
     @ExcelProperty("学费说明")
-    private String tuitionDescription;
+    private Map<String, String> tuitionDescription;
 
     @Schema(description = "定金金额（元）", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("定金金额（元）")
