@@ -20,6 +20,8 @@
         <module>yudao-module-pay</module>
         <module>yudao-module-mall</module>
         <module>yudao-module-ai</module>
+        <!-- 海员培训平台 -->
+        <module>yudao-module-maritime</module>
     </modules>
 
     <name>${project.artifactId}</name>

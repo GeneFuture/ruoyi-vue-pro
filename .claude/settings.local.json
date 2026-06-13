@@ -10,7 +10,18 @@
       "Bash(git push *)",
       "Bash(ssh -T git@github.com -i ~/.ssh/id_ed25519)",
       "Bash(ssh -T git@github.com -i ~/.ssh/id_rsa)",
-      "Bash(ssh -T git@github-genefuture)"
+      "Bash(ssh -T git@github-genefuture)",
+      "WebFetch(domain:doc.iocoder.cn)",
+      "Bash(docker compose *)",
+      "Bash(bash *)",
+      "Bash(docker exec yudao-mysql *)",
+      "Bash(docker exec *)",
+      "Bash(./mvnw compile *)",
+      "Bash(mvn compile *)",
+      "Bash(echo \"Exit: $?\")",
+      "Bash(java -version)",
+      "Bash(mysql *)",
+      "Bash(mysqldump -h 127.0.0.1 -u root -p123456 ruoyi-vue-pro QRTZ_BLOB_TRIGGERS system_users)"
     ]
   }
 }
