@@ -1,0 +1,65 @@
+package cn.iocoder.yudao.module.maritime.dal.dataobject.userMessage;
+
+import lombok.*;
+import java.util.*;
+import java.time.LocalDateTime;
+import java.time.LocalDateTime;
+import java.time.LocalDateTime;
+import com.baomidou.mybatisplus.annotation.*;
+import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+
+/**
+ * 站内消息 DO
+ *
+ * @author Gene Ye
+ */
+@TableName("maritime_user_message")
+@KeySequence("maritime_user_message_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserMessageDO extends BaseDO {
+
+    /**
+     * 消息ID
+     */
+    @TableId
+    private Long id;
+    /**
+     * 接收人 member_user.id
+     */
+    private Long memberId;
+    /**
+     * 消息类型（ORDER=订单类/GROUPON=拼团类/COMMISSION=佣金类/SYSTEM=系统公告）
+     */
+    private String type;
+    /**
+     * 消息标题
+     */
+    private String title;
+    /**
+     * 消息正文
+     */
+    private String content;
+    /**
+     * 关联业务ID（enrollment_id/commission_record_id等，可为空）
+     */
+    private Long relatedId;
+    /**
+     * 关联业务类型（ENROLLMENT/COMMISSION/GROUPON）
+     */
+    private String relatedType;
+    /**
+     * 是否已读（0未读 1已读）
+     */
+    private Boolean isRead;
+    /**
+     * 阅读时间
+     */
+    private LocalDateTime readTime;
+
+
+}

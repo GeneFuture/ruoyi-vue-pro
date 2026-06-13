@@ -1,0 +1,51 @@
+package cn.iocoder.yudao.module.maritime.dal.dataobject.announcement;
+
+import lombok.*;
+import java.util.*;
+import java.time.LocalDateTime;
+import com.baomidou.mybatisplus.annotation.*;
+import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+/**
+ * 最新动态 DO
+ *
+ * @author Gene Ye
+ */
+@TableName("maritime_announcement")
+@KeySequence("maritime_announcement_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class AnnouncementDO extends BaseDO {
+    /**
+     * 公告ID
+     */
+    @TableId
+    private Long id;
+     * 标题
+    private String title;
+     * 正文内容（富文本HTML）
+    private String content;
+     * 摘要（列表页展示，1-2行）
+    private String summary;
+     * 缩略图/封面图URL
+    private String coverImage;
+     * 类型（NEW_COURSE新课/NOTICE公告/ACTIVITY活动/CASE成功案例）
+    private String type;
+     * 外链URL（可选，点击后跳转）
+    private String externalUrl;
+     * 发布时间（支持定时发布，NULL表示立即发布）
+    private LocalDateTime publishTime;
+     * 是否置顶（0否 1是，最多3条同时置顶）
+    private Boolean isTop;
+     * 置顶排序序号（置顶时有效，越小越靠前）
+    private Integer topOrder;
+     * 非置顶优先级权重（越大越靠前）
+    private Integer sortOrder;
+     * 状态（DRAFT草稿/PUBLISHED已发布）
+    private String status;
+     * 浏览次数
+    private Integer viewCount;
+}

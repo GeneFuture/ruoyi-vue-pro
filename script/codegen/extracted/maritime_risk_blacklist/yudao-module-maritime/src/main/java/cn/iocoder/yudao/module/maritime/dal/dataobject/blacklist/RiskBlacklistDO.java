@@ -1,0 +1,44 @@
+package cn.iocoder.yudao.module.maritime.dal.dataobject.blacklist;
+
+import lombok.*;
+import java.util.*;
+import java.time.LocalDateTime;
+import java.time.LocalDateTime;
+import com.baomidou.mybatisplus.annotation.*;
+import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+
+/**
+ * 风控黑名单 DO
+ *
+ * @author Gene Ye
+ */
+@TableName("maritime_risk_blacklist")
+@KeySequence("maritime_risk_blacklist_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class RiskBlacklistDO extends BaseDO {
+
+    /**
+     * 黑名单ID
+     */
+    @TableId
+    private Long id;
+    /**
+     * 手机号
+     */
+    private String phone;
+    /**
+     * 加入黑名单原因
+     */
+    private String reason;
+    /**
+     * 操作人（管理员）
+     */
+    private Long operatorId;
+
+
+}

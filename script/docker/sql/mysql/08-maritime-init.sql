@@ -1,7 +1,7 @@
 -- ============================================================
 -- 海员培训平台 maritime 模块初始化 SQL
 -- 对应任务：T01-数据库与模块骨架.md
--- 注意：此脚本设计为幂等，可重复执行
+-- 注意：CREATE TABLE 语句幂等（IF NOT EXISTS）；ALTER TABLE 不幂等，仅适用于全新数据库（clean.sh 场景）
 -- ============================================================
 
 SET NAMES utf8mb4;
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS maritime_course_session (
 -- ========== 4. 班期费用配置表（与班期 1:1） ==========
 -- ⚠️ 所有金额字段单位：元（DECIMAL），调用 ruoyi PayOrderApi/PayTransferApi 时需 ×100 转换为分
 CREATE TABLE IF NOT EXISTS maritime_session_fee_config (
-  id                            BIGINT         NOT NULL AUTO_INCREMENT,
+  id                            BIGINT         NOT NULL AUTO_INCREMENT COMMENT '费用配置ID',
   session_id                    BIGINT         NOT NULL COMMENT '班期ID（唯一）',
   tuition_amount                DECIMAL(10,2)  NOT NULL COMMENT '学费总额（元）',
   tuition_description           JSON           DEFAULT NULL COMMENT '学费说明（{"理论课":"1000","实操":"800"}）',
@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS maritime_session_fee_config (
 -- ========== 5. 报名记录表 ==========
 -- ⚠️ 所有金额字段单位：元（DECIMAL），调用 ruoyi PayOrderApi 时需 ×100 转换为分
 CREATE TABLE IF NOT EXISTS maritime_enrollment (
-  id                      BIGINT        NOT NULL AUTO_INCREMENT,
+  id                      BIGINT        NOT NULL AUTO_INCREMENT COMMENT '报名ID',
   enrollment_no           VARCHAR(64)   NOT NULL COMMENT '报名单号（系统唯一，格式：EN+时间戳）',
   member_id               BIGINT        NOT NULL COMMENT '学员 member_user.id',
   session_id              BIGINT        NOT NULL COMMENT '班期ID',
@@ -144,7 +144,7 @@ CREATE TABLE IF NOT EXISTS maritime_enrollment (
 -- ========== 6. 报名订单表 ==========
 -- ⚠️ amount 单位：元（DECIMAL），调用 ruoyi PayOrderCreateReqDTO 时需 ×100 转换为分
 CREATE TABLE IF NOT EXISTS maritime_enrollment_order (
-  id              BIGINT         NOT NULL AUTO_INCREMENT,
+  id              BIGINT         NOT NULL AUTO_INCREMENT COMMENT '订单ID',
   enrollment_id   BIGINT         NOT NULL COMMENT '报名ID',
   order_no        VARCHAR(64)    NOT NULL COMMENT '订单号（系统生成，即 PayOrderCreateReqDTO.merchantOrderId）',
   order_type      VARCHAR(20)    NOT NULL COMMENT '订单类型（DEPOSIT定金/BALANCE尾款/FULL全款一次付）',
@@ -172,7 +172,7 @@ CREATE TABLE IF NOT EXISTS maritime_enrollment_order (
 -- ========== 7. 退费申请表 ==========
 -- ⚠️ refund_amount 单位：元（DECIMAL），调用 ruoyi PayRefundCreateReqDTO 时需 ×100 转换为分
 CREATE TABLE IF NOT EXISTS maritime_refund_apply (
-  id              BIGINT        NOT NULL AUTO_INCREMENT,
+  id              BIGINT        NOT NULL AUTO_INCREMENT COMMENT '退费申请ID',
   enrollment_id   BIGINT        NOT NULL COMMENT '报名ID',
   order_id        BIGINT        DEFAULT NULL COMMENT '关联报名订单ID（maritime_enrollment_order.id，退哪笔订单）',
   member_id       BIGINT        NOT NULL COMMENT '申请人',
@@ -199,7 +199,7 @@ CREATE TABLE IF NOT EXISTS maritime_refund_apply (
 
 -- ========== 8. 最新动态/公告表 ==========
 CREATE TABLE IF NOT EXISTS maritime_announcement (
-  id           BIGINT       NOT NULL AUTO_INCREMENT,
+  id           BIGINT       NOT NULL AUTO_INCREMENT COMMENT '公告ID',
   title        VARCHAR(200) NOT NULL COMMENT '标题',
   content      MEDIUMTEXT   DEFAULT NULL COMMENT '正文内容（富文本HTML）',
   summary      VARCHAR(500) DEFAULT NULL COMMENT '摘要（列表页展示，1-2行）',
@@ -227,7 +227,7 @@ CREATE TABLE IF NOT EXISTS maritime_announcement (
 
 -- ========== 9. 用户站内消息表 ==========
 CREATE TABLE IF NOT EXISTS maritime_user_message (
-  id              BIGINT       NOT NULL AUTO_INCREMENT,
+  id              BIGINT       NOT NULL AUTO_INCREMENT COMMENT '消息ID',
   member_id       BIGINT       NOT NULL COMMENT '接收人 member_user.id',
   type            VARCHAR(30)  NOT NULL
                   COMMENT '消息类型（ORDER=订单类/GROUPON=拼团类/COMMISSION=佣金类/SYSTEM=系统公告）',
@@ -252,7 +252,7 @@ CREATE TABLE IF NOT EXISTS maritime_user_message (
 
 -- ========== 10. 拼团记录表 ==========
 CREATE TABLE IF NOT EXISTS maritime_groupon_record (
-  id              BIGINT      NOT NULL AUTO_INCREMENT,
+  id              BIGINT      NOT NULL AUTO_INCREMENT COMMENT '拼团记录ID',
   session_id      BIGINT      NOT NULL COMMENT '班期ID',
   invite_code     VARCHAR(20) NOT NULL COMMENT '拼团邀请码（唯一）',
   initiator_enrollment_id BIGINT NOT NULL COMMENT '发起人报名ID',
@@ -278,7 +278,7 @@ CREATE TABLE IF NOT EXISTS maritime_groupon_record (
 
 -- ========== 11. 拼团成员表 ==========
 CREATE TABLE IF NOT EXISTS maritime_groupon_member (
-  id              BIGINT      NOT NULL AUTO_INCREMENT,
+  id              BIGINT      NOT NULL AUTO_INCREMENT COMMENT '拼团成员ID',
   groupon_record_id BIGINT    NOT NULL COMMENT '拼团记录ID',
   enrollment_id   BIGINT      NOT NULL COMMENT '报名ID',
   member_id       BIGINT      NOT NULL COMMENT '学员ID',
@@ -300,7 +300,7 @@ CREATE TABLE IF NOT EXISTS maritime_groupon_member (
 
 -- ========== 12. 推荐关系表 ==========
 CREATE TABLE IF NOT EXISTS maritime_referral_relation (
-  id                     BIGINT       NOT NULL AUTO_INCREMENT,
+  id                     BIGINT       NOT NULL AUTO_INCREMENT COMMENT '推荐关系ID',
   referrer_member_id     BIGINT       NOT NULL COMMENT '推荐人 member_id',
   referred_enrollment_id BIGINT       NOT NULL COMMENT '被推荐人的报名ID',
   referred_member_id     BIGINT       NOT NULL COMMENT '被推荐人 member_id',
@@ -326,7 +326,7 @@ CREATE TABLE IF NOT EXISTS maritime_referral_relation (
 -- ========== 13. 佣金记录表 ==========
 -- ⚠️ commission_amount 单位：元（DECIMAL），调用 ruoyi PayTransferCreateReqDTO 时需 ×100 转换为分
 CREATE TABLE IF NOT EXISTS maritime_commission_record (
-  id                     BIGINT         NOT NULL AUTO_INCREMENT,
+  id                     BIGINT         NOT NULL AUTO_INCREMENT COMMENT '佣金记录ID',
   referrer_member_id     BIGINT         NOT NULL COMMENT '推荐人',
   referred_enrollment_id BIGINT         NOT NULL COMMENT '被推荐人的报名ID',
   session_id             BIGINT         NOT NULL COMMENT '班期ID',
@@ -362,7 +362,7 @@ CREATE TABLE IF NOT EXISTS maritime_commission_record (
 
 -- ========== 14. 推荐人佣金账户（汇总） ==========
 CREATE TABLE IF NOT EXISTS maritime_commission_account (
-  id                   BIGINT        NOT NULL AUTO_INCREMENT,
+  id                   BIGINT        NOT NULL AUTO_INCREMENT COMMENT '账户ID',
   member_id            BIGINT        NOT NULL COMMENT '推荐人 member_id（唯一）',
   total_amount         DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '累计佣金总额（元）',
   paid_amount          DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '已发放金额（元）',
@@ -384,7 +384,7 @@ CREATE TABLE IF NOT EXISTS maritime_commission_account (
 
 -- ========== 15. 风控手机号黑名单 ==========
 CREATE TABLE IF NOT EXISTS maritime_risk_blacklist (
-  id          BIGINT       NOT NULL AUTO_INCREMENT,
+  id          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '黑名单ID',
   phone       VARCHAR(20)  NOT NULL COMMENT '手机号',
   reason      VARCHAR(200) NOT NULL COMMENT '加入黑名单原因',
   operator_id BIGINT       DEFAULT NULL COMMENT '操作人（管理员）',
