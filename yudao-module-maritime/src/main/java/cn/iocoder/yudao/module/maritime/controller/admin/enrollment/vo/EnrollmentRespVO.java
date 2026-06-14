@@ -46,9 +46,9 @@ public class EnrollmentRespVO {
     @ExcelProperty("真实姓名")
     private String realName;
 
-    @Schema(description = "身份证号（加密存储，EnrollmentDO 需配置 EncryptTypeHandler）", requiredMode = Schema.RequiredMode.REQUIRED)
-    @ExcelProperty("身份证号（加密存储，EnrollmentDO 需配置 EncryptTypeHandler）")
-    private String idCard;
+    @Schema(description = "身份证号（脱敏，前4后4中间*）")
+    @ExcelProperty("身份证号（脱敏）")
+    private String idCardMasked;
 
     @Schema(description = "手机号", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("手机号")

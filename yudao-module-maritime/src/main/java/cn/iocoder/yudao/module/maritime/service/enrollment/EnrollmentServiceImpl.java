@@ -121,21 +121,21 @@ public class EnrollmentServiceImpl implements EnrollmentService {
             throw exception(SESSION_FEE_CONFIG_NOT_EXISTS);
         }
 
-        // Step 3: 同一身份证未重复报名同班期（加密后比对）
+        // Step 3: 同一身份证未重复报名同班期（加密后与库中加密值比对）
         String encryptedIdCard = EncryptTypeHandler.encrypt(createReqVO.getIdCard());
         EnrollmentDO existing = enrollmentMapper.selectByIdCardAndSession(encryptedIdCard, createReqVO.getSessionId());
         if (existing != null) {
             throw exception(ENROLLMENT_DUPLICATE);
         }
 
-        // Step 4: 创建报名记录
+        // Step 4: 创建报名记录（传入明文，TypeHandler 负责加密写库）
         String enrollmentNo = "EN" + LocalDateTime.now().format(ORDER_NO_FMT) + IdUtil.fastSimpleUUID().substring(0, 4).toUpperCase();
         EnrollmentDO enrollment = new EnrollmentDO();
         enrollment.setEnrollmentNo(enrollmentNo);
         enrollment.setMemberId(memberId);
         enrollment.setSessionId(createReqVO.getSessionId());
         enrollment.setRealName(createReqVO.getRealName());
-        enrollment.setIdCard(encryptedIdCard);
+        enrollment.setIdCard(createReqVO.getIdCard()); // 明文，EncryptTypeHandler 写库时自动加密
         enrollment.setPhone(createReqVO.getPhone());
         enrollment.setReferralCodeUsed(StrUtil.isBlank(createReqVO.getReferralCode()) ? null : createReqVO.getReferralCode());
         enrollment.setTotalAmount(feeConfig.getTuitionAmount());
@@ -225,9 +225,8 @@ public class EnrollmentServiceImpl implements EnrollmentService {
             String p = enrollment.getPhone();
             if (p.length() == 11) {
                 vo.setPhoneMasked(p.substring(0, 3) + "****" + p.substring(7));
-            } else {
-                vo.setPhoneMasked(enrollment.getPhone());
             }
+            // 非标准长度：不展示原值，留 null 保护隐私
         }
 
         // 班期信息
@@ -297,8 +296,14 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     @Transactional(rollbackFor = Exception.class)
     public void confirmEnrollmentByAdmin(Long id) {
         EnrollmentDO enrollment = validateEnrollmentExists(id);
-        // 人工确认：将 PENDING_DEPOSIT 状态推进到 DEPOSITED
-        if (!EnrollmentStatusEnum.PENDING_DEPOSIT.getStatus().equals(enrollment.getEnrollmentStatus())) {
+        String status = enrollment.getEnrollmentStatus();
+        // 已终态（完成/取消）不允许确认
+        if (EnrollmentStatusEnum.COMPLETED.getStatus().equals(status)
+                || EnrollmentStatusEnum.CANCELLED.getStatus().equals(status)) {
+            throw exception(ENROLLMENT_CONFIRM_NOT_ALLOWED);
+        }
+        // 已过定金阶段，幂等返回
+        if (!EnrollmentStatusEnum.PENDING_DEPOSIT.getStatus().equals(status)) {
             return;
         }
         EnrollmentDO updateObj = new EnrollmentDO();
@@ -333,10 +338,8 @@ public class EnrollmentServiceImpl implements EnrollmentService {
             enrollmentOrderMapper.updateById(closeObj);
         }
 
-        // 仅 PENDING_DEPOSIT 状态尚未实际占用名额（未收费），需归还
-        if (EnrollmentStatusEnum.PENDING_DEPOSIT.getStatus().equals(status)) {
-            courseSessionMapper.decrementEnrolledCount(enrollment.getSessionId());
-        }
+        // 凡未到终态的报名都已占用名额（CAS 时已 +1），取消时必须归还
+        courseSessionMapper.decrementEnrolledCount(enrollment.getSessionId());
     }
 
     // ========== 私有工具 ==========

@@ -58,7 +58,7 @@ public class AppEnrollmentController {
     @PostMapping("/cancel")
     @Operation(summary = "取消报名（仅限待支付定金状态）")
     @Parameter(name = "id", description = "报名ID", required = true, example = "1024")
-    @PreAuthorize("@ss.hasPermission('maritime:enrollment:create')")
+    @PreAuthorize("@ss.hasPermission('maritime:enrollment:update')")
     public CommonResult<Boolean> cancelEnrollment(@RequestParam("id") Long id) {
         Long memberId = SecurityFrameworkUtils.getLoginUserId();
         enrollmentService.cancelEnrollmentForApp(id, memberId);

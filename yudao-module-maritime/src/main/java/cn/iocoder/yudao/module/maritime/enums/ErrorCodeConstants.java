@@ -25,6 +25,7 @@ public interface ErrorCodeConstants {
     ErrorCode ENROLLMENT_DUPLICATE = new ErrorCode(1_009_003_001, "同一班期不能重复报名");
     ErrorCode ENROLLMENT_ORDER_NOT_EXISTS = new ErrorCode(1_009_003_002, "报名订单不存在");
     ErrorCode ENROLLMENT_CANCEL_NOT_ALLOWED = new ErrorCode(1_009_003_003, "当前状态不允许取消报名");
+    ErrorCode ENROLLMENT_CONFIRM_NOT_ALLOWED = new ErrorCode(1_009_003_004, "当前状态不允许人工确认报名");
 
     // ========== 拼团模块 1-009-004-000 ==========
     ErrorCode GROUPON_NOT_EXISTS = new ErrorCode(1_009_004_000, "拼团不存在");

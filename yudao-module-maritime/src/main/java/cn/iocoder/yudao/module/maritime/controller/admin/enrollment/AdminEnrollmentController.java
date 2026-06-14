@@ -27,6 +27,7 @@ import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import static cn.iocoder.yudao.framework.apilog.core.enums.OperateTypeEnum.*;
 
+import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.module.maritime.controller.admin.enrollment.vo.*;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.enrollment.EnrollmentDO;
 import cn.iocoder.yudao.module.maritime.service.enrollment.EnrollmentService;
@@ -79,7 +80,7 @@ public class AdminEnrollmentController {
     @PreAuthorize("@ss.hasPermission('maritime:enrollment:query')")
     public CommonResult<EnrollmentRespVO> getEnrollment(@RequestParam("id") Long id) {
         EnrollmentDO enrollment = enrollmentService.getEnrollment(id);
-        return success(BeanUtils.toBean(enrollment, EnrollmentRespVO.class));
+        return success(toMaskedRespVO(enrollment));
     }
 
     @GetMapping("/page")
@@ -87,7 +88,9 @@ public class AdminEnrollmentController {
     @PreAuthorize("@ss.hasPermission('maritime:enrollment:query')")
     public CommonResult<PageResult<EnrollmentRespVO>> getEnrollmentPage(@Valid EnrollmentPageReqVO pageReqVO) {
         PageResult<EnrollmentDO> pageResult = enrollmentService.getEnrollmentPage(pageReqVO);
-        return success(BeanUtils.toBean(pageResult, EnrollmentRespVO.class));
+        List<EnrollmentRespVO> voList = pageResult.getList().stream()
+                .map(this::toMaskedRespVO).collect(java.util.stream.Collectors.toList());
+        return success(new PageResult<>(voList, pageResult.getTotal()));
     }
 
     @GetMapping("/export-excel")
@@ -98,8 +101,18 @@ public class AdminEnrollmentController {
               HttpServletResponse response) throws IOException {
         pageReqVO.setPageSize(PageParam.PAGE_SIZE_NONE);
         List<EnrollmentDO> list = enrollmentService.getEnrollmentPage(pageReqVO).getList();
-        ExcelUtils.write(response, "报名管理.xls", "数据", EnrollmentRespVO.class,
-                        BeanUtils.toBean(list, EnrollmentRespVO.class));
+        List<EnrollmentRespVO> voList = list.stream().map(this::toMaskedRespVO).collect(java.util.stream.Collectors.toList());
+        ExcelUtils.write(response, "报名管理.xls", "数据", EnrollmentRespVO.class, voList);
+    }
+
+    /** 将 DO 转 VO 并对身份证做脱敏（前4后4，中间*） */
+    private EnrollmentRespVO toMaskedRespVO(EnrollmentDO enrollment) {
+        EnrollmentRespVO vo = BeanUtils.toBean(enrollment, EnrollmentRespVO.class);
+        String idCard = enrollment.getIdCard();
+        if (StrUtil.isNotBlank(idCard) && idCard.length() >= 8) {
+            vo.setIdCardMasked(idCard.substring(0, 4) + "**********" + idCard.substring(idCard.length() - 4));
+        }
+        return vo;
     }
 
     @PutMapping("/confirm")
