@@ -18,6 +18,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
@@ -96,9 +97,26 @@ public class AdminRefundApplyController {
               HttpServletResponse response) throws IOException {
         pageReqVO.setPageSize(PageParam.PAGE_SIZE_NONE);
         List<RefundApplyDO> list = refundApplyService.getRefundApplyPage(pageReqVO).getList();
-        // 导出 Excel
         ExcelUtils.write(response, "退费申请.xls", "数据", RefundApplyRespVO.class,
                         BeanUtils.toBean(list, RefundApplyRespVO.class));
+    }
+
+    @PutMapping("/approve")
+    @Operation(summary = "审核通过退费申请")
+    @PreAuthorize("@ss.hasPermission('maritime:refund-apply:update')")
+    public CommonResult<Boolean> approveRefund(@Valid @RequestBody AdminRefundApproveReqVO reqVO) {
+        Long approverId = SecurityFrameworkUtils.getLoginUserId();
+        refundApplyService.approveRefund(reqVO.getId(), reqVO.getRefundAmount(), approverId, reqVO.getAdminRemark());
+        return success(true);
+    }
+
+    @PutMapping("/reject")
+    @Operation(summary = "拒绝退费申请")
+    @PreAuthorize("@ss.hasPermission('maritime:refund-apply:update')")
+    public CommonResult<Boolean> rejectRefund(@Valid @RequestBody AdminRefundRejectReqVO reqVO) {
+        Long approverId = SecurityFrameworkUtils.getLoginUserId();
+        refundApplyService.rejectRefund(reqVO.getId(), approverId, reqVO.getRejectReason());
+        return success(true);
     }
 
 }

@@ -34,4 +34,10 @@ public class AppEnrollmentCreateReqVO {
     @Schema(description = "推荐码（可选，来自分享链接）", example = "REF-123-ABCD")
     private String referralCode;
 
+    @Schema(description = "是否参与拼团", example = "false")
+    private Boolean joinGroupon;
+
+    @Schema(description = "拼团邀请码（joinGroupon=true 且加入已有拼团时传入，新建拼团时留空）", example = "GRP-ABCD1234")
+    private String grouponInviteCode;
+
 }

@@ -18,6 +18,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
@@ -96,9 +97,35 @@ public class AdminCommissionRecordController {
               HttpServletResponse response) throws IOException {
         pageReqVO.setPageSize(PageParam.PAGE_SIZE_NONE);
         List<CommissionRecordDO> list = commissionRecordService.getCommissionRecordPage(pageReqVO).getList();
-        // 导出 Excel
         ExcelUtils.write(response, "佣金记录.xls", "数据", CommissionRecordRespVO.class,
                         BeanUtils.toBean(list, CommissionRecordRespVO.class));
+    }
+
+    @PutMapping("/approve")
+    @Operation(summary = "审核通过佣金")
+    @PreAuthorize("@ss.hasPermission('maritime:commission-record:update')")
+    public CommonResult<Boolean> approveCommission(@Valid @RequestBody AdminCommissionApproveReqVO reqVO) {
+        Long approverId = SecurityFrameworkUtils.getLoginUserId();
+        commissionRecordService.approveCommission(reqVO.getId(), approverId, reqVO.getRemark());
+        return success(true);
+    }
+
+    @PutMapping("/reject")
+    @Operation(summary = "拒绝佣金")
+    @PreAuthorize("@ss.hasPermission('maritime:commission-record:update')")
+    public CommonResult<Boolean> rejectCommission(@Valid @RequestBody AdminCommissionRejectReqVO reqVO) {
+        Long approverId = SecurityFrameworkUtils.getLoginUserId();
+        commissionRecordService.rejectCommission(reqVO.getId(), approverId, reqVO.getReason(), reqVO.getRemark());
+        return success(true);
+    }
+
+    @PostMapping("/manual-payout")
+    @Operation(summary = "手动重新发放佣金（针对 FAILED 记录）")
+    @Parameter(name = "recordId", description = "佣金记录编号", required = true)
+    @PreAuthorize("@ss.hasPermission('maritime:commission-record:update')")
+    public CommonResult<Boolean> manualPayout(@RequestParam("recordId") Long recordId) {
+        commissionRecordService.manualPayout(recordId);
+        return success(true);
     }
 
 }

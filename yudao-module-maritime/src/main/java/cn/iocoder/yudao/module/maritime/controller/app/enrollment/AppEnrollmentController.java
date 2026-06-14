@@ -2,10 +2,7 @@ package cn.iocoder.yudao.module.maritime.controller.app.enrollment;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
-import cn.iocoder.yudao.module.maritime.controller.app.enrollment.vo.AppEnrollmentCreateReqVO;
-import cn.iocoder.yudao.module.maritime.controller.app.enrollment.vo.AppEnrollmentCreateRespVO;
-import cn.iocoder.yudao.module.maritime.controller.app.enrollment.vo.AppEnrollmentDetailRespVO;
-import cn.iocoder.yudao.module.maritime.controller.app.enrollment.vo.AppEnrollmentListRespVO;
+import cn.iocoder.yudao.module.maritime.controller.app.enrollment.vo.*;
 import cn.iocoder.yudao.module.maritime.service.enrollment.EnrollmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -63,6 +60,33 @@ public class AppEnrollmentController {
         Long memberId = SecurityFrameworkUtils.getLoginUserId();
         enrollmentService.cancelEnrollmentForApp(id, memberId);
         return success(true);
+    }
+
+    @PostMapping("/refund-apply")
+    @Operation(summary = "申请退费")
+    @PreAuthorize("@ss.hasPermission('maritime:enrollment:update')")
+    public CommonResult<Boolean> applyRefund(@Valid @RequestBody AppRefundApplyReqVO reqVO) {
+        Long memberId = SecurityFrameworkUtils.getLoginUserId();
+        enrollmentService.applyRefund(reqVO, memberId);
+        return success(true);
+    }
+
+    @PostMapping("/transfer-apply")
+    @Operation(summary = "申请转课")
+    @PreAuthorize("@ss.hasPermission('maritime:enrollment:update')")
+    public CommonResult<Boolean> applyTransfer(@Valid @RequestBody AppTransferApplyReqVO reqVO) {
+        Long memberId = SecurityFrameworkUtils.getLoginUserId();
+        enrollmentService.applyTransfer(reqVO, memberId);
+        return success(true);
+    }
+
+    @GetMapping("/refund-status")
+    @Operation(summary = "查询退费状态")
+    @Parameter(name = "enrollmentId", description = "报名ID", required = true, example = "1024")
+    @PreAuthorize("@ss.hasPermission('maritime:enrollment:query')")
+    public CommonResult<AppRefundStatusRespVO> getRefundStatus(@RequestParam("enrollmentId") Long enrollmentId) {
+        Long memberId = SecurityFrameworkUtils.getLoginUserId();
+        return success(enrollmentService.getRefundStatus(enrollmentId, memberId));
     }
 
 }

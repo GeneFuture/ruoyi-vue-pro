@@ -399,4 +399,62 @@ CREATE TABLE IF NOT EXISTS maritime_risk_blacklist (
   UNIQUE INDEX uk_phone (phone, deleted)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='风控手机号黑名单';
 
+-- ========== 16. 提现申请表 ==========
+CREATE TABLE IF NOT EXISTS maritime_withdrawal_apply (
+  id               BIGINT         NOT NULL AUTO_INCREMENT COMMENT '提现ID',
+  member_id        BIGINT         NOT NULL COMMENT '申请人 member_user.id',
+  apply_amount     DECIMAL(10,2)  NOT NULL COMMENT '申请提现金额（元）',
+  tax_amount       DECIMAL(10,2)  NOT NULL DEFAULT 0 COMMENT '代扣税额（元）',
+  net_amount       DECIMAL(10,2)  NOT NULL COMMENT '实际到账金额（元）',
+  channel          VARCHAR(20)    NOT NULL COMMENT '提现渠道（WX_BALANCE/BANK_CARD）',
+  apply_status     VARCHAR(20)    NOT NULL DEFAULT 'PENDING' COMMENT '状态（PENDING/PROCESSING/SUCCESS/FAILED/REJECTED）',
+  pay_transfer_id  BIGINT         DEFAULT NULL COMMENT 'ruoyi pay_transfer.id',
+  reject_reason    VARCHAR(500)   DEFAULT NULL COMMENT '拒绝原因',
+  fail_reason      VARCHAR(500)   DEFAULT NULL COMMENT '失败原因',
+  success_time     DATETIME       DEFAULT NULL COMMENT '到账时间',
+  creator          VARCHAR(64)    NOT NULL DEFAULT '' COMMENT '创建者',
+  updater          VARCHAR(64)    NOT NULL DEFAULT '' COMMENT '更新者',
+  create_time      DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  update_time      DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  deleted          TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '逻辑删除',
+  tenant_id        BIGINT         NOT NULL DEFAULT 0 COMMENT '租户ID',
+  PRIMARY KEY (id),
+  INDEX idx_member_id (member_id),
+  INDEX idx_apply_status (apply_status),
+  INDEX idx_create_time (create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='佣金提现申请表';
+
+-- ========== 17. 税务代扣月度记录表 ==========
+CREATE TABLE IF NOT EXISTS maritime_tax_record (
+  id             BIGINT        NOT NULL AUTO_INCREMENT COMMENT '税务记录ID',
+  member_id      BIGINT        NOT NULL COMMENT '推荐人',
+  tax_month      VARCHAR(7)    NOT NULL COMMENT '税务月份（格式：2026-06）',
+  month_income   DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '当月累计到账佣金（元）',
+  tax_paid       DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '当月已代扣税额（元）',
+  version        INT           NOT NULL DEFAULT 0 COMMENT '乐观锁',
+  creator        VARCHAR(64)   NOT NULL DEFAULT '' COMMENT '创建者',
+  updater        VARCHAR(64)   NOT NULL DEFAULT '' COMMENT '更新者',
+  create_time    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  update_time    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  tenant_id      BIGINT        NOT NULL DEFAULT 0 COMMENT '租户ID',
+  PRIMARY KEY (id),
+  UNIQUE INDEX uk_member_month (member_id, tax_month)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='税务代扣月度记录表';
+
+-- ========== 18. 会员微信订阅状态表 ==========
+CREATE TABLE IF NOT EXISTS maritime_member_subscribe (
+  id             BIGINT        NOT NULL AUTO_INCREMENT COMMENT '记录ID',
+  member_id      BIGINT        NOT NULL COMMENT '会员ID',
+  template_title VARCHAR(100)  NOT NULL COMMENT '微信订阅消息模板标题',
+  subscribed     TINYINT(1)    NOT NULL DEFAULT 0 COMMENT '是否已授权订阅（1已授权 0拒绝/过期）',
+  creator        VARCHAR(64)   NOT NULL DEFAULT '' COMMENT '创建者',
+  updater        VARCHAR(64)   NOT NULL DEFAULT '' COMMENT '更新者',
+  create_time    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  update_time    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  deleted        TINYINT(1)    NOT NULL DEFAULT 0 COMMENT '逻辑删除',
+  tenant_id      BIGINT        NOT NULL DEFAULT 0 COMMENT '租户ID',
+  PRIMARY KEY (id),
+  UNIQUE INDEX uk_member_template (member_id, template_title)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='会员微信订阅消息授权状态表';
+
 SET FOREIGN_KEY_CHECKS = 1;

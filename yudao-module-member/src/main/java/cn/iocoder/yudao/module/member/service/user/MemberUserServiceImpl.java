@@ -305,6 +305,11 @@ public class MemberUserServiceImpl implements MemberUserService {
     }
 
     @Override
+    public MemberUserDO getUserByReferralCode(String referralCode) {
+        return memberUserMapper.selectByReferralCode(referralCode);
+    }
+
+    @Override
     public boolean updateUserPoint(Long id, Integer point) {
         if (point > 0) {
             memberUserMapper.updatePointIncr(id, point);

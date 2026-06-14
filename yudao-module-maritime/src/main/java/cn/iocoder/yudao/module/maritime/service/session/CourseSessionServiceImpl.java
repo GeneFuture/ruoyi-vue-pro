@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.maritime.enums.ErrorCodeConstants.COURSE_SESSION_NOT_EXISTS;
+import static cn.iocoder.yudao.module.maritime.enums.ErrorCodeConstants.SESSION_NOT_EXISTS;
 
 /**
  * 班期管理 Service 实现类
@@ -101,7 +101,7 @@ public class CourseSessionServiceImpl implements CourseSessionService {
     public AppSessionDetailRespVO getCourseSessionForApp(Long id) {
         CourseSessionDO session = courseSessionMapper.selectById(id);
         if (session == null) {
-            throw exception(COURSE_SESSION_NOT_EXISTS);
+            throw exception(SESSION_NOT_EXISTS);
         }
 
         SessionFeeConfigDO feeConfig = sessionFeeConfigMapper.selectBySessionId(id);
@@ -145,7 +145,7 @@ public class CourseSessionServiceImpl implements CourseSessionService {
 
     private void validateCourseSessionExists(Long id) {
         if (courseSessionMapper.selectById(id) == null) {
-            throw exception(COURSE_SESSION_NOT_EXISTS);
+            throw exception(SESSION_NOT_EXISTS);
         }
     }
 

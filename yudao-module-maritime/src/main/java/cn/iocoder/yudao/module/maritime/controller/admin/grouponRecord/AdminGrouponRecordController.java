@@ -27,6 +27,7 @@ import static cn.iocoder.yudao.framework.apilog.core.enums.OperateTypeEnum.*;
 
 import cn.iocoder.yudao.module.maritime.controller.admin.grouponRecord.vo.*;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.grouponRecord.GrouponRecordDO;
+import cn.iocoder.yudao.module.maritime.service.groupon.GrouponService;
 import cn.iocoder.yudao.module.maritime.service.grouponRecord.GrouponRecordService;
 
 @Tag(name = "管理后台 - 拼团记录")
@@ -37,6 +38,9 @@ public class AdminGrouponRecordController {
 
     @Resource
     private GrouponRecordService grouponRecordService;
+
+    @Resource
+    private GrouponService grouponService;
 
     @PostMapping("/create")
     @Operation(summary = "创建拼团记录")
@@ -86,6 +90,24 @@ public class AdminGrouponRecordController {
     public CommonResult<PageResult<GrouponRecordRespVO>> getGrouponRecordPage(@Valid GrouponRecordPageReqVO pageReqVO) {
         PageResult<GrouponRecordDO> pageResult = grouponRecordService.getGrouponRecordPage(pageReqVO);
         return success(BeanUtils.toBean(pageResult, GrouponRecordRespVO.class));
+    }
+
+    @PutMapping("/force-succeed")
+    @Operation(summary = "强制成团（管理员特批）")
+    @Parameter(name = "grouponRecordId", description = "拼团记录ID", required = true)
+    @PreAuthorize("@ss.hasPermission('maritime:groupon-record:update')")
+    public CommonResult<Boolean> forceSucceedGroupon(@RequestParam("grouponRecordId") Long grouponRecordId) {
+        grouponService.forceSucceedGroupon(grouponRecordId);
+        return success(true);
+    }
+
+    @PutMapping("/close")
+    @Operation(summary = "关闭拼团（降级处理）")
+    @Parameter(name = "grouponRecordId", description = "拼团记录ID", required = true)
+    @PreAuthorize("@ss.hasPermission('maritime:groupon-record:update')")
+    public CommonResult<Boolean> closeGroupon(@RequestParam("grouponRecordId") Long grouponRecordId) {
+        grouponService.closeGroupon(grouponRecordId);
+        return success(true);
     }
 
     @GetMapping("/export-excel")

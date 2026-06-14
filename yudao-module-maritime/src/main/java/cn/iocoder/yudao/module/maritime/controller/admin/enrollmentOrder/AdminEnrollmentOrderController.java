@@ -27,6 +27,7 @@ import static cn.iocoder.yudao.framework.apilog.core.enums.OperateTypeEnum.*;
 
 import cn.iocoder.yudao.module.maritime.controller.admin.enrollmentOrder.vo.*;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.enrollmentOrder.EnrollmentOrderDO;
+import cn.iocoder.yudao.module.maritime.service.enrollment.EnrollmentService;
 import cn.iocoder.yudao.module.maritime.service.enrollmentOrder.EnrollmentOrderService;
 
 @Tag(name = "管理后台 - 报名订单")
@@ -37,6 +38,9 @@ public class AdminEnrollmentOrderController {
 
     @Resource
     private EnrollmentOrderService enrollmentOrderService;
+
+    @Resource
+    private EnrollmentService enrollmentService;
 
     @PostMapping("/create")
     @Operation(summary = "创建报名订单")
@@ -86,6 +90,15 @@ public class AdminEnrollmentOrderController {
     public CommonResult<PageResult<EnrollmentOrderRespVO>> getEnrollmentOrderPage(@Valid EnrollmentOrderPageReqVO pageReqVO) {
         PageResult<EnrollmentOrderDO> pageResult = enrollmentOrderService.getEnrollmentOrderPage(pageReqVO);
         return success(BeanUtils.toBean(pageResult, EnrollmentOrderRespVO.class));
+    }
+
+    @PutMapping("/manual-confirm")
+    @Operation(summary = "手动确认定金支付（用于回调异常但实际已付款的情况）")
+    @Parameter(name = "orderId", description = "定金订单ID", required = true)
+    @PreAuthorize("@ss.hasPermission('maritime:enrollment-order:update')")
+    public CommonResult<Boolean> manualConfirmDeposit(@RequestParam("orderId") Long orderId) {
+        enrollmentService.manualConfirmDeposit(orderId);
+        return success(true);
     }
 
     @GetMapping("/export-excel")

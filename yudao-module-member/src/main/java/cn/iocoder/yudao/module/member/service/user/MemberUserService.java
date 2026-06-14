@@ -179,6 +179,14 @@ public interface MemberUserService {
     Long getUserCountByTagId(Long tagId);
 
     /**
+     * 根据推荐码查询会员
+     *
+     * @param referralCode 推荐码
+     * @return 会员，不存在时返回 null
+     */
+    MemberUserDO getUserByReferralCode(String referralCode);
+
+    /**
      * 更新用户的积分
      *
      * @param userId 用户编号

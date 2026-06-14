@@ -4,6 +4,9 @@ import java.util.*;
 import jakarta.validation.*;
 import cn.iocoder.yudao.module.maritime.controller.admin.enrollment.vo.*;
 import cn.iocoder.yudao.module.maritime.controller.app.enrollment.vo.*;
+import cn.iocoder.yudao.module.maritime.controller.app.order.vo.AppPayBalanceReqVO;
+import cn.iocoder.yudao.module.maritime.controller.app.order.vo.AppPayOrderRespVO;
+import cn.iocoder.yudao.module.maritime.controller.app.order.vo.AppPayOrderStatusRespVO;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.enrollment.EnrollmentDO;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
@@ -112,5 +115,93 @@ public interface EnrollmentService {
      * @param cancelReason 取消原因
      */
     void cancelEnrollmentByAdmin(Long id, String cancelReason);
+
+    // ========== 小程序端 T04 ==========
+
+    /**
+     * 小程序端：发起定金支付（创建 pay 模块订单，返回 payOrderId）
+     *
+     * @param orderId  定金订单ID（EnrollmentOrder.id）
+     * @param memberId 当前登录学员ID
+     * @return payOrderId 及应付金额
+     */
+    AppPayOrderRespVO payDeposit(Long orderId, Long memberId);
+
+    /**
+     * 定金支付成功回调（由 pay 模块调用）
+     *
+     * @param merchantOrderId 商户订单号（即 EnrollmentOrder.orderNo）
+     * @param payOrderId      pay 模块支付单ID
+     */
+    void handleDepositPaid(String merchantOrderId, Long payOrderId);
+
+    /**
+     * 关闭过期的定金订单（CAS 幂等，供定时任务调用）
+     *
+     * @param orderId 定金订单ID
+     */
+    void closeExpiredOrder(Long orderId);
+
+    /**
+     * 小程序端：查询定金支付结果（前端轮询，处理微信回调延迟）
+     *
+     * @param payOrderId pay 模块支付单ID
+     * @param memberId   当前登录学员ID
+     * @return 支付状态及报名ID
+     */
+    AppPayOrderStatusRespVO getPayOrderStatus(Long payOrderId, Long memberId);
+
+    // ========== 后台管理端 T04 ==========
+
+    /**
+     * 管理端：手动确认定金支付（用于微信回调异常但实际已付款的情况）
+     *
+     * @param orderId 定金订单ID（EnrollmentOrder.id）
+     */
+    void manualConfirmDeposit(Long orderId);
+
+    // ========== 小程序端 T07 ==========
+
+    /**
+     * 小程序端：发起尾款支付
+     *
+     * @param reqVO    请求参数（enrollmentId）
+     * @param memberId 当前登录学员ID
+     * @return pay 模块订单ID 及应付金额
+     */
+    AppPayOrderRespVO payBalance(@Valid AppPayBalanceReqVO reqVO, Long memberId);
+
+    /**
+     * 尾款支付成功回调（由 pay 模块调用）
+     *
+     * @param merchantOrderId 商户订单号（即 EnrollmentOrder.orderNo）
+     * @param payOrderId      pay 模块支付单ID
+     */
+    void handleBalancePaid(String merchantOrderId, Long payOrderId);
+
+    /**
+     * 小程序端：申请退费
+     *
+     * @param reqVO    退费申请参数
+     * @param memberId 当前登录学员ID
+     */
+    void applyRefund(@Valid AppRefundApplyReqVO reqVO, Long memberId);
+
+    /**
+     * 小程序端：申请转课
+     *
+     * @param reqVO    转课申请参数
+     * @param memberId 当前登录学员ID
+     */
+    void applyTransfer(@Valid AppTransferApplyReqVO reqVO, Long memberId);
+
+    /**
+     * 小程序端：查询退费状态
+     *
+     * @param enrollmentId 报名ID
+     * @param memberId     当前登录学员ID
+     * @return 退费申请状态（无申请时返回 null）
+     */
+    AppRefundStatusRespVO getRefundStatus(Long enrollmentId, Long memberId);
 
 }

@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.maritime.service.refundApply;
 
+import java.math.BigDecimal;
 import java.util.*;
 import jakarta.validation.*;
 import cn.iocoder.yudao.module.maritime.controller.admin.refundApply.vo.*;
@@ -58,5 +59,26 @@ public interface RefundApplyService {
      * @return 退费申请分页
      */
     PageResult<RefundApplyDO> getRefundApplyPage(RefundApplyPageReqVO pageReqVO);
+
+    // ========== 管理端 T07 ==========
+
+    /**
+     * 管理端：审核通过退费（发起微信退款、取消报名、冻结佣金）
+     *
+     * @param id           退费申请ID
+     * @param refundAmount 实际退款金额（元）
+     * @param approverId   审核人（系统用户ID）
+     * @param adminRemark  管理员备注
+     */
+    void approveRefund(Long id, BigDecimal refundAmount, Long approverId, String adminRemark);
+
+    /**
+     * 管理端：拒绝退费申请
+     *
+     * @param id           退费申请ID
+     * @param approverId   审核人（系统用户ID）
+     * @param rejectReason 拒绝原因
+     */
+    void rejectRefund(Long id, Long approverId, String rejectReason);
 
 }

@@ -21,7 +21,9 @@
       "Bash(echo \"Exit: $?\")",
       "Bash(java -version)",
       "Bash(mysql *)",
-      "Bash(mysqldump -h 127.0.0.1 -u root -p123456 ruoyi-vue-pro QRTZ_BLOB_TRIGGERS system_users)"
+      "Bash(mysqldump -h 127.0.0.1 -u root -p123456 ruoyi-vue-pro QRTZ_BLOB_TRIGGERS system_users)",
+      "Bash(xargs cat)",
+      "Bash(git -C /Users/admin/mytech/workspace/haizhou-work/rouyi/ruoyi-vue-pro diff --name-only HEAD)"
     ]
   }
 }

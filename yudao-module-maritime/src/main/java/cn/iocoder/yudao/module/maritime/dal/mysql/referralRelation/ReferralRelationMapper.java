@@ -31,4 +31,31 @@ public interface ReferralRelationMapper extends BaseMapperX<ReferralRelationDO> 
                 .orderByDesc(ReferralRelationDO::getId));
     }
 
+    default ReferralRelationDO selectByReferredEnrollmentId(Long enrollmentId) {
+        return selectOne(ReferralRelationDO::getReferredEnrollmentId, enrollmentId);
+    }
+
+    /** 推荐人的全部推荐数（含 ACTIVE + INVALID） */
+    default long countByReferrerMemberId(Long memberId) {
+        return selectCount(ReferralRelationDO::getReferrerMemberId, memberId);
+    }
+
+    /** 推荐人的推荐记录分页（App 端） */
+    default cn.iocoder.yudao.framework.common.pojo.PageResult<ReferralRelationDO> selectPageByReferrerMemberId(
+            Long memberId, cn.iocoder.yudao.framework.common.pojo.PageParam pageParam) {
+        return selectPage(pageParam, new LambdaQueryWrapperX<ReferralRelationDO>()
+                .eq(ReferralRelationDO::getReferrerMemberId, memberId)
+                .orderByDesc(ReferralRelationDO::getId));
+    }
+
+    /** 退款时将该报名的推荐关系标记为 INVALID */
+    default int invalidateByEnrollmentId(Long enrollmentId, String invalidReason) {
+        return update(null, new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<ReferralRelationDO>()
+                .set(ReferralRelationDO::getRelationStatus, "INVALID")
+                .set(ReferralRelationDO::getInvalidReason, invalidReason)
+                .eq(ReferralRelationDO::getReferredEnrollmentId, enrollmentId)
+                .eq(ReferralRelationDO::getRelationStatus, "ACTIVE")
+                .eq(ReferralRelationDO::getDeleted, false));
+    }
+
 }

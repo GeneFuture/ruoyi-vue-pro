@@ -26,4 +26,9 @@ public interface RiskBlacklistMapper extends BaseMapperX<RiskBlacklistDO> {
                 .orderByDesc(RiskBlacklistDO::getId));
     }
 
+    /** Rule 2 风控：检查手机号是否在黑名单（明文比对） */
+    default boolean existsByPhone(String phone) {
+        return selectCount(RiskBlacklistDO::getPhone, phone) > 0;
+    }
+
 }
