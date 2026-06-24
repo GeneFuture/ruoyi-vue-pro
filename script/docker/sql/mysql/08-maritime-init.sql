@@ -441,7 +441,29 @@ CREATE TABLE IF NOT EXISTS maritime_tax_record (
   UNIQUE INDEX uk_member_month (member_id, tax_month)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='税务代扣月度记录表';
 
--- ========== 18. 会员微信订阅状态表 ==========
+-- ========== 18. 风控事件表 ==========
+CREATE TABLE IF NOT EXISTS maritime_risk_event (
+  id             BIGINT        NOT NULL AUTO_INCREMENT COMMENT '记录ID',
+  event_type     VARCHAR(50)   NOT NULL COMMENT '事件类型（BATCH_REFERRAL / GROUPON_FRAUD）',
+  member_id      BIGINT        NOT NULL COMMENT '涉及的用户ID',
+  detail         TEXT          DEFAULT NULL COMMENT '事件详情',
+  is_reviewed    TINYINT(1)    NOT NULL DEFAULT 0 COMMENT '是否已人工审核（0否 1是）',
+  reviewer_id    BIGINT        DEFAULT NULL COMMENT '审核人管理员ID',
+  review_result  VARCHAR(20)   DEFAULT NULL COMMENT '审核结果（NORMAL正常 / ABNORMAL异常）',
+  review_remark  VARCHAR(500)  DEFAULT NULL COMMENT '审核备注',
+  creator        VARCHAR(64)   NOT NULL DEFAULT '' COMMENT '创建者',
+  updater        VARCHAR(64)   NOT NULL DEFAULT '' COMMENT '更新者',
+  create_time    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  update_time    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  deleted        TINYINT(1)    NOT NULL DEFAULT 0 COMMENT '逻辑删除',
+  tenant_id      BIGINT        NOT NULL DEFAULT 0 COMMENT '租户ID',
+  PRIMARY KEY (id),
+  INDEX idx_member_id (member_id),
+  INDEX idx_is_reviewed (is_reviewed),
+  INDEX idx_event_type (event_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='风控事件记录表';
+
+-- ========== 19. 会员微信订阅状态表 ==========
 CREATE TABLE IF NOT EXISTS maritime_member_subscribe (
   id             BIGINT        NOT NULL AUTO_INCREMENT COMMENT '记录ID',
   member_id      BIGINT        NOT NULL COMMENT '会员ID',
@@ -458,3 +480,177 @@ CREATE TABLE IF NOT EXISTS maritime_member_subscribe (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='会员微信订阅消息授权状态表';
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- ============================================================
+-- 海员培训 后台菜单 SQL
+-- 说明：使用变量传递 ID，无需手工修改；可重复执行前先清理旧数据
+-- ============================================================
+
+-- ==================== 一级目录：海员培训 ====================
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
+VALUES ('海员培训', '', 1, 80, 0, '/maritime', 'ep:ship', NULL, 0, NULL);
+SET @maritimeId := LAST_INSERT_ID();
+
+-- ==================== 课程管理 ====================
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
+VALUES ('课程管理', '', 2, 1, @maritimeId, 'course', '', 'maritime/course/index', 0, 'MaritimeCourse');
+SET @menuId := LAST_INSERT_ID();
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('课程查询', 'maritime:course:query',  3, 1, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('课程新增', 'maritime:course:create', 3, 2, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('课程编辑', 'maritime:course:update', 3, 3, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('课程删除', 'maritime:course:delete', 3, 4, @menuId, '', '', '', 0);
+
+-- ==================== 班期管理 ====================
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
+VALUES ('班期管理', '', 2, 2, @maritimeId, 'session', '', 'maritime/session/index', 0, 'CourseSession');
+SET @menuId := LAST_INSERT_ID();
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('班期查询', 'maritime:course-session:query',  3, 1, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('班期新增', 'maritime:course-session:create', 3, 2, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('班期编辑', 'maritime:course-session:update', 3, 3, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('班期删除', 'maritime:course-session:delete', 3, 4, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('班期导出', 'maritime:course-session:export', 3, 5, @menuId, '', '', '', 0);
+
+-- ==================== 费用配置 ====================
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
+VALUES ('费用配置', '', 2, 3, @maritimeId, 'session-fee-config', '', 'maritime/sessionFeeConfig/index', 0, 'SessionFeeConfig');
+SET @menuId := LAST_INSERT_ID();
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('费用配置查询', 'maritime:session-fee-config:query',  3, 1, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('费用配置新增', 'maritime:session-fee-config:create', 3, 2, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('费用配置编辑', 'maritime:session-fee-config:update', 3, 3, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('费用配置删除', 'maritime:session-fee-config:delete', 3, 4, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('费用配置导出', 'maritime:session-fee-config:export', 3, 5, @menuId, '', '', '', 0);
+
+-- ==================== 报名管理 ====================
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
+VALUES ('报名管理', '', 2, 4, @maritimeId, 'enrollment', '', 'maritime/enrollment/index', 0, 'Enrollment');
+SET @menuId := LAST_INSERT_ID();
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('报名查询', 'maritime:enrollment:query',  3, 1, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('报名新增', 'maritime:enrollment:create', 3, 2, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('报名编辑', 'maritime:enrollment:update', 3, 3, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('报名删除', 'maritime:enrollment:delete', 3, 4, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('报名导出', 'maritime:enrollment:export', 3, 5, @menuId, '', '', '', 0);
+
+-- ==================== 报名订单 ====================
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
+VALUES ('报名订单', '', 2, 5, @maritimeId, 'enrollment-order', '', 'maritime/enrollmentOrder/index', 0, 'EnrollmentOrder');
+SET @menuId := LAST_INSERT_ID();
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('订单查询', 'maritime:enrollment-order:query',  3, 1, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('订单新增', 'maritime:enrollment-order:create', 3, 2, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('订单编辑', 'maritime:enrollment-order:update', 3, 3, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('订单删除', 'maritime:enrollment-order:delete', 3, 4, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('订单导出', 'maritime:enrollment-order:export', 3, 5, @menuId, '', '', '', 0);
+
+-- ==================== 退款申请 ====================
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
+VALUES ('退款申请', '', 2, 6, @maritimeId, 'refund-apply', '', 'maritime/refundApply/index', 0, 'RefundApply');
+SET @menuId := LAST_INSERT_ID();
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('退款查询', 'maritime:refund-apply:query',  3, 1, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('退款审核', 'maritime:refund-apply:update', 3, 2, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('退款删除', 'maritime:refund-apply:delete', 3, 3, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('退款导出', 'maritime:refund-apply:export', 3, 4, @menuId, '', '', '', 0);
+
+-- ==================== 拼团记录 ====================
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
+VALUES ('拼团记录', '', 2, 7, @maritimeId, 'groupon-record', '', 'maritime/grouponRecord/index', 0, 'GrouponRecord');
+SET @menuId := LAST_INSERT_ID();
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('拼团查询', 'maritime:groupon-record:query',  3, 1, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('拼团新增', 'maritime:groupon-record:create', 3, 2, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('拼团编辑', 'maritime:groupon-record:update', 3, 3, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('拼团删除', 'maritime:groupon-record:delete', 3, 4, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('拼团导出', 'maritime:groupon-record:export', 3, 5, @menuId, '', '', '', 0);
+
+-- ==================== 拼团成员 ====================
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
+VALUES ('拼团成员', '', 2, 8, @maritimeId, 'groupon-member', '', 'maritime/grouponMember/index', 0, 'GrouponMember');
+SET @menuId := LAST_INSERT_ID();
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('成员查询', 'maritime:groupon-member:query',  3, 1, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('成员新增', 'maritime:groupon-member:create', 3, 2, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('成员编辑', 'maritime:groupon-member:update', 3, 3, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('成员删除', 'maritime:groupon-member:delete', 3, 4, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('成员导出', 'maritime:groupon-member:export', 3, 5, @menuId, '', '', '', 0);
+
+-- ==================== 推荐关系 ====================
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
+VALUES ('推荐关系', '', 2, 9, @maritimeId, 'referral-relation', '', 'maritime/referralRelation/index', 0, 'ReferralRelation');
+SET @menuId := LAST_INSERT_ID();
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('推荐查询', 'maritime:referral-relation:query',  3, 1, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('推荐新增', 'maritime:referral-relation:create', 3, 2, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('推荐编辑', 'maritime:referral-relation:update', 3, 3, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('推荐删除', 'maritime:referral-relation:delete', 3, 4, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('推荐导出', 'maritime:referral-relation:export', 3, 5, @menuId, '', '', '', 0);
+
+-- ==================== 佣金记录 ====================
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
+VALUES ('佣金记录', '', 2, 10, @maritimeId, 'commission-record', '', 'maritime/commissionRecord/index', 0, 'CommissionRecord');
+SET @menuId := LAST_INSERT_ID();
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('佣金查询', 'maritime:commission-record:query',  3, 1, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('佣金审核', 'maritime:commission-record:update', 3, 2, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('佣金删除', 'maritime:commission-record:delete', 3, 3, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('佣金导出', 'maritime:commission-record:export', 3, 4, @menuId, '', '', '', 0);
+
+-- ==================== 佣金账户 ====================
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
+VALUES ('佣金账户', '', 2, 11, @maritimeId, 'commission-account', '', 'maritime/commissionAccount/index', 0, 'CommissionAccount');
+SET @menuId := LAST_INSERT_ID();
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('账户查询', 'maritime:commission-account:query',  3, 1, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('账户编辑', 'maritime:commission-account:update', 3, 2, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('账户删除', 'maritime:commission-account:delete', 3, 3, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('账户导出', 'maritime:commission-account:export', 3, 4, @menuId, '', '', '', 0);
+
+-- ==================== 提现管理 ====================
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
+VALUES ('提现管理', '', 2, 12, @maritimeId, 'withdrawal', '', 'maritime/withdrawal/index', 0, 'MaritimeWithdrawal');
+SET @menuId := LAST_INSERT_ID();
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('提现查询', 'maritime:withdrawal:query',  3, 1, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('提现拒绝', 'maritime:withdrawal:update', 3, 2, @menuId, '', '', '', 0);
+
+-- ==================== 会员权限 ====================
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
+VALUES ('会员权限', '', 2, 13, @maritimeId, 'member', '', 'maritime/member/index', 0, 'MaritimeMember');
+SET @menuId := LAST_INSERT_ID();
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('禁推/解禁', 'maritime:member:ban', 3, 1, @menuId, '', '', '', 0);
+
+-- ==================== 风控事件 ====================
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
+VALUES ('风控事件', '', 2, 14, @maritimeId, 'risk-event', '', 'maritime/riskEvent/index', 0, 'MaritimeRiskEvent');
+SET @menuId := LAST_INSERT_ID();
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('风控查询', 'maritime:risk-event:query',  3, 1, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('风控审核', 'maritime:risk-event:review', 3, 2, @menuId, '', '', '', 0);
+
+-- ==================== 风控黑名单 ====================
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
+VALUES ('风控黑名单', '', 2, 15, @maritimeId, 'blacklist', '', 'maritime/blacklist/index', 0, 'RiskBlacklist');
+SET @menuId := LAST_INSERT_ID();
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('黑名单查询', 'maritime:risk-blacklist:query',  3, 1, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('黑名单新增', 'maritime:risk-blacklist:create', 3, 2, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('黑名单编辑', 'maritime:risk-blacklist:update', 3, 3, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('黑名单删除', 'maritime:risk-blacklist:delete', 3, 4, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('黑名单导出', 'maritime:risk-blacklist:export', 3, 5, @menuId, '', '', '', 0);
+
+-- ==================== 公告管理 ====================
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
+VALUES ('公告管理', '', 2, 16, @maritimeId, 'announcement', '', 'maritime/announcement/index', 0, 'Announcement');
+SET @menuId := LAST_INSERT_ID();
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('公告查询', 'maritime:announcement:query',  3, 1, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('公告新增', 'maritime:announcement:create', 3, 2, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('公告编辑', 'maritime:announcement:update', 3, 3, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('公告删除', 'maritime:announcement:delete', 3, 4, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('公告导出', 'maritime:announcement:export', 3, 5, @menuId, '', '', '', 0);
+
+-- ==================== 用户消息 ====================
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
+VALUES ('用户消息', '', 2, 17, @maritimeId, 'user-message', '', 'maritime/userMessage/index', 0, 'UserMessage');
+SET @menuId := LAST_INSERT_ID();
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('消息查询', 'maritime:user-message:query',  3, 1, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('消息新增', 'maritime:user-message:create', 3, 2, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('消息编辑', 'maritime:user-message:update', 3, 3, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('消息删除', 'maritime:user-message:delete', 3, 4, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('消息导出', 'maritime:user-message:export', 3, 5, @menuId, '', '', '', 0);
+
+-- ==================== 数据统计 ====================
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
+VALUES ('数据统计', '', 2, 18, @maritimeId, 'stats', '', 'maritime/stats/index', 0, 'MaritimeStats');
+SET @menuId := LAST_INSERT_ID();
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('运营看板',   'maritime:dashboard:view',   3, 1, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('财务汇总',   'maritime:finance:view',     3, 2, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('佣金导出',   'maritime:commission:export', 3, 3, @menuId, '', '', '', 0);

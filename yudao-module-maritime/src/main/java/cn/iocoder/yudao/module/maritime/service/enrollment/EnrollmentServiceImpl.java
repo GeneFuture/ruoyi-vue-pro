@@ -26,6 +26,8 @@ import cn.iocoder.yudao.module.maritime.dal.mysql.sessionFeeConfig.SessionFeeCon
 import cn.iocoder.yudao.module.maritime.enums.EnrollmentStatusEnum;
 import cn.iocoder.yudao.module.maritime.enums.OrderStatusEnum;
 import cn.iocoder.yudao.module.maritime.enums.OrderTypeEnum;
+import cn.iocoder.yudao.module.maritime.mq.event.DepositPaidEvent;
+import cn.iocoder.yudao.module.maritime.mq.event.EnrollmentCreatedEvent;
 import cn.iocoder.yudao.module.maritime.service.commissionAccount.CommissionAccountService;
 import cn.iocoder.yudao.module.maritime.service.commissionRecord.CommissionRecordService;
 import cn.iocoder.yudao.module.maritime.service.groupon.GrouponProcessResult;
@@ -36,6 +38,7 @@ import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderCreateReqDTO;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderRespDTO;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -97,7 +100,11 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     private RefundApplyService refundApplyService;
 
     @Resource
+    @org.springframework.context.annotation.Lazy
     private EnrollmentService self;
+
+    @Resource
+    private ApplicationEventPublisher eventPublisher;
 
     private static final String PAY_APP_KEY = "maritime";
 
@@ -189,6 +196,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
             enrollment.setBalanceDueDate(session.getStartDate().minusDays(feeConfig.getBalanceDueDaysBeforeStart()));
         }
         enrollmentMapper.insert(enrollment);
+        eventPublisher.publishEvent(new EnrollmentCreatedEvent(this, enrollment.getId(), memberId, enrollment.getSessionId()));
 
         // Step 4.5: 处理拼团逻辑（在创建订单前确定实际定金金额）
         java.math.BigDecimal depositAmount = feeConfig.getDepositAmount();
@@ -497,6 +505,9 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         updateEnrollment.setReferralRightGranted(true);
         updateEnrollment.setPaidAmount(enrollment.getPaidAmount().add(order.getAmount()));
         enrollmentMapper.updateById(updateEnrollment);
+
+        eventPublisher.publishEvent(new DepositPaidEvent(
+                this, enrollment.getId(), enrollment.getMemberId(), enrollment.getSessionId(), order.getAmount()));
 
         // 初始化佣金账户（幂等）
         commissionAccountService.initAccountIfAbsent(enrollment.getMemberId());

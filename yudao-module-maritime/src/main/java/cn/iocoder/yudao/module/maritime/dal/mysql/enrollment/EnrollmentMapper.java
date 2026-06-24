@@ -82,4 +82,35 @@ public interface EnrollmentMapper extends BaseMapperX<EnrollmentDO> {
             "AND o.order_status = 'PAID' AND e.deleted = 0 AND o.deleted = 0")
     LocalDateTime getFirstDepositTime(@Param("memberId") Long memberId);
 
+    /** 统计指定时间段内的新报名数（Dashboard 用） */
+    @Select("SELECT COUNT(*) FROM maritime_enrollment WHERE create_time >= #{start} AND create_time <= #{end} AND deleted = 0")
+    int countByCreateTimeBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    /** 统计指定班期的指定状态报名数（Dashboard SessionProgress 用，单班期） */
+    @Select("SELECT COUNT(*) FROM maritime_enrollment WHERE session_id = #{sessionId} AND enrollment_status = #{status} AND deleted = 0")
+    int countBySessionIdAndStatus(@Param("sessionId") Long sessionId, @Param("status") String status);
+
+    /** 批量统计多班期的已完成报名数（Dashboard SessionProgress 批量用，避免 N+1） */
+    @Select("<script>SELECT session_id AS sessionId, COUNT(*) AS cnt " +
+            "FROM maritime_enrollment WHERE session_id IN " +
+            "<foreach collection='sessionIds' item='id' open='(' separator=',' close=')'>#{id}</foreach> " +
+            "AND enrollment_status = 'COMPLETED' AND deleted = 0 " +
+            "GROUP BY session_id</script>")
+    List<Map<String, Object>> countCompletedGroupBySessionIds(@Param("sessionIds") List<Long> sessionIds);
+
+    /** 查询近 N 天每日报名数（趋势图用），返回 Map 列表，key: stat_date, value: cnt */
+    @Select("SELECT DATE(create_time) AS stat_date, COUNT(*) AS cnt " +
+            "FROM maritime_enrollment WHERE create_time >= #{since} AND deleted = 0 " +
+            "GROUP BY DATE(create_time) ORDER BY stat_date ASC")
+    List<Map<String, Object>> selectDailyEnrollmentCounts(@Param("since") LocalDateTime since);
+
+    /** 查某班期全部有效报名（导出用，排除已取消），LIMIT 10001 防止全表扫描 */
+    default List<EnrollmentDO> selectListBySessionIdForExport(Long sessionId) {
+        return selectList(new LambdaQueryWrapperX<EnrollmentDO>()
+                .eq(EnrollmentDO::getSessionId, sessionId)
+                .ne(EnrollmentDO::getEnrollmentStatus, "CANCELLED")
+                .orderByAsc(EnrollmentDO::getId)
+                .last("LIMIT 10001"));
+    }
+
 }

@@ -72,4 +72,9 @@ public interface GrouponRecordMapper extends BaseMapperX<GrouponRecordDO> {
     @Update("UPDATE maritime_groupon_record SET groupon_status = 'SUCCESS', success_time = #{successTime} WHERE id = #{id} AND groupon_status = 'IN_PROGRESS' AND deleted = 0")
     int updateStatusAndSuccessTime(@Param("id") Long id, @Param("successTime") LocalDateTime successTime);
 
+    /** 统计指定时间段内成团数（Dashboard 本月成团用） */
+    @Select("SELECT COUNT(*) FROM maritime_groupon_record " +
+            "WHERE groupon_status = 'SUCCESS' AND success_time >= #{start} AND success_time <= #{end} AND deleted = 0")
+    int countSucceededByTimeBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
 }

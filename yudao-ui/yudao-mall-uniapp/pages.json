@@ -545,6 +545,140 @@
 			]
 		},
 		{
+			"root": "pages/maritime",
+			"pages": [
+				{
+					"path": "notify/index",
+					"style": {
+						"navigationBarTitleText": "消息中心"
+					},
+					"meta": {
+						"auth": true,
+						"sync": true,
+						"title": "消息中心",
+						"group": "海员培训"
+					}
+				},
+				{
+					"path": "course-list",
+					"style": {
+						"navigationBarTitleText": "课程列表"
+					},
+					"meta": {
+						"sync": true,
+						"title": "课程列表",
+						"group": "海员培训"
+					}
+				},
+				{
+					"path": "course-detail",
+					"style": {
+						"navigationBarTitleText": "课程详情"
+					},
+					"meta": {
+						"sync": true,
+						"title": "课程详情",
+						"group": "海员培训"
+					}
+				},
+				{
+					"path": "session-detail",
+					"style": {
+						"navigationBarTitleText": "班期详情"
+					},
+					"meta": {
+						"sync": true,
+						"title": "班期详情",
+						"group": "海员培训"
+					}
+				},
+				{
+					"path": "enrollment",
+					"style": {
+						"navigationBarTitleText": "填写报名信息"
+					},
+					"meta": {
+						"auth": true,
+						"sync": true,
+						"title": "填写报名信息",
+						"group": "海员培训"
+					}
+				},
+				{
+					"path": "enrollment-pay",
+					"style": {
+						"navigationBarTitleText": "支付确认"
+					},
+					"meta": {
+						"auth": true,
+						"sync": true,
+						"title": "支付确认",
+						"group": "海员培训"
+					}
+				},
+				{
+					"path": "enrollment-detail",
+					"style": {
+						"navigationBarTitleText": "报名详情"
+					},
+					"meta": {
+						"auth": true,
+						"sync": true,
+						"title": "报名详情",
+						"group": "海员培训"
+					}
+				},
+				{
+					"path": "my-enrollments",
+					"style": {
+						"navigationBarTitleText": "我的报名"
+					},
+					"meta": {
+						"auth": true,
+						"sync": true,
+						"title": "我的报名",
+						"group": "海员培训"
+					}
+				},
+				{
+					"path": "groupon",
+					"style": {
+						"navigationBarTitleText": "拼团详情"
+					},
+					"meta": {
+						"auth": true,
+						"sync": true,
+						"title": "拼团详情",
+						"group": "海员培训"
+					}
+				},
+				{
+					"path": "referral",
+					"style": {
+						"navigationBarTitleText": "推荐中心"
+					},
+					"meta": {
+						"auth": true,
+						"sync": true,
+						"title": "推荐中心",
+						"group": "海员培训"
+					}
+				},
+				{
+					"path": "withdrawal",
+					"style": {
+						"navigationBarTitleText": "佣金提现"
+					},
+					"meta": {
+						"auth": true,
+						"sync": true,
+						"title": "佣金提现",
+						"group": "海员培训"
+					}
+				}
+			]
+		},
+		{
 			"root": "pages/chat",
 			"pages": [{
 				"path": "index",

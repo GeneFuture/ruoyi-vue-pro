@@ -171,6 +171,8 @@
   function onOrder() {
     if (state.orderType === 'recharge') {
       sheep.$router.redirect('/pages/pay/recharge-log');
+    } else if (state.orderType === 'maritime') {
+      sheep.$router.redirect('/pages/maritime/my-enrollments');
     } else {
       sheep.$router.redirect('/pages/order/list');
     }

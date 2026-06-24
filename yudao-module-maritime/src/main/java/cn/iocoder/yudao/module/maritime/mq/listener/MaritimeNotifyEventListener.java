@@ -3,15 +3,21 @@ package cn.iocoder.yudao.module.maritime.mq.listener;
 import cn.iocoder.yudao.module.maritime.mq.event.*;
 import cn.iocoder.yudao.module.maritime.service.notify.MaritimeNotifyService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import jakarta.annotation.Resource;
 import java.time.format.DateTimeFormatter;
 
 /**
  * 海员培训平台 Spring Event 监听器，异步触发消息通知
+ *
+ * 使用 {@link TransactionalEventListener}（AFTER_COMMIT + fallbackExecution）而非普通 {@code @EventListener}：
+ * 业务方法在同一事务内发布事件后，若事务后续步骤抛异常回滚，普通监听器仍会在事务提交前同步触发，
+ * 导致用户收到"已回滚"操作的通知（如报名因超卖回滚但仍收到报名成功推送）。
+ * fallbackExecution=true 兼容 BalanceReminderJob 等无事务上下文场景下的发布。
  */
 @Component
 @Slf4j
@@ -23,7 +29,7 @@ public class MaritimeNotifyEventListener {
     private MaritimeNotifyService maritimeNotifyService;
 
     @Async
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
     public void onEnrollmentCreated(EnrollmentCreatedEvent event) {
         log.info("[onEnrollmentCreated] enrollmentId={}, memberId={}", event.getEnrollmentId(), event.getMemberId());
         try {
@@ -34,7 +40,7 @@ public class MaritimeNotifyEventListener {
     }
 
     @Async
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
     public void onDepositPaid(DepositPaidEvent event) {
         log.info("[onDepositPaid] enrollmentId={}, memberId={}", event.getEnrollmentId(), event.getMemberId());
         try {
@@ -46,7 +52,7 @@ public class MaritimeNotifyEventListener {
     }
 
     @Async
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
     public void onGrouponSuccess(GrouponSuccessEvent event) {
         log.info("[onGrouponSuccess] grouponRecordId={}, memberCount={}", event.getGrouponRecordId(), event.getMemberCount());
         try {
@@ -63,7 +69,7 @@ public class MaritimeNotifyEventListener {
     }
 
     @Async
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
     public void onGrouponDegraded(GrouponDegradedEvent event) {
         log.info("[onGrouponDegraded] grouponRecordId={}, memberCount={}", event.getGrouponRecordId(), event.getMemberIds().size());
         try {
@@ -80,7 +86,7 @@ public class MaritimeNotifyEventListener {
     }
 
     @Async
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
     public void onBalanceReminder(BalanceReminderEvent event) {
         log.info("[onBalanceReminder] enrollmentId={}, memberId={}", event.getEnrollmentId(), event.getMemberId());
         try {
@@ -94,7 +100,7 @@ public class MaritimeNotifyEventListener {
     }
 
     @Async
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
     public void onReferralSuccess(ReferralSuccessEvent event) {
         log.info("[onReferralSuccess] referrerMemberId={}, commissionRecordId={}", event.getReferrerMemberId(), event.getCommissionRecordId());
         try {
@@ -106,7 +112,7 @@ public class MaritimeNotifyEventListener {
     }
 
     @Async
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
     public void onCommissionPaid(CommissionPaidEvent event) {
         log.info("[onCommissionPaid] referrerMemberId={}, commissionRecordId={}", event.getReferrerMemberId(), event.getCommissionRecordId());
         try {

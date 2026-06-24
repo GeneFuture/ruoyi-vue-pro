@@ -11,6 +11,8 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import cn.iocoder.yudao.module.maritime.controller.admin.refundApply.vo.*;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * 退费申请 Mapper
@@ -56,5 +58,15 @@ public interface RefundApplyMapper extends BaseMapperX<RefundApplyDO> {
             "WHERE enrollment_id = #{enrollmentId} AND deleted = 0 AND create_time < #{beforeDate}")
     boolean existsByEnrollmentIdAndCreateTimeBefore(@Param("enrollmentId") Long enrollmentId,
                                                     @Param("beforeDate") LocalDate beforeDate);
+
+    /** 统计指定状态的退费申请数（Dashboard 待办用） */
+    @Select("SELECT COUNT(*) FROM maritime_refund_apply WHERE apply_status = #{status} AND deleted = 0")
+    int countByApplyStatus(@Param("status") String status);
+
+    /** 统计指定时间段内已退款金额合计（财务汇总用） */
+    @Select("SELECT COALESCE(SUM(refund_amount), 0) FROM maritime_refund_apply " +
+            "WHERE apply_status = 'REFUNDED' AND refund_time >= #{start} AND refund_time <= #{end} AND deleted = 0")
+    BigDecimal sumRefundedAmountByRefundTimeBetween(@Param("start") LocalDateTime start,
+                                                    @Param("end") LocalDateTime end);
 
 }

@@ -76,5 +76,12 @@ public interface ErrorCodeConstants {
     ErrorCode RISK_BLACKLIST_EXISTS = new ErrorCode(1_009_007_000, "该手机号已在黑名单中");
     ErrorCode RISK_BLACKLIST_NOT_EXISTS = new ErrorCode(1_009_007_001, "黑名单记录不存在");
     ErrorCode RISK_ENROLLMENT_BLOCKED = new ErrorCode(1_009_007_002, "该手机号已被禁止报名");
+    ErrorCode GROUPON_CREATE_FREQ_LIMIT = new ErrorCode(1_009_007_003, "操作过于频繁，请稍后再试");
+    ErrorCode RISK_EVENT_NOT_EXISTS = new ErrorCode(1_009_007_004, "风控事件不存在");
+    ErrorCode RISK_MEMBER_NOT_EXISTS = new ErrorCode(1_009_007_005, "用户不存在");
+
+    // ========== 报表模块 1-009-011-000 ==========
+    ErrorCode EXPORT_ROWS_EXCEEDED = new ErrorCode(1_009_011_000, "导出数据量超过上限 10000 行，请缩小筛选范围");
+    ErrorCode EXPORT_PERIOD_INVALID = new ErrorCode(1_009_011_001, "统计周期只允许 WEEK / MONTH / ALL_TIME");
 
 }

@@ -26,7 +26,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 @RequestMapping("/maritime/order")
 @Validated
 @Slf4j
-public class AppPayOrderController {
+public class AppEnrollmentPayController {
 
     @Resource
     private EnrollmentService enrollmentService;

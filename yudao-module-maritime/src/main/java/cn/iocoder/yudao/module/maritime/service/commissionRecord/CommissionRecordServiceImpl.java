@@ -20,6 +20,8 @@ import cn.iocoder.yudao.module.maritime.dal.mysql.refundApply.RefundApplyMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.referralRelation.ReferralRelationMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.session.CourseSessionMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.sessionFeeConfig.SessionFeeConfigMapper;
+import cn.iocoder.yudao.module.maritime.mq.event.CommissionPaidEvent;
+import cn.iocoder.yudao.module.maritime.mq.event.ReferralSuccessEvent;
 import cn.iocoder.yudao.module.maritime.service.commissionAccount.CommissionAccountService;
 import cn.iocoder.yudao.module.maritime.service.tax.TaxService;
 import cn.iocoder.yudao.module.member.dal.dataobject.user.MemberUserDO;
@@ -29,6 +31,7 @@ import cn.iocoder.yudao.module.pay.api.transfer.dto.PayTransferCreateReqDTO;
 import cn.iocoder.yudao.module.pay.api.transfer.dto.PayTransferCreateRespDTO;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -85,6 +88,9 @@ public class CommissionRecordServiceImpl implements CommissionRecordService {
 
     @Resource
     private PayTransferApi payTransferApi;
+
+    @Resource
+    private ApplicationEventPublisher eventPublisher;
 
     @Override
     public Long createCommissionRecord(CommissionRecordSaveReqVO createReqVO) {
@@ -176,6 +182,9 @@ public class CommissionRecordServiceImpl implements CommissionRecordService {
                 .retryCount(0)
                 .build();
         commissionRecordMapper.insert(record);
+
+        eventPublisher.publishEvent(new ReferralSuccessEvent(
+                this, relation.getReferrerMemberId(), record.getId(), record.getCommissionAmount()));
 
         log.info("[triggerCommission] 佣金已创建, enrollmentId={}, referrerId={}, amount={}",
                 enrollmentId, relation.getReferrerMemberId(), feeConfig.getReferralCommissionAmount());
@@ -326,6 +335,7 @@ public class CommissionRecordServiceImpl implements CommissionRecordService {
 
             commissionRecordMapper.updatePaid(recordId, LocalDateTime.now(), resp.getId());
             commissionAccountService.confirmPayout(record.getReferrerMemberId(), record.getCommissionAmount());
+            eventPublisher.publishEvent(new CommissionPaidEvent(this, record.getReferrerMemberId(), recordId, netAmount));
             log.info("[payoutCommission] 佣金发放成功: recordId={}, transferId={}, netAmount={}", recordId, resp.getId(), netAmount);
         } catch (Exception e) {
             commissionRecordMapper.updateFailed(recordId, e.getMessage());

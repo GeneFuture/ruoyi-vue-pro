@@ -11,14 +11,19 @@ import cn.iocoder.yudao.module.maritime.dal.dataobject.sessionFeeConfig.SessionF
 import cn.iocoder.yudao.module.maritime.dal.mysql.enrollment.EnrollmentMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.grouponMember.GrouponMemberMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.grouponRecord.GrouponRecordMapper;
+import cn.iocoder.yudao.module.maritime.mq.event.GrouponDegradedEvent;
+import cn.iocoder.yudao.module.maritime.mq.event.GrouponSuccessEvent;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -43,6 +48,12 @@ public class GrouponServiceImpl implements GrouponService {
     @Resource
     private EnrollmentMapper enrollmentMapper;
 
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    private ApplicationEventPublisher eventPublisher;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public GrouponProcessResult joinOrCreateGroupon(Long enrollmentId, Long memberId, String inviteCode,
@@ -66,6 +77,7 @@ public class GrouponServiceImpl implements GrouponService {
             if (feeConfig.getIsGrouponEnabled() == null || !feeConfig.getIsGrouponEnabled()) {
                 throw exception(GROUPON_NOT_ENABLED);
             }
+            checkGrouponCreateLimit(memberId);
             grouponRecord = createGrouponRecord(enrollmentId, sessionId, feeConfig);
         }
 
@@ -103,11 +115,8 @@ public class GrouponServiceImpl implements GrouponService {
         // 统计已支付人数（同一事务内可见本次写入）
         long paidCount = grouponMemberMapper.countPaidByGrouponRecordId(record.getId());
         if (paidCount >= record.getRequiredCount()) {
-            // 一条 SQL 原子写入 status + success_time，避免两步更新间的崩溃窗口
-            int updated = grouponRecordMapper.updateStatusAndSuccessTime(record.getId(), LocalDateTime.now());
-            if (updated > 0) {
-                log.info("[groupon] 拼团成功: recordId={}", record.getId());
-            }
+            // 复用 succeedGroupon 而非重复内联 CAS 逻辑，确保 T09 成团通知事件同样被发布
+            succeedGroupon(record.getId());
         }
     }
 
@@ -117,6 +126,11 @@ public class GrouponServiceImpl implements GrouponService {
         int updated = grouponRecordMapper.updateStatusAndSuccessTime(grouponRecordId, LocalDateTime.now());
         if (updated > 0) {
             log.info("[groupon] 拼团成功: recordId={}", grouponRecordId);
+            GrouponRecordDO record = grouponRecordMapper.selectById(grouponRecordId);
+            if (record != null) {
+                eventPublisher.publishEvent(new GrouponSuccessEvent(
+                        this, grouponRecordId, record.getSessionId(), getMemberIds(grouponRecordId)));
+            }
         }
     }
 
@@ -126,7 +140,15 @@ public class GrouponServiceImpl implements GrouponService {
         int updated = grouponRecordMapper.updateStatusIfInProgress(grouponRecordId, "DEGRADED");
         if (updated > 0) {
             log.info("[groupon] 拼团降级: recordId={}", grouponRecordId);
+            eventPublisher.publishEvent(new GrouponDegradedEvent(this, grouponRecordId, getMemberIds(grouponRecordId)));
         }
+    }
+
+    /** 拼团成员 memberId 列表（用于通知事件） */
+    private List<Long> getMemberIds(Long grouponRecordId) {
+        return grouponMemberMapper.selectListByGrouponRecordId(grouponRecordId).stream()
+                .map(GrouponMemberDO::getMemberId)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -235,6 +257,17 @@ public class GrouponServiceImpl implements GrouponService {
 
     private String generateInviteCode() {
         return "GRP-" + RandomUtil.randomStringUpper(8);
+    }
+
+    private void checkGrouponCreateLimit(Long memberId) {
+        String key = "groupon:create:limit:" + memberId;
+        Long count = stringRedisTemplate.opsForValue().increment(key);
+        if (count != null && count == 1) {
+            stringRedisTemplate.expire(key, 24, TimeUnit.HOURS);
+        }
+        if (count != null && count > 3) {
+            throw exception(GROUPON_CREATE_FREQ_LIMIT);
+        }
     }
 
 }

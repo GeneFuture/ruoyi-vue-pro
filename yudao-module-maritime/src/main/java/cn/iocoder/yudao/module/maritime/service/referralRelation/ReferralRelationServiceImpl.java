@@ -11,16 +11,20 @@ import cn.iocoder.yudao.module.maritime.dal.dataobject.commissionAccount.Commiss
 import cn.iocoder.yudao.module.maritime.dal.dataobject.commissionRecord.CommissionRecordDO;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.enrollment.EnrollmentDO;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.referralRelation.ReferralRelationDO;
+import cn.iocoder.yudao.module.maritime.dal.dataobject.riskEvent.RiskEventDO;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.session.CourseSessionDO;
 import cn.iocoder.yudao.module.maritime.dal.mysql.commissionAccount.CommissionAccountMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.commissionRecord.CommissionRecordMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.enrollment.EnrollmentMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.referralRelation.ReferralRelationMapper;
+import cn.iocoder.yudao.module.maritime.dal.mysql.riskEvent.RiskEventMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.session.CourseSessionMapper;
 import cn.iocoder.yudao.module.maritime.service.risk.RiskCheckResult;
 import cn.iocoder.yudao.module.maritime.service.risk.RiskCheckService;
 import cn.iocoder.yudao.module.member.dal.dataobject.user.MemberUserDO;
+import cn.iocoder.yudao.module.member.dal.mysql.user.MemberUserMapper;
 import cn.iocoder.yudao.module.member.service.user.MemberUserService;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -67,6 +71,12 @@ public class ReferralRelationServiceImpl implements ReferralRelationService {
 
     @Resource
     private RiskCheckService riskCheckService;
+
+    @Resource
+    private RiskEventMapper riskEventMapper;
+
+    @Resource
+    private MemberUserMapper memberUserMapper;
 
     // ========== Admin CRUD ==========
 
@@ -133,8 +143,25 @@ public class ReferralRelationServiceImpl implements ReferralRelationService {
                 return;
             }
 
-            // 风控检查
+            // Rule 1 + Rule 2 风控检查
             RiskCheckResult checkResult = riskCheckService.check(referrer.getId(), enrollmentId);
+
+            // Rule 3: 批量推荐检测
+            if (checkResult.passed() && riskCheckService.checkBatchReferralLimit(referrer.getId())) {
+                log.warn("[risk][Rule3] 批量推荐告警: referrerId={}", referrer.getId());
+                // 临时禁推
+                memberUserMapper.update(null, new LambdaUpdateWrapper<MemberUserDO>()
+                        .set(MemberUserDO::getIsReferralBanned, true)
+                        .eq(MemberUserDO::getId, referrer.getId()));
+                // 记录风控事件
+                riskEventMapper.insert(RiskEventDO.builder()
+                        .eventType("BATCH_REFERRAL")
+                        .memberId(referrer.getId())
+                        .detail("24h内推荐数超过阈值，自动禁推")
+                        .isReviewed(false)
+                        .build());
+                checkResult = RiskCheckResult.fail("RULE_3", "推荐频率超过限制，已暂停推荐权限");
+            }
 
             ReferralRelationDO relation = ReferralRelationDO.builder()
                     .referrerMemberId(referrer.getId())
