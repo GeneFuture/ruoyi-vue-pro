@@ -1,13 +1,10 @@
 import { defineStore } from 'pinia';
 import $share from '@/sheep/platform/share';
-import { clone, cloneDeep } from 'lodash-es';
-import cart from './cart';
+import { clone } from 'lodash-es';
 import app from './app';
 import { showAuthModal } from '@/sheep/hooks/useModal';
 import UserApi from '@/sheep/api/member/user';
 import PayWalletApi from '@/sheep/api/pay/wallet';
-import OrderApi from '@/sheep/api/trade/order';
-import CouponApi from '@/sheep/api/promotion/coupon';
 
 // 默认用户信息
 const defaultUserInfo = {
@@ -23,25 +20,11 @@ const defaultUserWallet = {
   balance: 0, // 余额
 };
 
-// 默认订单、优惠券等其他资产信息
-const defaultNumData = {
-  unusedCouponCount: 0,
-  orderCount: {
-    allCount: 0,
-    unpaidCount: 0,
-    undeliveredCount: 0,
-    deliveredCount: 0,
-    uncommentedCount: 0,
-    afterSaleCount: 0,
-  },
-};
-
 const user = defineStore('user', {
   state: () => ({
     userInfo: clone(defaultUserInfo), // 用户信息
     userWallet: clone(defaultUserWallet), // 用户钱包信息
     isLogin: !!uni.getStorageSync('token'), // 登录状态
-    numData: cloneDeep(defaultNumData), // 用户其他数据
     lastUpdateTime: 0, // 上次更新时间
   }),
 
@@ -63,20 +46,6 @@ const user = defineStore('user', {
         return;
       }
       this.userWallet = data;
-    },
-
-    // 获取订单、优惠券等其他资产信息
-    getNumData() {
-      OrderApi.getOrderCount().then((res) => {
-        if (res.code === 0) {
-          this.numData.orderCount = res.data;
-        }
-      });
-      CouponApi.getUnusedCouponCount().then((res) => {
-        if (res.code === 0) {
-          this.numData.unusedCouponCount = res.data;
-        }
-      });
     },
 
     // 设置 token
@@ -110,7 +79,6 @@ const user = defineStore('user', {
       // 获取最新信息
       await this.getInfo();
       this.getWallet();
-      this.getNumData();
       return this.userInfo;
     },
 
@@ -121,17 +89,12 @@ const user = defineStore('user', {
       // 清空用户相关的缓存
       this.userInfo = clone(defaultUserInfo);
       this.userWallet = clone(defaultUserWallet);
-      this.numData = cloneDeep(defaultNumData);
-      // 清空购物车的缓存
-      cart().emptyList();
     },
 
     // 登录后，加载各种信息
     async loginAfter() {
       await this.updateUserData();
 
-      // 加载购物车
-      cart().getList();
       // 登录后设置全局分享参数
       $share.getShareInfo();
 
@@ -139,9 +102,6 @@ const user = defineStore('user', {
       if (app().platform.bind_mobile && !this.userInfo.mobile) {
         showAuthModal('changeMobile');
       }
-
-      // 绑定推广员
-      $share.bindBrokerageUser();
     },
 
     // 登出系统

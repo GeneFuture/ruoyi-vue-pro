@@ -128,7 +128,7 @@
     if (hasHistory) {
       sheep.$router.back();
     } else {
-      sheep.$router.go('/pages/index/index');
+      sheep.$router.go('/pages/maritime/course-list');
     }
   }
 

@@ -35,39 +35,24 @@
 
   const list = [
     {
-      url: '/pages/index/index',
+      url: '/pages/maritime/course-list',
       icon: '/static/img/shop/tools/home.png',
-      title: '首页',
+      title: '课程列表',
     },
     {
-      url: '/pages/index/search',
-      icon: '/static/img/shop/tools/search.png',
-      title: '搜索',
-    },
-    {
-      url: '/pages/index/user',
-      icon: '/static/img/shop/tools/user.png',
-      title: '个人中心',
-    },
-    {
-      url: '/pages/index/cart',
-      icon: '/static/img/shop/tools/cart.png',
-      title: '购物车',
-    },
-    {
-      url: '/pages/user/goods-log',
+      url: '/pages/maritime/my-enrollments',
       icon: '/static/img/shop/tools/browse.png',
-      title: '浏览记录',
+      title: '我的报名',
     },
     {
-      url: '/pages/user/goods-collect',
-      icon: '/static/img/shop/tools/collect.png',
-      title: '我的收藏',
+      url: '/pages/maritime/my',
+      icon: '/static/img/shop/tools/user.png',
+      title: '我的',
     },
     {
-      url: '/pages/chat/index',
+      url: '/pages/maritime-sub/notify/index',
       icon: '/static/img/shop/tools/service.png',
-      title: '客服',
+      title: '消息中心',
     },
   ];
 </script>

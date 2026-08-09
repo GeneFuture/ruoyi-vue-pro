@@ -1,4 +1,3 @@
-import DiyApi from '@/sheep/api/promotion/diy';
 import { getTenantByWebsite } from '@/sheep/api/infra/tenant';
 import { getTenantId } from '@/sheep/request';
 import { defineStore } from 'pinia';
@@ -50,7 +49,7 @@ const app = defineStore('app', {
   }),
   actions: {
     // 获取Shopro应用配置和模板
-    async init(templateId = null) {
+    async init() {
       // 检查网络
       const networkStatus = await $platform.checkNetwork();
       if (!networkStatus) {
@@ -65,13 +64,10 @@ const app = defineStore('app', {
       // 加载租户
       await adaptTenant();
 
-      // 加载装修配置
-      await adaptTemplate(this.template, templateId);
-
       // TODO 芋艿：【初始化优化】未来支持管理后台可配；对应 https://api.shopro.sheepjs.com/shop/api/init
       if (true) {
         this.info = {
-          name: '芋道商城',
+          name: '海员培训',
           logo: 'https://static.iocoder.cn/ruoyi-vue-pro-logo.png',
           version: '2026.04',
           copyright: '全部开源，个人与企业可 100% 免费使用',
@@ -86,8 +82,6 @@ const app = defineStore('app', {
             linkAddress: h5Url,
             posterInfo: {
               user_bg: '/static/img/shop/config/user-poster-bg.png',
-              goods_bg: '/static/img/shop/config/goods-poster-bg.png',
-              groupon_bg: '/static/img/shop/config/groupon-poster-bg.png',
             },
             forwardInfo: {
               title: '',
@@ -177,37 +171,6 @@ const adaptTenant = async () => {
   } catch (error) {
     console.error('adaptTenant 执行失败:', error);
   }
-};
-
-/** 初始化装修模版 */
-const adaptTemplate = async (appTemplate, templateId) => {
-  const { data: diyTemplate } = templateId
-    ? // 查询指定模板，一般是预览时使用
-      await DiyApi.getDiyTemplate(templateId)
-    : await DiyApi.getUsedDiyTemplate();
-  // 模板不存在
-  if (!diyTemplate) {
-    $router.error('TemplateError');
-    return;
-  }
-
-  const tabBar = diyTemplate?.property?.tabBar;
-  if (tabBar) {
-    appTemplate.basic.tabbar = tabBar;
-    // TODO 商城装修没有对 tabBar 进行角标配置，测试角标需打开以下注释
-    // appTemplate.basic.tabbar.items.forEach((tabBar) => {
-    //   tabBar.dot = false
-    //   tabBar.badge = 100
-    // })
-    // appTemplate.basic.tabbar.badgeStyle = {
-    //   backgroundColor: '#882222',
-    // }
-    if (tabBar?.theme) {
-      appTemplate.basic.theme = tabBar?.theme;
-    }
-  }
-  appTemplate.home = diyTemplate?.home;
-  appTemplate.user = diyTemplate?.user;
 };
 
 export default app;

@@ -187,7 +187,7 @@
   }
 
   function goWithdrawal() {
-    sheep.$router.go('/pages/maritime/withdrawal');
+    sheep.$router.go('/pages/maritime-sub/withdrawal');
   }
 
   const shareInfo = computed(() => {

@@ -175,7 +175,7 @@
   }
 
   function goDetail(id) {
-    sheep.$router.go('/pages/maritime/course-detail', { id });
+    sheep.$router.go('/pages/maritime-sub/course-detail', { id });
   }
 
   onLoad((options) => {

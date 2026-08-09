@@ -1,8 +1,6 @@
 import $store from '@/sheep/store';
 import $platform from '@/sheep/platform';
-import $router from '@/sheep/router';
 import $url from '@/sheep/url';
-import BrokerageApi from '@/sheep/api/trade/brokerage';
 import { SharePageEnum } from '@/sheep/helper/const';
 
 // #ifdef H5
@@ -80,7 +78,7 @@ const buildSpmQuery = (params) => {
   if (typeof params.page !== 'undefined') {
     page = params.page;
   }
-  let query = '0'; // 设置页面ID: 如商品ID、拼团ID等
+  let query = '0'; // 设置页面ID
   if (typeof params.query !== 'undefined') {
     query = params.query;
   }
@@ -95,105 +93,17 @@ const buildSpmQuery = (params) => {
 
 // 构造页面分享参数: 所有的分享都先到首页进行 spm 参数解析
 const buildSpmPath = (query) => {
-  // 默认是主页，页面 page，例如 pages/index/index，根路径前不要填加 /，
+  // 默认是主页，页面 page，例如 pages/maritime/course-list，根路径前不要填加 /，
   // 不能携带参数（参数请放在scene字段里），如果不填写这个字段，默认跳主页面。scancode_time为系统保留参数，不允许配置
   // 页面分享时参数使用 ? 拼接
-  return typeof query === 'undefined' ? `pages/index/index` : `pages/index/index?${query}`;
+  return typeof query === 'undefined'
+    ? `pages/maritime/course-list`
+    : `pages/maritime/course-list?${query}`;
 };
 
 // 构造分享链接
 const buildSpmLink = (query, linkAddress = '') => {
   return `${linkAddress}?${query}`;
-};
-
-// 解析Spm
-const decryptSpm = async (spm) => {
-  const user = $store('user');
-  let shareParamsArray = spm.split('.');
-  let shareParams = {
-    spm,
-    shareId: 0,
-    page: '',
-    query: {},
-    platform: '',
-    from: '',
-  };
-  let query;
-  shareParams.shareId = shareParamsArray[0];
-  switch (shareParamsArray[1]) {
-    case SharePageEnum.HOME.value:
-      // 默认首页不跳转
-      shareParams.page = SharePageEnum.HOME.page;
-      break;
-    case SharePageEnum.GOODS.value:
-      // 普通商品
-      shareParams.page = SharePageEnum.GOODS.page;
-      shareParams.query = {
-        id: shareParamsArray[2], // 设置活动编号
-      };
-      break;
-    case SharePageEnum.GROUPON.value:
-      // 拼团商品
-      shareParams.page = SharePageEnum.GROUPON.page;
-      shareParams.query = {
-        id: shareParamsArray[2], // 设置活动编号
-      };
-      break;
-    case SharePageEnum.SECKILL.value:
-      // 秒杀商品
-      shareParams.page = SharePageEnum.SECKILL.page;
-      shareParams.query = {
-        id: shareParamsArray[2], // 设置活动编号
-      };
-      break;
-    case SharePageEnum.GROUPON_DETAIL.value:
-      // 参与拼团
-      shareParams.page = SharePageEnum.GROUPON_DETAIL.page;
-      shareParams.query = {
-        id: shareParamsArray[2], // 设置活动编号
-      };
-      break;
-    case SharePageEnum.POINT.value:
-      // 积分商品
-      shareParams.page = SharePageEnum.POINT.page;
-      shareParams.query = {
-        id: shareParamsArray[2], // 设置活动编号
-      };
-      break;
-  }
-  shareParams.platform = platformMap[shareParamsArray[3] - 1];
-  shareParams.from = fromMap[shareParamsArray[4] - 1];
-  if (shareParams.shareId !== 0) {
-    // 记录分享者编号
-    uni.setStorageSync('shareId', shareParams.shareId);
-    // 已登录 绑定推广员
-    if (!!user.isLogin) {
-      await bindBrokerageUser(shareParams.shareId);
-    }
-  }
-
-  if (shareParams.page !== SharePageEnum.HOME.page) {
-    $router.go(shareParams.page, shareParams.query);
-  }
-  return shareParams;
-};
-
-// 绑定推广员
-const bindBrokerageUser = async (val = undefined) => {
-  try {
-    const shareId = val || uni.getStorageSync('shareId');
-    if (!shareId) {
-      return;
-    }
-    // 绑定成功返回 true，失败返回 false
-    const { data } = await BrokerageApi.bindBrokerageUser({ bindUserId: shareId });
-    // 绑定成功后清除缓存
-    if (data) {
-      uni.removeStorageSync('shareId');
-    }
-  } catch (e) {
-    console.error(e);
-  }
 };
 
 // 更新公众号分享sdk
@@ -208,6 +118,4 @@ const updateShareInfo = (shareInfo) => {
 export default {
   getShareInfo,
   updateShareInfo,
-  decryptSpm,
-  bindBrokerageUser,
 };

@@ -29,7 +29,6 @@
             class="avatar-img"
             :src="sheep.$url.cdn(state.model.avatar)"
             mode="aspectFill"
-            @tap="sheep.$router.go('/pages/user/info')"
           />
           <text class="cicon-forward" />
         </button>

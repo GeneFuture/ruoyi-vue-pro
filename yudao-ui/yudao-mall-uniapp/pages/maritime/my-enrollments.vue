@@ -91,7 +91,7 @@
   }
 
   function goDetail(id) {
-    sheep.$router.go('/pages/maritime/enrollment-detail', { id });
+    sheep.$router.go('/pages/maritime-sub/enrollment-detail', { id });
   }
 
   onLoad(() => {

@@ -128,7 +128,7 @@
           return;
         }
         sheep.$store('user').logout();
-        sheep.$router.go('/pages/index/user');
+        sheep.$router.go('/pages/maritime/my');
       },
     });
   }
@@ -147,7 +147,7 @@
           return;
         }
         sheep.$store('user').logout();
-        sheep.$router.go('/pages/index/user');
+        sheep.$router.go('/pages/maritime/my');
       },
     });
   }
