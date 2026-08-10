@@ -11,7 +11,7 @@ import cn.iocoder.yudao.module.ai.dal.dataobject.workflow.AiWorkflowDO;
 import cn.iocoder.yudao.module.ai.dal.mysql.workflow.AiWorkflowMapper;
 import cn.iocoder.yudao.module.ai.service.model.AiModelService;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import dev.tinyflow.core.Tinyflow;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
