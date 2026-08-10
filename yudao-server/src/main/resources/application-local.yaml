@@ -8,7 +8,20 @@ spring:
     exclude:
       - org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration # 默认 local 环境，不开启 Quartz 的自动配置
       - org.springframework.ai.vectorstore.qdrant.autoconfigure.QdrantVectorStoreAutoConfiguration # 禁用 AI 模块的 Qdrant，手动创建
+      - org.springframework.ai.vectorstore.redis.autoconfigure.RedisVectorStoreAutoConfiguration # 禁用 AI 模块的 Redis，手动创建
       - org.springframework.ai.vectorstore.milvus.autoconfigure.MilvusVectorStoreAutoConfiguration # 禁用 AI 模块的 Milvus，手动创建
+      - org.dromara.trans.config.TransServiceConfig # TODO 芋艿：easy-trans 兼容 Spring Boot 4 后移除（TransServiceConfig 引用了已移除的 RestTemplateBuilder）
+      # TODO 芋艿：spring-ai-alibaba 2.0.0-M1.1 的 DashScope 自动配置暂不兼容 Spring AI 2.0.0
+      - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeChatAutoConfiguration
+      - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeAgentAutoConfiguration
+      - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeImageAutoConfiguration
+      - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeVideoAutoConfiguration
+      - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeAudioSpeechAutoConfiguration
+      - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeAudioTranscriptionAutoConfiguration
+      - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeRerankAutoConfiguration
+      - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeEmbeddingAutoConfiguration
+      - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeMultimodalEmbeddingAutoConfiguration
+      - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeAsyncToolCallingManagerAutoConfiguration
   # 数据源配置项
   datasource:
     druid: # Druid 【监控】相关的全局配置
@@ -55,6 +68,7 @@ spring:
           #          url: jdbc:dm://127.0.0.1:5236?schema=RUOYI_VUE_PRO # DM 连接的示例
           #          url: jdbc:kingbase8://127.0.0.1:54321/test  # 人大金仓 KingbaseES 连接的示例
           #          url: jdbc:postgresql://127.0.0.1:5432/postgres # OpenGauss 连接的示例
+          #          url: jdbc:postgresql://127.0.0.1:5866/ruoyi-vue-pro # 瀚高 HighGo 连接的示例
           username: root
           password: 123456
           #          username: sa # SQL Server 连接的示例
@@ -63,6 +77,8 @@ spring:
           #          password: SYSDBA001 # DM 连接的示例
           #          username: root # OpenGauss 连接的示例
           #          password: Yudao@2024 # OpenGauss 连接的示例
+          #          username: root # 瀚高 HighGo 连接的示例
+          #          password: 123456 # 瀚高 HighGo 连接的示例
         slave: # 模拟从库，可根据自己需要修改
           lazy: true # 开启懒加载，保证启动速度
           url: jdbc:mysql://127.0.0.1:3306/ruoyi-vue-pro?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true&nullCatalogMeansCurrent=true
@@ -70,7 +86,7 @@ spring:
           password: 123456
 #        tdengine: # IoT 数据库（需要 IoT 物联网再开启噢！）
 #          lazy: true # 开启懒加载，保证启动速度
-#          url: jdbc:TAOS-WS://127.0.0.1:6041/ruoyi_vue_pro?varcharAsString=true
+#          url: jdbc:TAOS-WS://127.0.0.1:6041/ruoyi_vue_pro?varcharAsString=true&enableAutoReconnect=true # 参见：https://t.zsxq.com/qaX9c，开启 TDengine WebSocket 自动重连
 #          driver-class-name: com.taosdata.jdbc.ws.WebSocketDriver
 #          username: root
 #          password: taosdata
@@ -138,7 +154,7 @@ spring:
 # Lock4j 配置项
 lock4j:
   acquire-timeout: 3000 # 获取分布式锁超时时间，默认为 3000 毫秒
-  expire: 30000 # 分布式锁的超时时间，默认为 30 毫秒
+  expire: 30000 # 分布式锁的超时时间，默认为 30000 毫秒
 
 --- #################### 监控相关配置 ####################
 
@@ -163,6 +179,8 @@ spring:
         password: admin
       # Spring Boot Admin Server 服务端的相关配置
       context-path: /admin # 配置 Spring
+      # 允许嵌入 iframe 的域名（支持通配符），实际部署时，可以改为 "'self' [你的公网域名]"
+      frame-ancestors: "'self' localhost localhost:48080 127.0.0.1 127.0.0.1:48080"
 
 # 日志文件配置
 logging:
@@ -187,10 +205,12 @@ logging:
     cn.iocoder.yudao.module.crm.dal.mysql: debug
     cn.iocoder.yudao.module.erp.dal.mysql: debug
     cn.iocoder.yudao.module.mes.dal.mysql: debug
+    cn.iocoder.yudao.module.wms.dal.mysql: debug
     cn.iocoder.yudao.module.iot.dal.mysql: debug
     cn.iocoder.yudao.module.iot.dal.tdengine: DEBUG
     cn.iocoder.yudao.module.iot.service.rule: debug
     cn.iocoder.yudao.module.ai.dal.mysql: debug
+    cn.iocoder.yudao.module.im.dal.mysql: debug
     org.springframework.context.support.PostProcessorRegistrationDelegate: ERROR # TODO 芋艿：先禁用，Spring Boot 3.X 存在部分错误的 WARN 提示
 
 debug: false
@@ -208,7 +228,7 @@ wx:
     config-storage:
       type: RedisTemplate # 采用 RedisTemplate 操作 Redis，会自动从 Spring 中获取
       key-prefix: wx # Redis Key 的前缀
-      http-client-type: HttpClient # 采用 HttpClient 请求微信公众号平台
+      http-client-type: HttpComponents # 采用 HttpComponents（HttpClient 5）请求微信公众号平台
   miniapp: # 小程序配置（必填），参见 https://github.com/Wechat-Group/WxJava/blob/develop/spring-boot-starters/wx-java-miniapp-spring-boot-starter/README.md 文档
     #    appid: wx62056c0d5e8db250 # 测试号（牛希尧提供的）
     #    secret: 333ae72f41552af1e998fe1f54e1584a
@@ -221,7 +241,7 @@ wx:
     config-storage:
       type: RedisTemplate # 采用 RedisTemplate 操作 Redis，会自动从 Spring 中获取
       key-prefix: wa # Redis Key 的前缀
-      http-client-type: HttpClient # 采用 HttpClient 请求微信公众号平台
+      http-client-type: HttpComponents # 采用 HttpComponents（HttpClient 5）请求微信小程序平台
 
 --- #################### 芋道相关配置 ####################
 

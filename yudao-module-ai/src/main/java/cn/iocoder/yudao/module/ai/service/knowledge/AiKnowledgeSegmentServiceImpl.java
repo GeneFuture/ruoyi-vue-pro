@@ -142,6 +142,19 @@ public class AiKnowledgeSegmentServiceImpl implements AiKnowledgeSegmentService 
     }
 
     @Override
+    public void deleteKnowledgeSegment(Long id) {
+        // 1. 校验段落存在
+        AiKnowledgeSegmentDO segment = validateKnowledgeSegmentExists(id);
+
+        // 2. 删除向量
+        VectorStore vectorStore = getVectorStoreById(segment.getKnowledgeId());
+        deleteVectorStore(vectorStore, segment);
+
+        // 3. 删除段落记录
+        segmentMapper.deleteById(id);
+    }
+
+    @Override
     public void deleteKnowledgeSegmentByDocumentId(Long documentId) {
         // 1. 查询需要删除的段落
         List<AiKnowledgeSegmentDO> segments = segmentMapper.selectListByDocumentId(documentId);
@@ -153,7 +166,7 @@ public class AiKnowledgeSegmentServiceImpl implements AiKnowledgeSegmentService 
         segmentMapper.deleteByIds(convertList(segments, AiKnowledgeSegmentDO::getId));
 
         // 3. 删除向量存储中的段落
-        VectorStore vectorStore = getVectorStoreById(segments.get(0).getKnowledgeId());
+        VectorStore vectorStore = getVectorStoreById(segments.getFirst().getKnowledgeId());
         vectorStore.delete(convertList(segments, AiKnowledgeSegmentDO::getVectorId));
     }
 
@@ -286,7 +299,7 @@ public class AiKnowledgeSegmentServiceImpl implements AiKnowledgeSegmentService 
         // 2. Rerank 重排序
         if (rerankModel != null) {
             RerankResponse rerankResponse = rerankModel.call(new RerankRequest(reqBO.getContent(), documents,
-                    DashScopeRerankOptions.builder().withTopN(topK).build()));
+                    DashScopeRerankOptions.builder().topN(topK).build()));
             documents = convertList(rerankResponse.getResults(),
                     documentWithScore -> documentWithScore.getScore() >= similarityThreshold
                             ? documentWithScore.getOutput() : null);

@@ -17,9 +17,9 @@ import reactor.core.publisher.Flux;
 @RequiredArgsConstructor
 public class GrokChatModel implements ChatModel {
 
-    public static final String BASE_URL = "https://api.x.ai";
+    public static final String BASE_URL = "https://api.x.ai/v1";
     public static final String COMPLETE_PATH = "/v1/chat/completions";
-    public static final String MODEL_DEFAULT = "grok-4-fast-reasoning";
+    public static final String MODEL_DEFAULT = "grok-4.3";
 
     /**
      * 兼容 OpenAI 接口，进行复用
@@ -37,8 +37,15 @@ public class GrokChatModel implements ChatModel {
     }
 
     @Override
+    public ChatOptions getOptions() {
+        return openAiChatModel.getOptions();
+    }
+
+    @Override
+    @Deprecated(forRemoval = true)
+    @SuppressWarnings("removal")
     public ChatOptions getDefaultOptions() {
-        return openAiChatModel.getDefaultOptions();
+        return getOptions();
     }
 
 }

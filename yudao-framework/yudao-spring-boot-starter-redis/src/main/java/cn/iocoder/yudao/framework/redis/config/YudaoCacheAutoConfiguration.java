@@ -3,7 +3,7 @@ package cn.iocoder.yudao.framework.redis.config;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.redis.core.TimeoutRedisCacheManager;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.cache.CacheProperties;
+import org.springframework.boot.cache.autoconfigure.CacheProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -75,8 +75,12 @@ public class YudaoCacheAutoConfiguration {
         RedisConnectionFactory connectionFactory = Objects.requireNonNull(redisTemplate.getConnectionFactory());
         RedisCacheWriter cacheWriter = RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory,
                 BatchStrategies.scan(yudaoCacheProperties.getRedisScanBatchSize()));
-        // 创建 TenantRedisCacheManager 对象
-        return new TimeoutRedisCacheManager(cacheWriter, redisCacheConfiguration);
+        // 创建 TimeoutRedisCacheManager 对象
+        TimeoutRedisCacheManager cacheManager = new TimeoutRedisCacheManager(cacheWriter, redisCacheConfiguration);
+        // 开启事务感知：@Transactional 方法内的 @CacheEvict / @CachePut 自动延迟到 afterCommit，
+        //             避免事务未提交就清缓存被并发读穿写脏值；无事务时立即生效，行为不变
+        cacheManager.setTransactionAware(true);
+        return cacheManager;
     }
 
 }

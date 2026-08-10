@@ -11,7 +11,7 @@ import cn.iocoder.yudao.module.product.dal.dataobject.spu.ProductSpuDO;
 import cn.iocoder.yudao.module.product.enums.ProductConstants;
 import cn.iocoder.yudao.module.product.enums.spu.ProductSpuStatusEnum;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
+import com.baomidou.mybatisplus.extension.handlers.Jackson3TypeHandler;
 import org.apache.ibatis.annotations.*;
 
 import java.util.Objects;
@@ -26,7 +26,7 @@ public interface ProductSpuMapper extends BaseMapperX<ProductSpuDO> {
      */
     @Select("SELECT * FROM product_spu WHERE id = #{id}")
     @Results({
-            @Result(column = "slider_pic_urls", property = "sliderPicUrls", typeHandler = JacksonTypeHandler.class),
+            @Result(column = "slider_pic_urls", property = "sliderPicUrls", typeHandler = Jackson3TypeHandler.class),
             @Result(column = "delivery_types", property = "deliveryTypes", typeHandler = IntegerListTypeHandler.class),
     })
     ProductSpuDO selectByIdIncludeDeleted(@Param("id") Long id);
@@ -144,6 +144,22 @@ public interface ProductSpuMapper extends BaseMapperX<ProductSpuDO> {
         if (ObjectUtil.equals(ProductSpuPageReqVO.RECYCLE_BIN, tabType)) {
             query.eqIfPresent(ProductSpuDO::getStatus, ProductSpuStatusEnum.RECYCLE.getStatus());
         }
+    }
+
+    /**
+     * 按筛选条件 + Tab 统计商品 SPU 数量（用于带筛选的 tab count）
+     *
+     * @param reqVO   筛选条件（name/categoryId/createTime）
+     * @param tabType Tab 标签类型
+     * @return 数量
+     */
+    default Long selectCountByTab(ProductSpuPageReqVO reqVO, Integer tabType) {
+        LambdaQueryWrapperX<ProductSpuDO> queryWrapper = new LambdaQueryWrapperX<ProductSpuDO>()
+                .likeIfPresent(ProductSpuDO::getName, reqVO.getName())
+                .eqIfPresent(ProductSpuDO::getCategoryId, reqVO.getCategoryId())
+                .betweenIfPresent(ProductSpuDO::getCreateTime, reqVO.getCreateTime());
+        appendTabQuery(tabType, queryWrapper);
+        return selectCount(queryWrapper);
     }
 
     /**

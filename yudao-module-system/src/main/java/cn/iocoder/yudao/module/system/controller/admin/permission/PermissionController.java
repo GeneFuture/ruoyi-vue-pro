@@ -20,11 +20,6 @@ import java.util.Set;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
-/**
- * 权限 Controller，提供赋予用户、角色的权限的 API 接口
- *
- * @author 芋道源码
- */
 @Tag(name = "管理后台 - 权限")
 @RestController
 @RequestMapping("/system/permission")
@@ -39,7 +34,7 @@ public class PermissionController {
     @Parameter(name = "roleId", description = "角色编号", required = true)
     @GetMapping("/list-role-menus")
     @PreAuthorize("@ss.hasPermission('system:permission:assign-role-menu')")
-    public CommonResult<Set<Long>> getRoleMenuList(Long roleId) {
+    public CommonResult<Set<Long>> getRoleMenuList(@RequestParam("roleId") Long roleId) {
         return success(permissionService.getRoleMenuListByRoleId(roleId));
     }
 
