@@ -1,0 +1,24 @@
+{
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.jdt.ls.java.home": "/Users/admin/.sdkman/candidates/java/25.0.1-graal",
+    "java.jdt.ls.lombokSupport.enabled": false,
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-17",
+            "path": "/Users/admin/.sdkman/candidates/java/17.0.12-graal"
+        },
+        {
+            "name": "JavaSE-21",
+            "path": "/Users/admin/.sdkman/candidates/java/21.0.6-graal"
+        },
+        {
+            "name": "JavaSE-25",
+            "path": "/Users/admin/.sdkman/candidates/java/25.0.1-graal",
+            "default": true
+        }
+    ],
+    "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:MetaspaceSize=256m -Xmx4G -javaagent:/Users/admin/.m2/repository/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar",
+    "java.import.maven.enabled": true,
+    "java.maven.downloadSources": true,
+    "java.debug.settings.onBuildFailureProceed": true
+}

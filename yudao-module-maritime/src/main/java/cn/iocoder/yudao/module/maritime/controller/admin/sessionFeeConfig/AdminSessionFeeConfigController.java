@@ -90,7 +90,7 @@ public class AdminSessionFeeConfigController {
 
     @PutMapping("/save")
     @Operation(summary = "保存费用配置（存在则更新，不存在则创建）")
-    @PreAuthorize("@ss.hasPermission('maritime:session-fee-config:update')")
+    @PreAuthorize("@ss.hasPermission('maritime:course-session:update')")
     public CommonResult<Boolean> saveFeeConfig(@Valid @RequestBody SessionFeeConfigSaveReqVO saveReqVO) {
         sessionFeeConfigService.saveFeeConfig(saveReqVO);
         return success(true);
@@ -99,7 +99,7 @@ public class AdminSessionFeeConfigController {
     @GetMapping("/get-by-session")
     @Operation(summary = "按班期ID查询费用配置")
     @Parameter(name = "sessionId", description = "班期ID", required = true)
-    @PreAuthorize("@ss.hasPermission('maritime:session-fee-config:query')")
+    @PreAuthorize("@ss.hasPermission('maritime:course-session:query')")
     public CommonResult<SessionFeeConfigRespVO> getFeeConfigBySession(@RequestParam("sessionId") Long sessionId) {
         SessionFeeConfigDO feeConfig = sessionFeeConfigService.getFeeConfigBySessionId(sessionId);
         return success(BeanUtils.toBean(feeConfig, SessionFeeConfigRespVO.class));

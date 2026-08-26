@@ -81,6 +81,11 @@ public interface ErrorCodeConstants {
     ErrorCode RISK_MEMBER_NOT_EXISTS = new ErrorCode(1_009_007_005, "用户不存在");
 
     // ========== 报表模块 1-009-011-000 ==========
+    // ========== 费用模板 1-009-008-000 ==========
+    ErrorCode FEE_TEMPLATE_NOT_EXISTS = new ErrorCode(1_009_008_000, "费用模板不存在");
+    ErrorCode FEE_TEMPLATE_NAME_DUPLICATE = new ErrorCode(1_009_008_001, "费用模板名称已存在");
+    ErrorCode FEE_TEMPLATE_DISABLED = new ErrorCode(1_009_008_002, "费用模板已停用，不能用于新增班期");
+
     ErrorCode EXPORT_ROWS_EXCEEDED = new ErrorCode(1_009_011_000, "导出数据量超过上限 10000 行，请缩小筛选范围");
     ErrorCode EXPORT_PERIOD_INVALID = new ErrorCode(1_009_011_001, "统计周期只允许 WEEK / MONTH / ALL_TIME");
 

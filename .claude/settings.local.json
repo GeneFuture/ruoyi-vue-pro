@@ -40,7 +40,20 @@
       "Bash(grep *)",
       "Bash(cat *)",
       "Bash(ps aux*)",
-      "Bash(pwd)"
+      "Bash(pwd)",
+      "Bash(git merge-tree *)",
+      "Bash(echo \"exit code: $?\")",
+      "Bash(awk '{print $3}')",
+      "Bash(claude --version)",
+      "Bash(CCB_CALLER=claude pend codex)",
+      "Bash(node dialog.mjs)",
+      "Bash(ps -p 63312 -o command=)",
+      "Bash(npx eslint *)",
+      "Bash(kill 63312)",
+      "Bash(ps -p 79827 -o command=)",
+      "Bash(echo \"diff-exit: $?\")",
+      "Bash(CCB_CALLER=claude ask codex *)",
+      "Bash(node create-edit-consistency.mjs)"
     ],
     "deny": [
       "Bash(git push --force*)",

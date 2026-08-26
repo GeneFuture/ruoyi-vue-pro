@@ -50,8 +50,7 @@ public class CourseSessionSaveReqVO {
     @NotNull(message = "最大招生人数不能为空")
     private Integer maxStudents;
 
-    @Schema(description = "已报名人数（缓存值，以 enrollment 表实际计数为准）", requiredMode = Schema.RequiredMode.REQUIRED, example = "22608")
-    @NotNull(message = "已报名人数（缓存值，以 enrollment 表实际计数为准）不能为空")
+    @Schema(description = "已报名人数（缓存值，系统自动维护，无需传入）", example = "22608")
     private Integer enrolledCount;
 
     @Schema(description = "班期状态（DRAFT草稿/OPEN招生中/PENDING_START待开班/IN_PROGRESS进行中/FINISHED已完成/CANCELLED已取消）", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
@@ -60,5 +59,8 @@ public class CourseSessionSaveReqVO {
 
     @Schema(description = "班期备注", example = "随便")
     private String remark;
+
+    @Schema(description = "费用模板ID（仅新增时生效：快照复制模板内容到班期费用配置；不传则创建零值占位配置）", example = "1")
+    private Long feeTemplateId;
 
 }

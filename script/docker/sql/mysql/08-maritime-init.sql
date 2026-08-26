@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS maritime_course_session (
   enrolled_count  INT          NOT NULL DEFAULT 0 COMMENT '已报名人数（缓存值，以 enrollment 表实际计数为准）',
   session_status  VARCHAR(20)  NOT NULL DEFAULT 'DRAFT'
                   COMMENT '班期状态（DRAFT草稿/OPEN招生中/PENDING_START待开班/IN_PROGRESS进行中/FINISHED已完成/CANCELLED已取消）',
-  remark          VARCHAR(500) DEFAULT NULL COMMENT '班期备注',
+  remark          TEXT         DEFAULT NULL COMMENT '班期备注（富文本HTML）',
   creator         VARCHAR(64)  NOT NULL DEFAULT '' COMMENT '创建者',
   updater         VARCHAR(64)  NOT NULL DEFAULT '' COMMENT '更新者',
   create_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -100,6 +100,34 @@ CREATE TABLE IF NOT EXISTS maritime_session_fee_config (
   -- 含 deleted：同班期费用配置软删除后可重新创建
   UNIQUE INDEX uk_session_id (session_id, deleted)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='班期费用配置表';
+
+-- ========== 4.5 费用模板表（独立定价方案；新增班期时选择并快照复制到班期费用配置） ==========
+-- ⚠️ 所有金额字段单位：元（DECIMAL），调用 ruoyi PayOrderApi/PayTransferApi 时需 ×100 转换为分
+CREATE TABLE IF NOT EXISTS maritime_fee_template (
+  id                            BIGINT         NOT NULL AUTO_INCREMENT COMMENT '模板ID',
+  name                          VARCHAR(50)    NOT NULL COMMENT '模板名称（如：STCW 标准收费）',
+  tuition_amount                DECIMAL(10,2)  NOT NULL COMMENT '学费总额（元）',
+  tuition_description           JSON           DEFAULT NULL COMMENT '学费说明（{"理论课":"1000","实操":"800"}）',
+  deposit_amount                DECIMAL(10,2)  NOT NULL COMMENT '定金金额（元）',
+  is_groupon_enabled            TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否开启拼团',
+  groupon_discount_amount       DECIMAL(10,2)  NOT NULL DEFAULT 0 COMMENT '拼团优惠减免金额（元）',
+  groupon_required_count        INT            NOT NULL DEFAULT 3 COMMENT '拼团所需人数',
+  groupon_expire_hours          INT            NOT NULL DEFAULT 24 COMMENT '拼团有效时间（小时）',
+  groupon_fail_discount_amount  DECIMAL(10,2)  NOT NULL DEFAULT 0 COMMENT '拼团失败降级优惠金额（元，单人可享）',
+  referral_commission_amount    DECIMAL(10,2)  NOT NULL DEFAULT 0 COMMENT '推荐佣金金额（元，每成功推荐一人）',
+  is_referral_commission_enabled TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '是否开启推荐佣金',
+  is_deposit_refundable          TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '定金是否可退',
+  balance_due_days_before_start  INT          NOT NULL DEFAULT 7  COMMENT '尾款截止：开班前N天',
+  refund_policy_text            TEXT           DEFAULT NULL COMMENT '退款政策说明文本',
+  status                        TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '状态（CommonStatusEnum：0启用 1停用）',
+  creator                       VARCHAR(64)    NOT NULL DEFAULT '' COMMENT '创建者',
+  updater                       VARCHAR(64)    NOT NULL DEFAULT '' COMMENT '更新者',
+  create_time                   DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  update_time                   DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  deleted                       TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '逻辑删除（0正常 1删除）',
+  tenant_id                     BIGINT         NOT NULL DEFAULT 0 COMMENT '租户ID',
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='费用模板表';
 
 -- ========== 5. 报名记录表 ==========
 -- ⚠️ 所有金额字段单位：元（DECIMAL），调用 ruoyi PayOrderApi 时需 ×100 转换为分
@@ -510,16 +538,6 @@ INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, co
 INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('班期删除', 'maritime:course-session:delete', 3, 4, @menuId, '', '', '', 0);
 INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('班期导出', 'maritime:course-session:export', 3, 5, @menuId, '', '', '', 0);
 
--- ==================== 费用配置 ====================
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
-VALUES ('费用配置', '', 2, 3, @maritimeId, 'session-fee-config', '', 'maritime/sessionFeeConfig/index', 0, 'SessionFeeConfig');
-SET @menuId := LAST_INSERT_ID();
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('费用配置查询', 'maritime:session-fee-config:query',  3, 1, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('费用配置新增', 'maritime:session-fee-config:create', 3, 2, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('费用配置编辑', 'maritime:session-fee-config:update', 3, 3, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('费用配置删除', 'maritime:session-fee-config:delete', 3, 4, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('费用配置导出', 'maritime:session-fee-config:export', 3, 5, @menuId, '', '', '', 0);
-
 -- ==================== 报名管理 ====================
 INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
 VALUES ('报名管理', '', 2, 4, @maritimeId, 'enrollment', '', 'maritime/enrollment/index', 0, 'Enrollment');
@@ -654,3 +672,12 @@ SET @menuId := LAST_INSERT_ID();
 INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('运营看板',   'maritime:dashboard:view',   3, 1, @menuId, '', '', '', 0);
 INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('财务汇总',   'maritime:finance:view',     3, 2, @menuId, '', '', '', 0);
 INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('佣金导出',   'maritime:commission:export', 3, 3, @menuId, '', '', '', 0);
+
+-- ==================== 费用模板（独立定价方案，菜单顺序可在后台调整） ====================
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
+VALUES ('费用模板', '', 2, 19, @maritimeId, 'fee-template', '', 'maritime/feeTemplate/index', 0, 'FeeTemplate');
+SET @menuId := LAST_INSERT_ID();
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('模板查询', 'maritime:fee-template:query',  3, 1, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('模板新增', 'maritime:fee-template:create', 3, 2, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('模板编辑', 'maritime:fee-template:update', 3, 3, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('模板删除', 'maritime:fee-template:delete', 3, 4, @menuId, '', '', '', 0);
