@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.maritime.job;
 
 import cn.iocoder.yudao.framework.quartz.core.handler.JobHandler;
+import cn.iocoder.yudao.framework.tenant.core.job.TenantJob;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.enrollment.EnrollmentDO;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.session.CourseSessionDO;
 import cn.iocoder.yudao.module.maritime.dal.mysql.enrollment.EnrollmentMapper;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
  * 尾款催缴提醒任务
  *
  * 每天 10:00 扫描 DEPOSITED 状态且尾款截止日期在 7 天内的报名，发送催缴提醒。
+ * 同一报名 3 天内只提醒一次，避免连续多天重复发送。
  * 在后台「基础设施 → 定时任务」配置 Cron: 0 0 10 * * ?
  *
  * @author Gene Ye
@@ -37,10 +40,12 @@ public class BalanceReminderJob implements JobHandler {
     @Resource
     private ApplicationEventPublisher eventPublisher;
 
+    @TenantJob
     @Override
     public String execute(String param) throws Exception {
+        LocalDate today = LocalDate.now();
         // 查询尾款截止日期在今天 + 7 天之前（含今天）的 DEPOSITED 报名
-        LocalDate reminderBefore = LocalDate.now().plusDays(7);
+        LocalDate reminderBefore = today.plusDays(7);
         List<EnrollmentDO> enrollments = enrollmentMapper.selectDepositedWithBalanceDueBefore(reminderBefore);
         log.info("[BalanceReminderJob] 待发送尾款提醒数: {}", enrollments.size());
 
@@ -53,6 +58,15 @@ public class BalanceReminderJob implements JobHandler {
         int sent = 0;
         for (EnrollmentDO enrollment : enrollments) {
             try {
+                // 去重：3 天内已提醒过则跳过，避免连续多天重复发送
+                if (enrollment.getLastBalanceRemindDate() != null
+                        && enrollment.getLastBalanceRemindDate().isAfter(today.minusDays(3))) {
+                    continue;
+                }
+                if (enrollment.getBalanceAmount() == null
+                        || enrollment.getBalanceAmount().compareTo(BigDecimal.ZERO) <= 0) {
+                    continue;
+                }
                 CourseSessionDO session = sessionMap.get(enrollment.getSessionId());
                 eventPublisher.publishEvent(new BalanceReminderEvent(
                         this,
@@ -62,6 +76,10 @@ public class BalanceReminderJob implements JobHandler {
                         enrollment.getBalanceAmount(),
                         session != null ? session.getStartDate() : null,
                         enrollment.getBalanceDueDate()));
+                EnrollmentDO update = new EnrollmentDO();
+                update.setId(enrollment.getId());
+                update.setLastBalanceRemindDate(today);
+                enrollmentMapper.updateById(update);
                 log.info("[BalanceReminderJob] 发送尾款提醒, enrollmentId={}, memberId={}, balanceDueDate={}",
                         enrollment.getId(), enrollment.getMemberId(), enrollment.getBalanceDueDate());
                 sent++;

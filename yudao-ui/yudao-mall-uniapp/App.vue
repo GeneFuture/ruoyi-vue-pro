@@ -3,10 +3,9 @@
   import { ShoproInit } from './sheep';
 
   onLaunch(() => {
-    // 隐藏原生导航栏 使用自定义底部导航
-    uni.hideTabBar({
-      fail: () => {},
-    });
+    // 底部导航使用 pages.json 的原生 tabBar（首页/开班/消息/我的）
+    // 注意：不要再调用 uni.hideTabBar()，否则会导致小程序没有底部导航
+    // （自定义的 s-tabbar 数据源 app.template.basic.tabbar 由后端装修模板下发，当前为空）
 
     // 加载Shopro底层依赖
     ShoproInit();

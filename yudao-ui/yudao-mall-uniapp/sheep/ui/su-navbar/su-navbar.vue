@@ -52,19 +52,7 @@
             </view>
           </slot>
         </view>
-        <view v-if="tools === 'search'" class="ss-flex-1">
-          <slot name="center">
-            <uni-search-bar
-              class="ss-flex-1 search-box"
-              :radius="20"
-              placeholder="请输入关键词"
-              cancelButton="none"
-              v-model="searchModel"
-              @confirm="onSearch"
-            />
-          </slot>
-        </view>
-        <view v-else class="uni-navbar__header-container" @tap="onClickTitle">
+        <view class="uni-navbar__header-container" @tap="onClickTitle">
           <slot name="center">
             <view
               v-if="tools === 'title' && titleAlign === 'center' && title.length"
@@ -115,7 +103,7 @@
 
   const getVal = (val) => (typeof val === 'number' ? val + 'px' : val);
 
-  const emits = defineEmits(['clickLeft', 'clickRight', 'clickTitle', 'search']);
+  const emits = defineEmits(['clickLeft', 'clickRight', 'clickTitle']);
   const props = defineProps({
     dark: {
       type: Boolean,
@@ -197,10 +185,6 @@
       type: String,
       default: 'title',
     },
-    defaultSearch: {
-      type: String,
-      default: '',
-    },
   });
 
   const capsuleStyle = computed(() => {
@@ -210,10 +194,6 @@
       margin: '0 ' + (sheep.$platform.device.windowWidth - sheep.$platform.capsule.right) + 'px',
     };
   });
-
-  const searchModel = computed(() => {
-		return props.defaultSearch
-	})
 
   const themeBgColor = computed(() => {
     if (props.dark) {
@@ -247,10 +227,6 @@
     return getVal(props.rightWidth);
   });
 
-  function onSearch(e) {
-    emits('search', e.value);
-  }
-
   onLoad(() => {
     if (uni.report && props.title !== '') {
       uni.report('title', props.title);
@@ -263,7 +239,7 @@
     if (hasHistory) {
       sheep.$router.back();
     } else {
-      sheep.$router.go('/pages/maritime/course-list');
+      sheep.$router.go('/pages/maritime/index');
     }
     emits('clickLeft');
   }

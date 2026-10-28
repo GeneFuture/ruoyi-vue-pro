@@ -125,10 +125,7 @@ http.interceptors.response.use(
       if (response.data.code === 401) {
         return refreshToken(response.config);
       }
-      // 特殊：处理分销用户绑定失败的提示
-      if ((response.data.code + '').includes('1011007')) {
-        console.error(`分销用户绑定失败，原因：${response.data.msg}`);
-      } else if (response.config.custom.showError) {
+      if (response.config.custom.showError) {
         // 错误提示
         uni.showToast({
           title: response.data.msg || '服务器开小差啦,请稍后再试~',
@@ -205,6 +202,9 @@ http.interceptors.response.use(
     }
 
     if (error && error.config) {
+      // 先关闭 loading，再弹错误提示：showToast 与 showLoading 共用原生弹层，
+      // 顺序反了会导致 hideLoading 把错误 Toast 一起关掉，用户看不到任何提示
+      error.config.custom.showLoading && closeLoading();
       if (error.config.custom.showError) {
         uni.showToast({
           title: error.data?.msg || errorMessage,
@@ -212,7 +212,6 @@ http.interceptors.response.use(
           mask: true,
         });
       }
-      error.config.custom.showLoading && closeLoading();
     }
 
     return false;

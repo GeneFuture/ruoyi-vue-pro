@@ -29,6 +29,7 @@ public interface NotifyMessageMapper extends BaseMapperX<NotifyMessageDO> {
     default PageResult<NotifyMessageDO> selectPage(NotifyMessageMyPageReqVO reqVO, Long userId, Integer userType) {
         return selectPage(reqVO, new LambdaQueryWrapperX<NotifyMessageDO>()
                 .eqIfPresent(NotifyMessageDO::getReadStatus, reqVO.getReadStatus())
+                .likeRightIfPresent(NotifyMessageDO::getTemplateCode, reqVO.getTemplateCodePrefix())
                 .betweenIfPresent(NotifyMessageDO::getCreateTime, reqVO.getCreateTime())
                 .eq(NotifyMessageDO::getUserId, userId)
                 .eq(NotifyMessageDO::getUserType, userType)
@@ -61,8 +62,13 @@ public interface NotifyMessageMapper extends BaseMapperX<NotifyMessageDO> {
     }
 
     default Long selectUnreadCountByUserIdAndUserType(Long userId, Integer userType) {
+        return selectUnreadCountByUserIdAndUserType(userId, userType, null);
+    }
+
+    default Long selectUnreadCountByUserIdAndUserType(Long userId, Integer userType, String templateCodePrefix) {
         return selectCount(new LambdaQueryWrapperX<NotifyMessageDO>()
                 .eq(NotifyMessageDO::getReadStatus, false)
+                .likeRightIfPresent(NotifyMessageDO::getTemplateCode, templateCodePrefix)
                 .eq(NotifyMessageDO::getUserId, userId)
                 .eq(NotifyMessageDO::getUserType, userType));
     }

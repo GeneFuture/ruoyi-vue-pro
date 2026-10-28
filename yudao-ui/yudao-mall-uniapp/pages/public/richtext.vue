@@ -16,7 +16,13 @@
   });
 
   async function getRichTextContent(id, title) {
-    const { code, data } = await ArticleApi.getArticle(id, title);
+    let res;
+    try {
+      res = await ArticleApi.getArticle(id, title);
+    } catch (e) {
+      return;
+    }
+    const { code, data } = res;
     if (code !== 0) {
       return;
     }

@@ -42,7 +42,6 @@ TABLES=(
   "maritime_enrollment|enrollment|Enrollment|报名管理"
   "maritime_enrollment_order|enrollmentOrder|EnrollmentOrder|报名订单"
   "maritime_refund_apply|refundApply|RefundApply|退费申请"
-  "maritime_announcement|announcement|Announcement|最新动态"
   "maritime_user_message|userMessage|UserMessage|站内消息"
   "maritime_groupon_record|grouponRecord|GrouponRecord|拼团记录"
   "maritime_groupon_member|grouponMember|GrouponMember|拼团成员"

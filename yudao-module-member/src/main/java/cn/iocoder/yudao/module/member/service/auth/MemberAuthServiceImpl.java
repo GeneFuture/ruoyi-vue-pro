@@ -146,17 +146,10 @@ public class MemberAuthServiceImpl implements MemberAuthService {
         Assert.notNull(user, "获取用户失败，结果为空");
         validateUserStatus(user, user.getMobile(), LoginLogTypeEnum.LOGIN_SOCIAL);
 
-        // 初始化推荐码（首次登录时生成）
-        userService.initReferralCodeIfAbsent(user.getId());
-        // 绑定推荐关系（如果携带了推荐码）
-        if (StrUtil.isNotBlank(reqVO.getReferralCode())) {
-            userService.bindReferredBy(user.getId(), reqVO.getReferralCode());
-        }
-
         // 绑定社交用户
         String openid = socialUserApi.bindSocialUser(new SocialUserBindReqDTO(user.getId(), getUserType().getValue(),
                 SocialTypeEnum.WECHAT_MINI_PROGRAM.getType(), reqVO.getLoginCode(), reqVO.getState()));
-        // 保存 openId（用于自推检测和企业付款）
+        // 保存 openId
         userService.updateUserOpenId(user.getId(), openid);
 
         // 创建 Token 令牌，记录登录日志

@@ -23,14 +23,24 @@ import java.time.LocalDateTime;
 @Mapper
 public interface EnrollmentMapper extends BaseMapperX<EnrollmentDO> {
 
+    /**
+     * 统计指定状态集合的报名数量（首页"累计学员"统计：已付定金及以上的报名）
+     */
+    default int countByStatuses(Collection<String> statuses) {
+        if (statuses == null || statuses.isEmpty()) {
+            return 0;
+        }
+        Long count = selectCount(new LambdaQueryWrapperX<EnrollmentDO>()
+                .in(EnrollmentDO::getEnrollmentStatus, statuses));
+        return count != null ? count.intValue() : 0;
+    }
+
     default PageResult<EnrollmentDO> selectPage(EnrollmentPageReqVO reqVO) {
         return selectPage(reqVO, new LambdaQueryWrapperX<EnrollmentDO>()
                 .eqIfPresent(EnrollmentDO::getEnrollmentNo, reqVO.getEnrollmentNo())
                 .eqIfPresent(EnrollmentDO::getMemberId, reqVO.getMemberId())
                 .eqIfPresent(EnrollmentDO::getSessionId, reqVO.getSessionId())
                 .eqIfPresent(EnrollmentDO::getGrouponRecordId, reqVO.getGrouponRecordId())
-                .eqIfPresent(EnrollmentDO::getReferredByMemberId, reqVO.getReferredByMemberId())
-                .eqIfPresent(EnrollmentDO::getReferralCodeUsed, reqVO.getReferralCodeUsed())
                 .likeIfPresent(EnrollmentDO::getRealName, reqVO.getRealName())
                 .eqIfPresent(EnrollmentDO::getPhone, reqVO.getPhone())
                 .eqIfPresent(EnrollmentDO::getEnrollmentStatus, reqVO.getEnrollmentStatus())
@@ -57,13 +67,6 @@ public interface EnrollmentMapper extends BaseMapperX<EnrollmentDO> {
     @Update("UPDATE maritime_enrollment SET groupon_record_id = #{grouponRecordId} WHERE id = #{id} AND deleted = 0")
     int updateGrouponRecordId(@Param("id") Long id, @Param("grouponRecordId") Long grouponRecordId);
 
-    /** 查询会员是否已获得推荐权（支付定金后 referral_right_granted=1） */
-    default boolean hasReferralRight(Long memberId) {
-        return selectCount(new LambdaQueryWrapperX<EnrollmentDO>()
-                .eq(EnrollmentDO::getMemberId, memberId)
-                .eq(EnrollmentDO::getReferralRightGranted, true)) > 0;
-    }
-
     /** 更新报名状态（幂等，CAS 由调用方保证） */
     @Update("UPDATE maritime_enrollment SET enrollment_status = #{newStatus} WHERE id = #{id} AND deleted = 0")
     int updateStatus(@Param("id") Long id, @Param("newStatus") String newStatus);
@@ -75,12 +78,11 @@ public interface EnrollmentMapper extends BaseMapperX<EnrollmentDO> {
                 .le(EnrollmentDO::getBalanceDueDate, dueDate));
     }
 
-    /** 获取会员最早完成定金支付的时间（提现冻结期校验用） */
-    @Select("SELECT MIN(o.pay_time) FROM maritime_enrollment e " +
-            "INNER JOIN maritime_enrollment_order o ON o.enrollment_id = e.id " +
-            "WHERE e.member_id = #{memberId} AND o.order_type = 'DEPOSIT' " +
-            "AND o.order_status = 'PAID' AND e.deleted = 0 AND o.deleted = 0")
-    LocalDateTime getFirstDepositTime(@Param("memberId") Long memberId);
+    /** 按状态查询报名（结班任务等使用） */
+    default List<EnrollmentDO> selectListByStatus(String status) {
+        return selectList(new LambdaQueryWrapperX<EnrollmentDO>()
+                .eq(EnrollmentDO::getEnrollmentStatus, status));
+    }
 
     /** 统计指定时间段内的新报名数（Dashboard 用） */
     @Select("SELECT COUNT(*) FROM maritime_enrollment WHERE create_time >= #{start} AND create_time <= #{end} AND deleted = 0")

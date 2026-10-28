@@ -6,41 +6,44 @@
 			"^su-(.*)": "@/sheep/ui/su-$1/su-$1.vue"
 		}
 	},
-	"pages": [{
-			"path": "pages/maritime/course-list",
+	"pages": [
+		{
+			"path": "pages/maritime/index",
 			"aliasPath": "/",
 			"style": {
-				"navigationBarTitleText": "课程列表",
+				"navigationBarTitleText": "海员培训",
 				"enablePullDownRefresh": true
 			},
 			"meta": {
 				"auth": false,
 				"sync": true,
-				"title": "课程列表",
+				"title": "首页",
 				"group": "海员培训"
 			}
 		},
 		{
-			"path": "pages/maritime/my-enrollments",
+			"path": "pages/maritime/sessions",
 			"style": {
-				"navigationBarTitleText": "我的报名"
+				"navigationBarTitleText": "开班计划",
+				"enablePullDownRefresh": false
 			},
 			"meta": {
-				"auth": true,
+				"auth": false,
 				"sync": true,
-				"title": "我的报名",
+				"title": "开班",
 				"group": "海员培训"
 			}
 		},
 		{
-			"path": "pages/maritime/referral",
+			"path": "pages/maritime/notify",
 			"style": {
-				"navigationBarTitleText": "推荐中心"
+				"navigationBarTitleText": "消息中心",
+				"enablePullDownRefresh": true
 			},
 			"meta": {
 				"auth": true,
 				"sync": true,
-				"title": "推荐中心",
+				"title": "消息中心",
 				"group": "海员培训"
 			}
 		},
@@ -63,9 +66,11 @@
 			}
 		}
 	],
-	"subPackages": [{
+	"subPackages": [
+		{
 			"root": "pages/public",
-			"pages": [{
+			"pages": [
+				{
 					"path": "setting",
 					"style": {
 						"navigationBarTitleText": "系统设置"
@@ -88,17 +93,6 @@
 					}
 				},
 				{
-					"path": "faq",
-					"style": {
-						"navigationBarTitleText": "常见问题"
-					},
-					"meta": {
-						"sync": true,
-						"title": "常见问题",
-						"group": "通用"
-					}
-				},
-				{
 					"path": "error",
 					"style": {
 						"navigationBarTitleText": "错误页面"
@@ -115,18 +109,6 @@
 		{
 			"root": "pages/maritime-sub",
 			"pages": [
-				{
-					"path": "notify/index",
-					"style": {
-						"navigationBarTitleText": "消息中心"
-					},
-					"meta": {
-						"auth": true,
-						"sync": true,
-						"title": "消息中心",
-						"group": "海员培训"
-					}
-				},
 				{
 					"path": "course-detail",
 					"style": {
@@ -174,6 +156,31 @@
 					}
 				},
 				{
+					"path": "enrollment-list",
+					"style": {
+						"navigationBarTitleText": "我的报名",
+						"enablePullDownRefresh": true
+					},
+					"meta": {
+						"auth": true,
+						"sync": true,
+						"title": "我的报名",
+						"group": "海员培训"
+					}
+				},
+				{
+					"path": "student-info",
+					"style": {
+						"navigationBarTitleText": "学员信息"
+					},
+					"meta": {
+						"auth": true,
+						"sync": true,
+						"title": "学员信息",
+						"group": "海员培训"
+					}
+				},
+				{
 					"path": "enrollment-detail",
 					"style": {
 						"navigationBarTitleText": "报名详情"
@@ -196,24 +203,13 @@
 						"title": "拼团详情",
 						"group": "海员培训"
 					}
-				},
-				{
-					"path": "withdrawal",
-					"style": {
-						"navigationBarTitleText": "佣金提现"
-					},
-					"meta": {
-						"auth": true,
-						"sync": true,
-						"title": "佣金提现",
-						"group": "海员培训"
-					}
 				}
 			]
 		},
 		{
 			"root": "pages/pay",
-			"pages": [{
+			"pages": [
+				{
 					"path": "index",
 					"style": {
 						"navigationBarTitleText": "收银台"
@@ -232,29 +228,46 @@
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "海员培训",
 		"navigationBarBackgroundColor": "#FFFFFF",
-		"backgroundColor": "#FFFFFF",
+		"backgroundColor": "#F5F7FA",
 		"navigationStyle": "custom",
-    "mp-alipay": {
-      "titleImage": "",
-      "gestureBack": "YES",
-      "allowsBounceVertical": "NO",
-      "transparentTitle": "always",
-      "navigationStyle": "custom",
-      "titlePenetrate": "YES"
-    }
+		"mp-alipay": {
+			"titleImage": "",
+			"gestureBack": "YES",
+			"allowsBounceVertical": "NO",
+			"transparentTitle": "always",
+			"navigationStyle": "custom",
+			"titlePenetrate": "YES"
+		}
 	},
 	"tabBar": {
-		"list": [{
-				"pagePath": "pages/maritime/course-list"
+		"color": "#999999",
+		"selectedColor": "#1E5EFF",
+		"backgroundColor": "#FFFFFF",
+		"borderStyle": "black",
+		"list": [
+			{
+				"pagePath": "pages/maritime/index",
+				"text": "首页",
+				"iconPath": "static/tabbar/home.png",
+				"selectedIconPath": "static/tabbar/home-active.png"
 			},
 			{
-				"pagePath": "pages/maritime/my-enrollments"
+				"pagePath": "pages/maritime/sessions",
+				"text": "开班",
+				"iconPath": "static/tabbar/session.png",
+				"selectedIconPath": "static/tabbar/session-active.png"
 			},
 			{
-				"pagePath": "pages/maritime/referral"
+				"pagePath": "pages/maritime/notify",
+				"text": "消息",
+				"iconPath": "static/tabbar/message.png",
+				"selectedIconPath": "static/tabbar/message-active.png"
 			},
 			{
-				"pagePath": "pages/maritime/my"
+				"pagePath": "pages/maritime/my",
+				"text": "我的",
+				"iconPath": "static/tabbar/mine.png",
+				"selectedIconPath": "static/tabbar/mine-active.png"
 			}
 		]
 	}

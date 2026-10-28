@@ -48,6 +48,14 @@ public interface GrouponService {
     void degradeGroupon(Long grouponRecordId);
 
     /**
+     * 拼团降级，并记录结束原因（提前付清尾款 / 管理员关闭等）
+     *
+     * @param grouponRecordId 拼团记录ID
+     * @param reason          结束原因
+     */
+    void degradeGroupon(Long grouponRecordId, String reason);
+
+    /**
      * 小程序端：获取班期当前进行中的拼团列表
      *
      * @param sessionId 班期ID

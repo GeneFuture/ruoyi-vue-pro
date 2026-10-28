@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.annotation.security.PermitAll;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,7 +37,6 @@ public class AppGrouponController {
     @GetMapping("/my-status/{enrollmentId}")
     @Operation(summary = "查询我的拼团状态")
     @Parameter(name = "enrollmentId", description = "报名ID", required = true)
-    @PreAuthorize("@ss.hasPermission('maritime:enrollment:query')")
     public CommonResult<AppGrouponStatusRespVO> getMyGrouponStatus(@PathVariable Long enrollmentId) {
         Long memberId = SecurityFrameworkUtils.getLoginUserId();
         return success(grouponService.getMyGrouponStatus(enrollmentId, memberId));

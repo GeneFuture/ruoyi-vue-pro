@@ -53,22 +53,6 @@ public class AdminStatsController {
         ExcelUtils.write(response, "报名名单.xls", "报名数据", EnrollmentExcelVO.class, data);
     }
 
-    @GetMapping("/export-commission")
-    @Operation(summary = "导出佣金发放明细（Excel）")
-    @PreAuthorize("@ss.hasPermission('maritime:commission:export')")
-    public void exportCommission(
-            @Parameter(description = "开始时间（yyyy-MM-dd HH:mm:ss）")
-            @RequestParam(required = false)
-            @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startDate,
-            @Parameter(description = "结束时间（yyyy-MM-dd HH:mm:ss）")
-            @RequestParam(required = false)
-            @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endDate,
-            @Parameter(description = "佣金状态，不传则查全部") @RequestParam(required = false) String status,
-            HttpServletResponse response) throws IOException {
-        List<CommissionExcelVO> data = adminStatsService.getCommissionExportData(startDate, endDate, status);
-        ExcelUtils.write(response, "佣金明细.xls", "佣金数据", CommissionExcelVO.class, data);
-    }
-
     @GetMapping("/finance-summary")
     @Operation(summary = "月度财务汇总")
     @PreAuthorize("@ss.hasPermission('maritime:finance:view')")
@@ -76,16 +60,6 @@ public class AdminStatsController {
             @Parameter(description = "目标月份（yyyy-MM）", required = true)
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM") YearMonth month) {
         return success(adminStatsService.getFinanceSummary(month));
-    }
-
-    @GetMapping("/referral-leaderboard")
-    @Operation(summary = "推荐人排行榜（Top 20）")
-    @PreAuthorize("@ss.hasPermission('maritime:dashboard:view')")
-    public CommonResult<List<ReferralLeaderboardVO>> getReferralLeaderboard(
-            @Parameter(description = "统计周期：WEEK / MONTH / ALL_TIME", required = true)
-            @RequestParam(defaultValue = "MONTH")
-            @Pattern(regexp = "^(WEEK|MONTH|ALL_TIME)$", message = "统计周期只允许 WEEK / MONTH / ALL_TIME") String period) {
-        return success(adminStatsService.getReferralLeaderboard(period));
     }
 
 }

@@ -14,7 +14,6 @@ const login = () => {
       provider: 'weixin',
       onlyAuthorize: true,
     });
-    debugger;
     if (loginRes.errMsg == 'login:ok') {
       // TODO third.wechat.login 函数未实现
       const res = await third.wechat.login({

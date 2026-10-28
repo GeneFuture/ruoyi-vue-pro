@@ -24,7 +24,7 @@
 
       <!-- 操作区 -->
       <view class="btn-box ss-flex ss-row-center ss-m-t-50">
-        <button class="back-btn ss-reset-button" @tap="sheep.$router.go('/pages/maritime/course-list')">
+        <button class="back-btn ss-reset-button" @tap="sheep.$router.go('/pages/maritime/index')">
           返回首页
         </button>
         <button
@@ -45,12 +45,12 @@
 </template>
 
 <script setup>
-  import { onHide, onLoad, onShow } from '@dcloudio/uni-app';
+  import { onHide, onLoad, onShow, onUnload } from '@dcloudio/uni-app';
   import { computed, reactive } from 'vue';
   import { isEmpty } from 'lodash-es';
   import sheep from '@/sheep';
   import PayOrderApi from '@/sheep/api/pay/order';
-  import { fen2yuan } from '@/sheep/hooks/useGoods';
+  import { fen2yuan } from '@/sheep/hooks/usePay';
 
   const state = reactive({
     id: 0, // 支付单号
@@ -59,6 +59,19 @@
     orderInfo: {}, // 支付订单信息
     counter: 0, // 获取结果次数
   });
+  let pollTimer = null;
+
+  function schedulePoll(callback, delay) {
+    if (pollTimer) clearTimeout(pollTimer);
+    pollTimer = setTimeout(callback, delay);
+  }
+
+  function clearPoll() {
+    if (pollTimer) {
+      clearTimeout(pollTimer);
+      pollTimer = null;
+    }
+  }
 
   // 支付结果 result => payResult
   const payResult = computed(() => {
@@ -86,7 +99,7 @@
       success: function (res) {
         if (res.confirm) {
           state.counter = 0;
-          setTimeout(() => {
+          schedulePoll(() => {
             getOrderInfo(state.id);
           }, 100);
         }
@@ -98,7 +111,19 @@
   async function getOrderInfo(id) {
     state.counter++;
     // 1. 加载订单信息
-    const { data, code } = await PayOrderApi.getOrder(id, true);
+    let res;
+    try {
+      res = await PayOrderApi.getOrder(id, true);
+    } catch (e) {
+      if (state.counter < 5) {
+        schedulePoll(() => getOrderInfo(id), 2000);
+      } else {
+        state.result = 'failed';
+        showRepayModal();
+      }
+      return;
+    }
+    const { data, code } = res;
     if (code === 0) {
       state.orderInfo = data;
       if (!state.orderInfo || state.orderInfo.status === 30) {
@@ -121,7 +146,7 @@
     }
     // 2.1 情况三一：未支付，且轮询次数小于五次，则继续轮询
     if (state.counter < 5 && state.result === 'unpaid') {
-      setTimeout(() => {
+      schedulePoll(() => {
         getOrderInfo(id);
       }, 2000);
     }
@@ -133,7 +158,7 @@
   }
 
   function onOrder() {
-    sheep.$router.redirect('/pages/maritime/my-enrollments');
+    sheep.$router.redirect('/pages/maritime-sub/enrollment-list');
   }
 
   onLoad(async (options) => {
@@ -163,8 +188,13 @@
   });
 
   onHide(() => {
+    clearPoll();
     state.result = 'unpaid';
     state.counter = 0;
+  });
+
+  onUnload(() => {
+    clearPoll();
   });
 </script>
 

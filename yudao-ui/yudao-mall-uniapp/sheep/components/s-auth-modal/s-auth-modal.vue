@@ -19,12 +19,6 @@
       <!-- 3. 忘记密码 resetPassword-->
       <reset-password v-if="authType === 'resetPassword'" />
 
-      <!-- 4. 绑定手机号 changeMobile -->
-      <change-mobile v-if="authType === 'changeMobile'" />
-
-      <!-- 5. 修改密码 changePassword-->
-      <changePassword v-if="authType === 'changePassword'" />
-
       <!-- 6. 微信小程序授权 -->
       <mp-authorization v-if="authType === 'mpAuthorization'" />
 
@@ -143,8 +137,6 @@
   import accountLogin from './components/account-login.vue';
   import smsLogin from './components/sms-login.vue';
   import resetPassword from './components/reset-password.vue';
-  import changeMobile from './components/change-mobile.vue';
-  import changePassword from './components/change-password.vue';
   import mpAuthorization from './components/mp-authorization.vue';
   import { closeAuthModal, showAuthModal } from '@/sheep/hooks/useModal';
 
@@ -219,6 +211,17 @@
   const getPhoneNumber = async (e) => {
     if (e.detail.errMsg !== 'getPhoneNumber:ok') {
       sheep.$helper.toast('快捷登录失败');
+      return;
+    }
+    // 快捷登录同样必须先同意用户协议/隐私协议
+    if (state.protocol !== true) {
+      currentProtocol.value = true;
+      setTimeout(() => {
+        currentProtocol.value = false;
+      }, 1000);
+      sheep.$helper.toast(
+        state.protocol === false ? '您已拒绝协议，无法继续登录' : '请选择是否同意协议',
+      );
       return;
     }
     let result = await sheep.$platform.useProvider().mobileLogin(e.detail);

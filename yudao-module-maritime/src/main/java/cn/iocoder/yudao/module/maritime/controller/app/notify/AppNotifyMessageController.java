@@ -41,9 +41,10 @@ public class AppNotifyMessageController {
 
     @GetMapping("/get-unread-count")
     @Operation(summary = "获得当前用户的未读站内信数量")
-    public CommonResult<Long> getUnreadNotifyMessageCount() {
+    public CommonResult<Long> getUnreadNotifyMessageCount(
+            @RequestParam(value = "templateCodePrefix", required = false) String templateCodePrefix) {
         return success(notifyMessageService.getUnreadNotifyMessageCount(
-                getLoginUserId(), UserTypeEnum.MEMBER.getValue()));
+                getLoginUserId(), UserTypeEnum.MEMBER.getValue(), templateCodePrefix));
     }
 
     @PutMapping("/update-read")

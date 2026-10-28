@@ -1,11 +1,12 @@
 {
   "id": "shopro",
   "name": "shopro",
-  "displayName": "芋道商城",
+  "displayName": "海员培训",
   "version": "2026.04",
-  "description": "芋道商城，一套代码，同时发行到iOS、Android、H5、微信小程序多个平台，请使用手机扫码快速体验强大功能",
+  "description": "海员培训课程报名与拼团小程序",
   "scripts": {
-    "prettier": "prettier --write  \"{pages,sheep}/**/*.{js,json,tsx,css,less,scss,vue,html,md}\""
+    "prettier": "prettier --write  \"{pages,sheep}/**/*.{js,json,tsx,css,less,scss,vue,html,md}\"",
+    "check:release-env": "node scripts/check-release-env.mjs"
   },
   "repository": "https://github.com/sheepjs/shop.git",
   "keywords": [
@@ -98,7 +99,6 @@
     "weixin-js-sdk": "^1.6.0"
   },
   "devDependencies": {
-    "prettier": "^2.8.7",
-    "vconsole": "^3.15.0"
+    "prettier": "^2.8.7"
   }
 }

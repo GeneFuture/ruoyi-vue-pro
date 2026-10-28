@@ -29,8 +29,6 @@ public interface SessionFeeConfigMapper extends BaseMapperX<SessionFeeConfigDO> 
                 .eqIfPresent(SessionFeeConfigDO::getGrouponRequiredCount, reqVO.getGrouponRequiredCount())
                 .eqIfPresent(SessionFeeConfigDO::getGrouponExpireHours, reqVO.getGrouponExpireHours())
                 .eqIfPresent(SessionFeeConfigDO::getGrouponFailDiscountAmount, reqVO.getGrouponFailDiscountAmount())
-                .eqIfPresent(SessionFeeConfigDO::getReferralCommissionAmount, reqVO.getReferralCommissionAmount())
-                .eqIfPresent(SessionFeeConfigDO::getIsReferralCommissionEnabled, reqVO.getIsReferralCommissionEnabled())
                 .eqIfPresent(SessionFeeConfigDO::getIsDepositRefundable, reqVO.getIsDepositRefundable())
                 .eqIfPresent(SessionFeeConfigDO::getBalanceDueDaysBeforeStart, reqVO.getBalanceDueDaysBeforeStart())
                 .eqIfPresent(SessionFeeConfigDO::getRefundPolicyText, reqVO.getRefundPolicyText())

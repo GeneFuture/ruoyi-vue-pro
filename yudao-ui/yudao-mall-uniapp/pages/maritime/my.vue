@@ -18,16 +18,9 @@
         <view class="menu-title">我的报名</view>
         <text class="cicon-forward" />
       </view>
-      <view
-        class="menu-item ss-flex ss-row-between ss-col-center"
-        :class="{ 'menu-item-disabled': !state.hasReferralRight }"
-        @tap="goReferral"
-      >
-        <view class="menu-title">我的推荐</view>
-        <view class="ss-flex ss-col-center">
-          <text v-if="!state.hasReferralRight" class="menu-tip ss-m-r-10">支付定金后开放</text>
-          <text class="cicon-forward" />
-        </view>
+      <view class="menu-item ss-flex ss-row-between ss-col-center" @tap="goStudentInfo">
+        <view class="menu-title">学员信息</view>
+        <text class="cicon-forward" />
       </view>
       <view class="menu-item ss-flex ss-row-between ss-col-center" @tap="goNotify">
         <view class="menu-title">消息中心</view>
@@ -46,14 +39,12 @@
 
 <script setup>
   import { computed, reactive } from 'vue';
-  import { onLoad, onShow } from '@dcloudio/uni-app';
+  import { onShow, onPullDownRefresh } from '@dcloudio/uni-app';
   import sheep from '@/sheep';
   import { showAuthModal } from '@/sheep/hooks/useModal';
-  import ReferralApi from '@/sheep/api/maritime/referral';
   import NotifyApi from '@/sheep/api/maritime/notify';
 
   const state = reactive({
-    hasReferralRight: false,
     unreadCount: 0,
   });
 
@@ -72,44 +63,40 @@
 
   async function loadUserAssets() {
     if (!isLogin.value) {
-      state.hasReferralRight = false;
       state.unreadCount = 0;
       return;
     }
-    const [referralRes, unreadRes] = await Promise.all([
-      ReferralApi.getMyReferralInfo(),
-      NotifyApi.getUnreadCount(),
-    ]);
-    if (referralRes.code === 0) {
-      state.hasReferralRight = !!referralRes.data.hasReferralRight;
-    }
-    if (unreadRes.code === 0) {
-      state.unreadCount = unreadRes.data || 0;
+    try {
+      const unreadRes = await NotifyApi.getUnreadCount({ templateCodePrefix: 'MARITIME_' });
+      state.unreadCount = unreadRes.code === 0 ? unreadRes.data || 0 : 0;
+    } catch (e) {
+      state.unreadCount = 0;
     }
   }
 
   function goEnrollments() {
-    sheep.$router.go('/pages/maritime/my-enrollments');
+    sheep.$router.go('/pages/maritime-sub/enrollment-list');
   }
 
-  function goReferral() {
-    sheep.$router.go('/pages/maritime/referral');
+  function goStudentInfo() {
+    sheep.$router.go('/pages/maritime-sub/student-info');
   }
 
   function goNotify() {
-    sheep.$router.go('/pages/maritime-sub/notify/index');
+    // 消息中心已提升为 tab 页，router 会自动识别并走 switchTab
+    sheep.$router.go('/pages/maritime/notify');
   }
 
   function goSetting() {
     sheep.$router.go('/pages/public/setting');
   }
 
-  onLoad(() => {
+  onShow(() => {
     loadUserAssets();
   });
 
-  onShow(() => {
-    loadUserAssets();
+  onPullDownRefresh(() => {
+    loadUserAssets().finally(() => uni.stopPullDownRefresh());
   });
 </script>
 

@@ -11,7 +11,5 @@ public interface WxSubscribeTemplateConstants {
     String GROUPON_SUCCESS  = "拼团成功通知";
     String GROUPON_DEGRADED = "拼团降级通知";
     String BALANCE_REMINDER = "尾款催缴提醒";
-    String REFERRAL_SUCCESS = "推荐成功通知";
-    String COMMISSION_PAID  = "佣金到账通知";
 
 }

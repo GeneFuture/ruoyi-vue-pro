@@ -1,38 +1,33 @@
 package cn.iocoder.yudao.module.maritime.service.refundApply;
 
-import cn.hutool.core.util.IdUtil;
-import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.maritime.controller.admin.refundApply.vo.*;
-import cn.iocoder.yudao.module.maritime.dal.dataobject.commissionRecord.CommissionRecordDO;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.enrollment.EnrollmentDO;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.enrollmentOrder.EnrollmentOrderDO;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.refundApply.RefundApplyDO;
-import cn.iocoder.yudao.module.maritime.dal.mysql.commissionRecord.CommissionRecordMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.enrollment.EnrollmentMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.enrollmentOrder.EnrollmentOrderMapper;
-import cn.iocoder.yudao.module.maritime.dal.mysql.referralRelation.ReferralRelationMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.refundApply.RefundApplyMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.session.CourseSessionMapper;
 import cn.iocoder.yudao.module.maritime.enums.EnrollmentStatusEnum;
+import cn.iocoder.yudao.module.maritime.enums.ManualTaskTypeEnum;
 import cn.iocoder.yudao.module.maritime.enums.OrderStatusEnum;
 import cn.iocoder.yudao.module.maritime.enums.OrderTypeEnum;
-import cn.iocoder.yudao.module.pay.api.refund.PayRefundApi;
-import cn.iocoder.yudao.module.pay.api.refund.dto.PayRefundCreateReqDTO;
+import cn.iocoder.yudao.module.maritime.mq.event.RefundResultEvent;
+import cn.iocoder.yudao.module.maritime.service.manualTask.ManualTaskService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.framework.common.util.servlet.ServletUtils.getClientIP;
 import static cn.iocoder.yudao.module.maritime.enums.ErrorCodeConstants.*;
 
 /**
@@ -44,9 +39,6 @@ import static cn.iocoder.yudao.module.maritime.enums.ErrorCodeConstants.*;
 @Service
 @Validated
 public class RefundApplyServiceImpl implements RefundApplyService {
-
-    private static final DateTimeFormatter REFUND_NO_FMT = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-    private static final String PAY_APP_KEY = "maritime";
 
     @Resource
     private RefundApplyMapper refundApplyMapper;
@@ -61,13 +53,10 @@ public class RefundApplyServiceImpl implements RefundApplyService {
     private CourseSessionMapper courseSessionMapper;
 
     @Resource
-    private CommissionRecordMapper commissionRecordMapper;
+    private ApplicationEventPublisher eventPublisher;
 
     @Resource
-    private ReferralRelationMapper referralRelationMapper;
-
-    @Resource
-    private PayRefundApi payRefundApi;
+    private ManualTaskService manualTaskService;
 
     // ========== Admin CRUD ==========
 
@@ -136,20 +125,7 @@ public class RefundApplyServiceImpl implements RefundApplyService {
             throw exception(ENROLLMENT_ORDER_NOT_EXISTS);
         }
 
-        // 2. 调用微信退款
-        String refundNo = "RF" + LocalDateTime.now().format(REFUND_NO_FMT) + IdUtil.fastSimpleUUID().substring(0, 6).toUpperCase();
-        PayRefundCreateReqDTO refundReq = new PayRefundCreateReqDTO();
-        refundReq.setAppKey(PAY_APP_KEY);
-        refundReq.setUserIp(getClientIP());
-        refundReq.setUserId(enrollment.getMemberId());
-        refundReq.setUserType(UserTypeEnum.MEMBER.getValue());
-        refundReq.setMerchantOrderId(targetOrder.getOrderNo());
-        refundReq.setMerchantRefundId(refundNo);
-        refundReq.setReason(adminRemark != null ? adminRemark : "退费申请审核通过");
-        refundReq.setPrice(refundAmount.multiply(BigDecimal.valueOf(100)).intValue());
-        Long payRefundId = payRefundApi.createRefund(refundReq);
-
-        // 3. 更新退费申请
+        // 2. 更新退费申请（退款由人工在微信商户平台完成后，后台登记结果）
         RefundApplyDO updateApply = new RefundApplyDO();
         updateApply.setId(id);
         updateApply.setApplyStatus("REFUNDED");
@@ -157,9 +133,26 @@ public class RefundApplyServiceImpl implements RefundApplyService {
         updateApply.setApproverId(approverId);
         updateApply.setApproveTime(LocalDateTime.now());
         updateApply.setAdminRemark(adminRemark);
-        updateApply.setPayRefundId(payRefundId);
         updateApply.setRefundTime(LocalDateTime.now());
         refundApplyMapper.updateById(updateApply);
+
+        // 3. 标记订单已退款：全额退款标记所有已支付订单，部分退款标记对应订单
+        List<EnrollmentOrderDO> orders = enrollmentOrderMapper.selectListByEnrollmentId(enrollment.getId());
+        boolean refundAll = refundAmount.compareTo(enrollment.getPaidAmount()) >= 0;
+        for (EnrollmentOrderDO order : orders) {
+            if (!OrderStatusEnum.PAID.getStatus().equals(order.getOrderStatus())) {
+                continue;
+            }
+            boolean shouldMark = refundAll
+                    || (order.getId().equals(targetOrder.getId())
+                    && refundAmount.compareTo(order.getAmount()) >= 0);
+            if (shouldMark) {
+                EnrollmentOrderDO updateOrder = new EnrollmentOrderDO();
+                updateOrder.setId(order.getId());
+                updateOrder.setOrderStatus(OrderStatusEnum.REFUNDED.getStatus());
+                enrollmentOrderMapper.updateById(updateOrder);
+            }
+        }
 
         // 4. 更新报名状态 → CANCELLED
         EnrollmentDO updateEnrollment = new EnrollmentDO();
@@ -171,23 +164,12 @@ public class RefundApplyServiceImpl implements RefundApplyService {
         // 5. 归还班期名额
         courseSessionMapper.decrementEnrolledCount(enrollment.getSessionId());
 
-        // 6. 标记推荐关系无效
-        int invalidated = referralRelationMapper.invalidateByEnrollmentId(
-                enrollment.getId(), "退费取消，推荐关系无效");
-        if (invalidated > 0) {
-            log.info("[approveRefund] 推荐关系已标记无效, enrollmentId={}", enrollment.getId());
-        }
+        // 6. 关闭该报名下的人工处理单
+        manualTaskService.closeAllOpenTasks(enrollment.getId(),
+                "退费已处理，退款金额 " + refundAmount + " 元", approverId);
 
-        // 7. 冻结对应佣金（仅 WAITING_FOR_CLASS / PENDING_REVIEW 状态）
-        CommissionRecordDO commission = commissionRecordMapper.selectByReferredEnrollmentId(enrollment.getId());
-        if (commission != null) {
-            String commStatus = commission.getCommissionStatus();
-            if ("WAITING_FOR_CLASS".equals(commStatus) || "PENDING_REVIEW".equals(commStatus)) {
-                commissionRecordMapper.updateStatusById(commission.getId(), "FROZEN");
-                log.info("[approveRefund] 佣金已冻结, commissionId={}, enrollmentId={}",
-                        commission.getId(), enrollment.getId());
-            }
-        }
+        eventPublisher.publishEvent(new RefundResultEvent(this, enrollment.getId(),
+                enrollment.getMemberId(), enrollment.getSessionId(), refundAmount, true, null));
     }
 
     @Override
@@ -208,6 +190,43 @@ public class RefundApplyServiceImpl implements RefundApplyService {
         updateApply.setApproveTime(LocalDateTime.now());
         updateApply.setAdminRemark(rejectReason);
         refundApplyMapper.updateById(updateApply);
+
+        // 关闭退费人工单；若还有其它未关闭人工单，报名继续保持 MANUAL_PROCESSING
+        EnrollmentDO enrollment = enrollmentMapper.selectById(apply.getEnrollmentId());
+        if (enrollment == null) {
+            return;
+        }
+        manualTaskService.closeOpenTask(enrollment.getId(), ManualTaskTypeEnum.REFUND_APPLY.getType(),
+                "退费申请被拒绝：" + rejectReason, approverId);
+        eventPublisher.publishEvent(new RefundResultEvent(this, enrollment.getId(),
+                enrollment.getMemberId(), enrollment.getSessionId(),
+                apply.getRefundAmount(), false, rejectReason));
+        if (!manualTaskService.getOpenTasks(enrollment.getId()).isEmpty()) {
+            return;
+        }
+        EnrollmentDO updateEnrollment = new EnrollmentDO();
+        updateEnrollment.setId(enrollment.getId());
+        updateEnrollment.setEnrollmentStatus(deriveEnrollmentStatus(enrollment.getId()));
+        enrollmentMapper.updateById(updateEnrollment);
+    }
+
+    /**
+     * 根据已支付订单推导报名应恢复的状态
+     */
+    private String deriveEnrollmentStatus(Long enrollmentId) {
+        if (enrollmentOrderMapper.selectByEnrollmentIdAndTypeAndStatus(
+                enrollmentId, OrderTypeEnum.BALANCE.getType(), OrderStatusEnum.PAID.getStatus()) != null) {
+            return EnrollmentStatusEnum.PAID_OFF.getStatus();
+        }
+        if (enrollmentOrderMapper.selectByEnrollmentIdAndTypeAndStatus(
+                enrollmentId, OrderTypeEnum.FULL.getType(), OrderStatusEnum.PAID.getStatus()) != null) {
+            return EnrollmentStatusEnum.PAID_OFF.getStatus();
+        }
+        if (enrollmentOrderMapper.selectByEnrollmentIdAndTypeAndStatus(
+                enrollmentId, OrderTypeEnum.DEPOSIT.getType(), OrderStatusEnum.PAID.getStatus()) != null) {
+            return EnrollmentStatusEnum.DEPOSITED.getStatus();
+        }
+        return EnrollmentStatusEnum.PENDING_DEPOSIT.getStatus();
     }
 
 }

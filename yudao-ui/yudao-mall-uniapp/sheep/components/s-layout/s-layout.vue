@@ -13,44 +13,32 @@
         :tools="tools"
         :opacityBgUi="opacityBgUi"
         :backgroundColor="navbarBackgroundColor"
-        @search="(e) => emits('search', e)"
-        :defaultSearch="defaultSearch"
       />
 
-      <!-- 顶部导航栏-情况2：装修组件导航栏-标准 -->
-      <s-custom-navbar
-        v-else-if="navbar === 'custom' && navbarMode === 'normal'"
-        :data="navbarStyle"
-        :showLeftButton="showLeftButton"
-      />
       <view class="page-body" :style="[bgBody]">
-        <!-- 顶部导航栏-情况3：沉浸式头部 -->
-        <su-inner-navbar v-if="navbar === 'inner'" :title="title" />
-        <view
+        <!-- 顶部导航栏-情况3：沉浸式头部
+             navbarImmersive=true：首屏透明、白字，滚动后淡入白色导航背景
+             navbarImmersive=false（默认）：白色导航栏、深色标题，并补一段等高的占位避免遮挡 -->
+        <su-inner-navbar
           v-if="navbar === 'inner'"
+          :title="title"
+          bg="bg-none"
+          :solid="!navbarImmersive || navbarSolid"
+          :title-visible="navbarTitleVisible"
+        />
+        <view
+          v-if="navbar === 'inner' && !navbarImmersive"
           :style="[{ paddingTop: sheep?.$platform?.navbar + 'px' }]"
         ></view>
 
-        <!-- 顶部导航栏-情况4：装修组件导航栏-沉浸式 -->
-        <s-custom-navbar
-          v-if="navbar === 'custom' && navbarMode === 'inner'"
-          :data="navbarStyle"
-          :showLeftButton="showLeftButton"
-        />
-
         <!-- 页面内容插槽 -->
         <slot />
-
-        <!-- 底部导航 -->
-        <s-tabbar v-if="tabbar !== ''" :path="tabbar" />
       </view>
     </view>
 
     <view class="page-modal">
       <!-- 全局授权弹窗 -->
       <s-auth-modal />
-      <!-- 全局分享弹窗 -->
-      <s-share-modal :shareInfo="shareInfo" />
       <!-- 全局快捷入口 -->
       <s-menu-tools />
     </view>
@@ -77,6 +65,22 @@
       type: String,
       default: 'normal',
     },
+    // 沉浸式头图：导航栏透明 + 白色标题，且不生成占位（首屏内容从屏幕顶部开始绘制）
+    // 仅 navbar === 'inner' 时生效；适用于首页这类自带深色头图的页面
+    navbarImmersive: {
+      type: Boolean,
+      default: false,
+    },
+    // 沉浸式导航滚动后是否切换为白色背景
+    navbarSolid: {
+      type: Boolean,
+      default: false,
+    },
+    // 沉浸式首屏是否展示导航标题（首页可先隐藏，滚动后再出现）
+    navbarTitleVisible: {
+      type: Boolean,
+      default: true,
+    },
     opacityBgUi: {
       type: String,
       default: 'bg-white',
@@ -94,21 +98,6 @@
       type: String,
       default: 'title',
     },
-    keyword: {
-      type: String,
-      default: '',
-    },
-    navbarStyle: {
-      type: Object,
-      default: () => ({
-        styleType: '',
-        type: '',
-        color: '',
-        src: '',
-        list: [],
-        alwaysShow: 0,
-      }),
-    },
     bgStyle: {
       type: Object,
       default: () => ({
@@ -116,46 +105,18 @@
         color: 'var(--ui-BG-1)',
       }),
     },
-    tabbar: {
-      type: [String, Boolean],
-      default: '',
-    },
     onShareAppMessage: {
       type: [Boolean, Object],
       default: true,
     },
-    leftWidth: {
-      type: [Number, String],
-      default: 100,
-    },
-    rightWidth: {
-      type: [Number, String],
-      default: 100,
-    },
-    defaultSearch: {
-      type: String,
-      default: '',
-    },
-    //展示返回按钮
-    showLeftButton: {
-      type: Boolean,
-      default: false,
-    },
   });
-  const emits = defineEmits(['search']);
 
   const sysStore = sheep.$store('sys');
-  const userStore = sheep.$store('user');
-  const appStore = sheep.$store('app');
-  const modalStore = sheep.$store('modal');
   const sys = computed(() => sysStore);
 
   // 导航栏模式(因为有自定义导航栏 需要计算)
   const navbarMode = computed(() => {
-    if (props.navbar === 'normal' || props.navbarStyle.styleType === 'normal') {
-      return 'normal';
-    }
-    return 'inner';
+    return props.navbar === 'inner' ? 'inner' : 'normal';
   });
 
   // 背景1
@@ -186,11 +147,9 @@
   const shareInfo = computed(() => {
     if (props.onShareAppMessage === true) {
       return sheep.$platform.share.getShareInfo();
-    } else {
-      if (!isEmpty(props.onShareAppMessage)) {
-        sheep.$platform.share.updateShareInfo(props.onShareAppMessage);
-        return props.onShareAppMessage;
-      }
+    }
+    if (!isEmpty(props.onShareAppMessage)) {
+      return props.onShareAppMessage;
     }
     return {};
   });
@@ -210,9 +169,12 @@
   });
   // 微信小程序分享朋友圈
   onShareTimeline(() => {
+    // onShareTimeline 的 query 只接受查询字符串，不能传完整页面路径
+    const path = shareInfo.value.forward?.path || '';
+    const queryIndex = path.indexOf('?');
     return {
       title: shareInfo.value.title,
-      query: shareInfo.value.forward.path,
+      query: queryIndex >= 0 ? path.slice(queryIndex + 1) : '',
       imageUrl: shareInfo.value.image,
     };
   });

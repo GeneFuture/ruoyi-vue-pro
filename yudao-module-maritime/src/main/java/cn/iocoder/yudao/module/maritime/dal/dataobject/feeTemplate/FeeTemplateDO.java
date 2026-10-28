@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import lombok.*;
 
+import cn.iocoder.yudao.module.maritime.dal.dataobject.fee.ExtraFeeItem;
+
 import java.math.BigDecimal;
-import java.util.Map;
+import java.util.List;
 
 /**
  * 费用模板 DO
@@ -40,10 +42,14 @@ public class FeeTemplateDO extends BaseDO {
      */
     private BigDecimal tuitionAmount;
     /**
-     * 学费说明（{"理论课":"1000","实操":"800"}）
+     * 学费是否包含住宿费用
+     */
+    private Boolean tuitionIncludesAccommodation;
+    /**
+     * 另行缴费项目（到校报到时缴纳，分必须 / 可选）
      */
     @TableField(typeHandler = JacksonTypeHandler.class)
-    private Map<String, String> tuitionDescription;
+    private List<ExtraFeeItem> extraFeeItems;
     /**
      * 定金金额（元）
      */
@@ -68,14 +74,6 @@ public class FeeTemplateDO extends BaseDO {
      * 拼团失败降级优惠金额（元，单人可享）
      */
     private BigDecimal grouponFailDiscountAmount;
-    /**
-     * 推荐佣金金额（元，每成功推荐一人）
-     */
-    private BigDecimal referralCommissionAmount;
-    /**
-     * 是否开启推荐佣金
-     */
-    private Boolean isReferralCommissionEnabled;
     /**
      * 定金是否可退
      */

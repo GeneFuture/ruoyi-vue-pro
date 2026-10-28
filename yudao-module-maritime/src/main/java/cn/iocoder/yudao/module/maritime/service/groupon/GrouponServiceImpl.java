@@ -5,12 +5,18 @@ import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.module.maritime.controller.app.groupon.vo.AppGrouponStatusRespVO;
 import cn.iocoder.yudao.module.maritime.controller.app.session.vo.AppActiveGrouponVO;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.enrollment.EnrollmentDO;
+import cn.iocoder.yudao.module.maritime.dal.dataobject.enrollmentOrder.EnrollmentOrderDO;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.grouponMember.GrouponMemberDO;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.grouponRecord.GrouponRecordDO;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.sessionFeeConfig.SessionFeeConfigDO;
 import cn.iocoder.yudao.module.maritime.dal.mysql.enrollment.EnrollmentMapper;
+import cn.iocoder.yudao.module.maritime.dal.mysql.enrollmentOrder.EnrollmentOrderMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.grouponMember.GrouponMemberMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.grouponRecord.GrouponRecordMapper;
+import cn.iocoder.yudao.module.maritime.dal.mysql.sessionFeeConfig.SessionFeeConfigMapper;
+import cn.iocoder.yudao.module.maritime.enums.EnrollmentStatusEnum;
+import cn.iocoder.yudao.module.maritime.enums.OrderStatusEnum;
+import cn.iocoder.yudao.module.maritime.enums.OrderTypeEnum;
 import cn.iocoder.yudao.module.maritime.mq.event.GrouponDegradedEvent;
 import cn.iocoder.yudao.module.maritime.mq.event.GrouponSuccessEvent;
 import jakarta.annotation.Resource;
@@ -21,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -47,6 +54,12 @@ public class GrouponServiceImpl implements GrouponService {
 
     @Resource
     private EnrollmentMapper enrollmentMapper;
+
+    @Resource
+    private EnrollmentOrderMapper enrollmentOrderMapper;
+
+    @Resource
+    private SessionFeeConfigMapper sessionFeeConfigMapper;
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
@@ -128,19 +141,69 @@ public class GrouponServiceImpl implements GrouponService {
             log.info("[groupon] 拼团成功: recordId={}", grouponRecordId);
             GrouponRecordDO record = grouponRecordMapper.selectById(grouponRecordId);
             if (record != null) {
+                // 成团后优惠才生效：把成员的尾款改成「学费 - 拼团优惠 - 标准定金」
+                refreshMemberBalances(record);
                 eventPublisher.publishEvent(new GrouponSuccessEvent(
                         this, grouponRecordId, record.getSessionId(), getMemberIds(grouponRecordId)));
             }
         }
     }
 
+    /**
+     * 成团后刷新拼团成员的尾款金额。
+     * 定金统一按标准定金收取，拼团优惠只在尾款抵扣；已进入上课/完成/取消/退款流程的报名不再改动，
+     * 避免覆盖已经结算或正在退款的金额。
+     */
+    private void refreshMemberBalances(GrouponRecordDO record) {
+        SessionFeeConfigDO feeConfig = sessionFeeConfigMapper.selectBySessionId(record.getSessionId());
+        if (feeConfig == null || feeConfig.getTuitionAmount() == null
+                || feeConfig.getDepositAmount() == null) {
+            return;
+        }
+        BigDecimal discount = feeConfig.getGrouponDiscountAmount() != null
+                ? feeConfig.getGrouponDiscountAmount() : BigDecimal.ZERO;
+        for (GrouponMemberDO member : grouponMemberMapper.selectListByGrouponRecordId(record.getId())) {
+            EnrollmentDO enrollment = enrollmentMapper.selectById(member.getEnrollmentId());
+            if (enrollment == null || !canRefreshBalance(enrollment.getEnrollmentStatus())) {
+                continue;
+            }
+            // 实付定金可能来自历史「拼团价定金」，优先按实付金额计算，避免多收/少收
+            EnrollmentOrderDO paidDeposit = enrollmentOrderMapper.selectByEnrollmentIdAndTypeAndStatus(
+                    enrollment.getId(), OrderTypeEnum.DEPOSIT.getType(), OrderStatusEnum.PAID.getStatus());
+            BigDecimal deposit = paidDeposit != null ? paidDeposit.getAmount() : feeConfig.getDepositAmount();
+            BigDecimal balance = feeConfig.getTuitionAmount()
+                    .subtract(discount)
+                    .subtract(deposit);
+            if (balance.compareTo(BigDecimal.ZERO) < 0) {
+                balance = BigDecimal.ZERO;
+            }
+            EnrollmentDO update = new EnrollmentDO();
+            update.setId(enrollment.getId());
+            update.setBalanceAmount(balance);
+            enrollmentMapper.updateById(update);
+        }
+    }
+
+    private boolean canRefreshBalance(String status) {
+        return EnrollmentStatusEnum.PENDING_DEPOSIT.getStatus().equals(status)
+                || EnrollmentStatusEnum.DEPOSITED.getStatus().equals(status);
+    }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void degradeGroupon(Long grouponRecordId) {
-        int updated = grouponRecordMapper.updateStatusIfInProgress(grouponRecordId, "DEGRADED");
+        degradeGroupon(grouponRecordId, "拼团超时未成团");
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void degradeGroupon(Long grouponRecordId, String reason) {
+        int updated = grouponRecordMapper.updateStatusIfInProgress(grouponRecordId, "DEGRADED", reason);
         if (updated > 0) {
-            log.info("[groupon] 拼团降级: recordId={}", grouponRecordId);
-            eventPublisher.publishEvent(new GrouponDegradedEvent(this, grouponRecordId, getMemberIds(grouponRecordId)));
+            log.info("[groupon] 拼团降级: recordId={}, reason={}", grouponRecordId, reason);
+            GrouponRecordDO record = grouponRecordMapper.selectById(grouponRecordId);
+            eventPublisher.publishEvent(new GrouponDegradedEvent(this, grouponRecordId,
+                    record != null ? record.getSessionId() : null, reason, getMemberIds(grouponRecordId)));
         }
     }
 
@@ -190,6 +253,7 @@ public class GrouponServiceImpl implements GrouponService {
         vo.setRemainingCount(Math.max(0, record.getRequiredCount() - record.getCurrentCount()));
         vo.setExpireTime(record.getExpireTime());
         vo.setSuccessTime(record.getSuccessTime());
+        vo.setDegradeReason(record.getDegradeReason());
         return vo;
     }
 
@@ -215,7 +279,7 @@ public class GrouponServiceImpl implements GrouponService {
             throw exception(GROUPON_RECORD_NOT_EXISTS);
         }
         // degradeGroupon 内部 CAS 幂等，对 SUCCESS / DEGRADED 状态静默跳过
-        degradeGroupon(grouponRecordId);
+        degradeGroupon(grouponRecordId, "管理员关闭拼团");
         log.info("[groupon] 管理员关闭拼团: recordId={}", grouponRecordId);
     }
 

@@ -5,7 +5,9 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Map;
+import cn.iocoder.yudao.module.maritime.dal.dataobject.fee.ExtraFeeItem;
+
+import java.util.List;
 
 @Schema(description = "管理后台 - 费用模板 Response VO")
 @Data
@@ -20,8 +22,11 @@ public class FeeTemplateRespVO {
     @Schema(description = "学费总额（元）", requiredMode = Schema.RequiredMode.REQUIRED, example = "1800")
     private BigDecimal tuitionAmount;
 
-    @Schema(description = "学费说明（{\"理论课\":\"1000\",\"实操\":\"800\"}）")
-    private Map<String, String> tuitionDescription;
+    @Schema(description = "学费是否包含住宿费用", example = "false")
+    private Boolean tuitionIncludesAccommodation;
+
+    @Schema(description = "另行缴费项目（到校报到时缴纳，分必须 / 可选）")
+    private List<ExtraFeeItem> extraFeeItems;
 
     @Schema(description = "定金金额（元）", requiredMode = Schema.RequiredMode.REQUIRED, example = "300")
     private BigDecimal depositAmount;
@@ -40,12 +45,6 @@ public class FeeTemplateRespVO {
 
     @Schema(description = "拼团失败降级优惠金额（元，单人可享）", example = "50")
     private BigDecimal grouponFailDiscountAmount;
-
-    @Schema(description = "推荐佣金金额（元，每成功推荐一人）", example = "50")
-    private BigDecimal referralCommissionAmount;
-
-    @Schema(description = "是否开启推荐佣金", example = "true")
-    private Boolean isReferralCommissionEnabled;
 
     @Schema(description = "定金是否可退", example = "true")
     private Boolean isDepositRefundable;

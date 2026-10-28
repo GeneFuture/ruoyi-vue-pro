@@ -98,25 +98,29 @@ WHERE NOT EXISTS (SELECT 1 FROM maritime_course WHERE name = '高级消防培训
 
 -- ========== 费用模板（独立定价方案，新增班期时快照引用） ==========
 INSERT INTO maritime_fee_template
-  (name, tuition_amount, tuition_description, deposit_amount,
+  (name, tuition_amount, tuition_includes_accommodation, extra_fee_items, deposit_amount,
    is_groupon_enabled, groupon_discount_amount, groupon_required_count, groupon_expire_hours, groupon_fail_discount_amount,
-   referral_commission_amount, is_referral_commission_enabled, is_deposit_refundable, balance_due_days_before_start,
+   is_deposit_refundable, balance_due_days_before_start,
    refund_policy_text, status, creator, updater, deleted, tenant_id)
-SELECT 'STCW 标准收费', 1800.00, JSON_OBJECT('实操', '800', '理论课', '1000'), 300.00,
+SELECT 'STCW 标准收费', 1800.00, 0,
+  JSON_ARRAY(JSON_OBJECT('name', '教材费', 'amount', 200, 'required', true),
+             JSON_OBJECT('name', '住宿费', 'amount', 800, 'required', false)), 300.00,
  0, 0.00, 3, 24, 0.00,
- 50.00, 1, 1, 7,
+ 1, 7,
  '开班前 7 天可全额退款；开班后按已上课时比例扣除。', 0, '1', '1', 0, 1
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM maritime_fee_template WHERE name = 'STCW 标准收费' AND deleted = 0 LIMIT 1);
 
 INSERT INTO maritime_fee_template
-  (name, tuition_amount, tuition_description, deposit_amount,
+  (name, tuition_amount, tuition_includes_accommodation, extra_fee_items, deposit_amount,
    is_groupon_enabled, groupon_discount_amount, groupon_required_count, groupon_expire_hours, groupon_fail_discount_amount,
-   referral_commission_amount, is_referral_commission_enabled, is_deposit_refundable, balance_due_days_before_start,
+   is_deposit_refundable, balance_due_days_before_start,
    refund_policy_text, status, creator, updater, deleted, tenant_id)
-SELECT '拼团优惠收费', 1800.00, JSON_OBJECT('实操', '800', '理论课', '1000'), 300.00,
+SELECT '拼团优惠收费', 1800.00, 0,
+  JSON_ARRAY(JSON_OBJECT('name', '教材费', 'amount', 200, 'required', true),
+             JSON_OBJECT('name', '住宿费', 'amount', 800, 'required', false)), 300.00,
  1, 100.00, 3, 24, 50.00,
- 50.00, 1, 1, 7,
+ 1, 7,
  '开班前 7 天可全额退款；拼团失败自动降级享受单人优惠。', 0, '1', '1', 0, 1
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM maritime_fee_template WHERE name = '拼团优惠收费' AND deleted = 0 LIMIT 1);

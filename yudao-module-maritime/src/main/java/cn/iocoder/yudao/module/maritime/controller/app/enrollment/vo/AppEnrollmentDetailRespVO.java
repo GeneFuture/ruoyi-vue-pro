@@ -34,8 +34,8 @@ public class AppEnrollmentDetailRespVO {
     @Schema(description = "结束日期")
     private LocalDate endDate;
 
-    @Schema(description = "上课地点")
-    private String location;
+    @Schema(description = "学校所在城市", example = "青岛市")
+    private String city;
 
     // 个人信息（脱敏）
     @Schema(description = "真实姓名", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -57,6 +57,12 @@ public class AppEnrollmentDetailRespVO {
     @Schema(description = "尾款（元）")
     private BigDecimal balanceAmount;
 
+    @Schema(description = "拼团优惠（元，仅成团后生效，已从尾款中抵扣）")
+    private BigDecimal grouponDiscountAmount;
+
+    @Schema(description = "是否全款报名（定金为 0 或 ≥ 学费，无尾款）")
+    private Boolean fullPayment;
+
     @Schema(description = "已支付金额（元）")
     private BigDecimal paidAmount;
 
@@ -66,6 +72,19 @@ public class AppEnrollmentDetailRespVO {
     // 状态
     @Schema(description = "报名状态", requiredMode = Schema.RequiredMode.REQUIRED)
     private String enrollmentStatus;
+
+    // 人工处理信息（仅 MANUAL_PROCESSING 状态有值）
+    @Schema(description = "人工处理单ID")
+    private Long manualTaskId;
+
+    @Schema(description = "人工处理类型（BALANCE_OVERDUE/REFUND_APPLY/REFUND_AMOUNT_CONFIRM/OTHER）")
+    private String manualTaskType;
+
+    @Schema(description = "人工处理状态（PENDING/PROCESSING）")
+    private String manualTaskStatus;
+
+    @Schema(description = "人工处理原因")
+    private String manualTaskReason;
 
     @Schema(description = "取消原因")
     private String cancelReason;

@@ -5,7 +5,7 @@ import $platform from '@/sheep/platform';
 import $router from '@/sheep/router';
 import user from './user';
 import sys from './sys';
-import { baseUrl, h5Url } from '@/sheep/config';
+import { baseUrl } from '@/sheep/config';
 
 const app = defineStore('app', {
   state: () => ({
@@ -21,31 +21,6 @@ const app = defineStore('app', {
       cdnurl: '', // 云存储域名
       filesystem: '', // 云存储平台
     },
-    platform: {
-      share: {
-        methods: [], // 支持的分享方式
-        forwardInfo: {}, // 默认转发信息
-        posterInfo: {}, // 海报信息
-        linkAddress: '', // 复制链接地址
-      },
-      bind_mobile: 0, // 登陆后绑定手机号提醒 (弱提醒，可手动关闭)
-    },
-    template: {
-      // 店铺装修模板
-      basic: {}, // 基本信息
-      home: {
-        // 首页模板
-        style: {},
-        data: [],
-      },
-      user: {
-        // 个人中心模板
-        style: {},
-        data: [],
-      },
-    },
-    shareInfo: {}, // 全局分享信息
-    has_wechat_trade_managed: 0, // 小程序发货信息管理  0 没有 || 1 有
   }),
   actions: {
     // 获取Shopro应用配置和模板
@@ -76,23 +51,6 @@ const app = defineStore('app', {
           cdnurl: 'https://file.sheepjs.com', // 云存储域名
           filesystem: 'qcloud', // 云存储平台
         };
-        this.platform = {
-          share: {
-            methods: ['forward', 'poster', 'link'],
-            linkAddress: h5Url,
-            posterInfo: {
-              user_bg: '/static/img/shop/config/user-poster-bg.png',
-            },
-            forwardInfo: {
-              title: '',
-              image: '',
-              desc: '',
-            },
-          },
-          bind_mobile: 0,
-        };
-        this.has_wechat_trade_managed = 0;
-
         // 加载主题
         const sysStore = sys();
         sysStore.setTheme();

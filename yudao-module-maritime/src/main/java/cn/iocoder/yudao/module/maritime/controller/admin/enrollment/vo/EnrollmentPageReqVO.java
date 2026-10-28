@@ -27,12 +27,6 @@ public class EnrollmentPageReqVO extends PageParam {
     @Schema(description = "关联拼团记录（可为空）", example = "29350")
     private Long grouponRecordId;
 
-    @Schema(description = "推荐人 member_user.id", example = "1937")
-    private Long referredByMemberId;
-
-    @Schema(description = "报名时填写的推荐码")
-    private String referralCodeUsed;
-
     @Schema(description = "真实姓名", example = "李四")
     private String realName;
 
@@ -58,11 +52,8 @@ public class EnrollmentPageReqVO extends PageParam {
     @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
     private LocalDate[] balanceDueDate;
 
-    @Schema(description = "报名状态(PENDING_DEPOSIT/DEPOSITED/PENDING_BALANCE/IN_PROGRESS/COMPLETED/CANCELLED/REFUNDING)", example = "1")
+    @Schema(description = "报名状态(PENDING_DEPOSIT/DEPOSITED/PAID_OFF/MANUAL_PROCESSING/COMPLETED/CANCELLED)", example = "1")
     private String enrollmentStatus;
-
-    @Schema(description = "是否已获得推荐权（支付定金后=1）")
-    private Boolean referralRightGranted;
 
     @Schema(description = "取消原因", example = "不对")
     private String cancelReason;

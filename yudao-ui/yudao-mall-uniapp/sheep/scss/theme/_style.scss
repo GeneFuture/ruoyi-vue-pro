@@ -45,7 +45,7 @@
     box-shadow: var(--ui-Main-box-shadow) !important;
   }
   .ui-BG-Main-light {
-    background: var(----ui-BG-Main-light) !important;
+    background: var(--ui-BG-Main-light) !important;
     color: var(--ui-BG-Main#{$value}) !important;
   }
 }
@@ -59,6 +59,8 @@
     --ui-BG-Main-opacity-1: #{rgba($value, 0.1)};
     --ui-BG-Main-opacity-4: #{rgba($value, 0.4)};
     --ui-Main-box-shadow: 0 0.2em 0.5em #{rgba($value, var(--ui-Shadow-opacity))};
+    // 主题色加深端点：用于需要两段渐变的场景（如首页沉浸式头图、主 CTA 按钮）
+    --ui-BG-Main-deep: #{mix(#000000, $value, 40%)};
     --ui-BG-Main-1: #{mix(rgba(255, 255, 255, 0.7), desaturate($value, 20%), 10%)};
     --ui-BG-Main-2: #{mix(rgba(255, 255, 255, 0.6), desaturate($value, 40%), 20%)};
     --ui-BG-Main-3: #{mix(rgba(119, 119, 119, 0.2), desaturate($value, 40%), 40%)};

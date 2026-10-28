@@ -28,14 +28,8 @@ public class AdminDashboardRespVO {
     @Schema(description = "本月总收款（元）")
     private BigDecimal monthTotalRevenue;
 
-    @Schema(description = "本月佣金发放总额（元）")
-    private BigDecimal monthCommissionPaid;
-
     @Schema(description = "本月成团数")
     private Integer monthSuccessGroupons;
-
-    @Schema(description = "本月推荐成功数（ACTIVE 推荐关系）")
-    private Integer monthReferralCount;
 
     // ── 班期招生进度（当前开放报名的班期）──
     @Schema(description = "开放班期招生进度")
@@ -46,17 +40,8 @@ public class AdminDashboardRespVO {
     private List<DailyStatVO> enrollmentTrend;
 
     // ── 快速待办 ──
-    @Schema(description = "待审核佣金数")
-    private Integer pendingCommissionReviews;
-
     @Schema(description = "待处理退费申请数")
     private Integer pendingRefundApplies;
-
-    @Schema(description = "发放失败佣金数")
-    private Integer failedPayouts;
-
-    @Schema(description = "未处理风控事件数")
-    private Integer pendingRiskEvents;
 
     // ── 嵌套 VO ──
 

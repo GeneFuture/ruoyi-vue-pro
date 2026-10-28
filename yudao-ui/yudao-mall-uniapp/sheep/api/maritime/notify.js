@@ -28,10 +28,11 @@ const NotifyApi = {
   },
 
   // 获取未读消息数
-  getUnreadCount: () => {
+  getUnreadCount: (params = {}) => {
     return request({
       url: '/notify/message/get-unread-count',
       method: 'GET',
+      params,
       custom: {
         auth: true,
         showLoading: false,
@@ -40,11 +41,13 @@ const NotifyApi = {
   },
 
   // 标记消息已读（ids 为数组）
+  // 注意：后端为 @RequestParam("ids") List<Long>，且 luch-request 会把数组序列化成 ids[]=1&ids[]=2，
+  // 与 Spring 的参数名对不上，因此这里必须用逗号拼接的字符串走 query 参数。
   updateReadStatus: (ids) => {
     return request({
       url: '/notify/message/update-read',
       method: 'PUT',
-      data: { ids },
+      params: { ids: (ids || []).join(',') },
       custom: {
         auth: true,
         showLoading: false,

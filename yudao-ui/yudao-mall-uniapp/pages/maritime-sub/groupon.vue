@@ -10,16 +10,16 @@
         <view class="progress-bar ss-m-t-20">
           <view class="progress-inner" :style="{ width: progressPercent + '%' }" />
         </view>
-        <view
-          v-if="state.groupon.grouponStatus === 'IN_PROGRESS'"
-          class="countdown ss-m-t-16"
-        >
+        <view v-if="state.groupon.grouponStatus === 'IN_PROGRESS'" class="countdown ss-m-t-16">
           还差 {{ state.groupon.remainingCount }} 人，剩余 {{ countdownText }}
         </view>
         <view v-else-if="state.groupon.grouponStatus === 'SUCCESS'" class="countdown ss-m-t-16">
-          拼团成功，成团时间 {{ sheep.$helper.timeFormat(state.groupon.successTime, 'yyyy-mm-dd hh:MM') }}
+          拼团成功，成团时间
+          {{ sheep.$helper.timeFormat(state.groupon.successTime, 'yyyy-mm-dd hh:MM') }}
         </view>
-        <view v-else class="countdown ss-m-t-16">拼团已降级为单独报名</view>
+        <view v-else class="countdown ss-m-t-16">
+          {{ state.groupon.degradeReason || '拼团已降级为单独报名' }}
+        </view>
       </view>
 
       <view
@@ -42,11 +42,7 @@
       </button>
     </view>
 
-    <s-empty
-      v-else-if="!state.loading"
-      text="本次报名未参与拼团"
-      icon="/static/data-empty.png"
-    />
+    <s-empty v-else-if="!state.loading" text="本次报名未参与拼团" icon="/static/data-empty.png" />
   </s-layout>
 </template>
 
@@ -106,7 +102,9 @@
     return {
       title: '一起拼团报名吧，立省一笔！',
       forward: {
-        path: `pages/maritime-sub/enrollment?sessionId=${params.sessionId}&joinGroupon=true&grouponInviteCode=${state.groupon?.inviteCode || ''}`,
+        path: `pages/maritime-sub/enrollment?sessionId=${
+          params.sessionId
+        }&joinGroupon=true&grouponInviteCode=${state.groupon?.inviteCode || ''}`,
       },
     };
   });

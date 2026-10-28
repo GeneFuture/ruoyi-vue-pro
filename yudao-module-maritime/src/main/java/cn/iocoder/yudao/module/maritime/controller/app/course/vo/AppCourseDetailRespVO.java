@@ -45,8 +45,8 @@ public class AppCourseDetailRespVO {
         @Schema(description = "班级名称")
         private String sessionName;
 
-        @Schema(description = "上课地点", requiredMode = Schema.RequiredMode.REQUIRED)
-        private String location;
+        @Schema(description = "学校所在城市", example = "青岛市")
+        private String city;
 
         @Schema(description = "课程天数", requiredMode = Schema.RequiredMode.REQUIRED)
         private Integer durationDays;
@@ -81,8 +81,8 @@ public class AppCourseDetailRespVO {
         @Schema(description = "是否开启拼团")
         private Boolean isGrouponEnabled;
 
-        @Schema(description = "拼团定金（元，= 定金 - 拼团优惠）")
-        private BigDecimal grouponDepositAmount;
+        @Schema(description = "拼团优惠（元，成团后从尾款抵扣）")
+        private BigDecimal grouponDiscountAmount;
 
     }
 

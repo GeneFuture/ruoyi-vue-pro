@@ -28,8 +28,8 @@ public class AppCourseRespVO {
     @Schema(description = "最近开放班期开班日期")
     private LocalDate nearestStartDate;
 
-    @Schema(description = "最近开放班期上课地点")
-    private String location;
+    @Schema(description = "最近开放班期所在城市", example = "青岛市")
+    private String city;
 
     @Schema(description = "最近开放班期课程天数")
     private Integer durationDays;

@@ -47,7 +47,7 @@
   // 重新连接
   async function onReconnect() {
     uni.reLaunch({
-      url: '/pages/maritime/course-list',
+      url: '/pages/maritime/index',
     });
     await ShoproInit();
   }

@@ -12,7 +12,9 @@ import cn.iocoder.yudao.module.maritime.dal.dataobject.session.CourseSessionDO;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.sessionFeeConfig.SessionFeeConfigDO;
 import cn.iocoder.yudao.module.maritime.dal.mysql.course.CourseMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.session.CourseSessionMapper;
+import cn.iocoder.yudao.module.maritime.dal.dataobject.sessionVenue.SessionVenueDO;
 import cn.iocoder.yudao.module.maritime.dal.mysql.sessionFeeConfig.SessionFeeConfigMapper;
+import cn.iocoder.yudao.module.maritime.dal.mysql.sessionVenue.SessionVenueMapper;
 import cn.hutool.core.util.StrUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +46,9 @@ public class CourseServiceImpl implements CourseService {
 
     @Resource
     private SessionFeeConfigMapper sessionFeeConfigMapper;
+
+    @Resource
+    private SessionVenueMapper sessionVenueMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -99,9 +104,17 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public PageResult<AppCourseRespVO> getCoursePageForApp(AppCoursePageReqVO pageReqVO) {
-        // 1. 根据班期级过滤条件（地点/月份）收窄课程范围
+        // 1. 根据班期级过滤条件（城市/月份）收窄课程范围
         Collection<Long> filterCourseIds = null;
-        if (StrUtil.isNotBlank(pageReqVO.getLocation()) || StrUtil.isNotBlank(pageReqVO.getSessionMonth())) {
+        if (StrUtil.isNotBlank(pageReqVO.getCity()) || StrUtil.isNotBlank(pageReqVO.getSessionMonth())) {
+            // 城市在场地表上，先按城市查出班期 ID 范围；查不到说明该城市没有班期，直接返回空页
+            Collection<Long> citySessionIds = null;
+            if (StrUtil.isNotBlank(pageReqVO.getCity())) {
+                citySessionIds = sessionVenueMapper.selectSessionIdsByCityLike(pageReqVO.getCity());
+                if (citySessionIds.isEmpty()) {
+                    return new PageResult<>(Collections.emptyList(), 0L);
+                }
+            }
             LocalDate startFrom = null;
             LocalDate startTo = null;
             if (StrUtil.isNotBlank(pageReqVO.getSessionMonth())) {
@@ -110,7 +123,7 @@ public class CourseServiceImpl implements CourseService {
                 startTo = monthStart.withDayOfMonth(monthStart.lengthOfMonth());
             }
             List<CourseSessionDO> filteredSessions = courseSessionMapper.selectOpenWithFilters(
-                    pageReqVO.getLocation(), startFrom, startTo);
+                    citySessionIds, startFrom, startTo);
             filterCourseIds = filteredSessions.stream()
                     .map(CourseSessionDO::getCourseId)
                     .distinct()
@@ -137,6 +150,9 @@ public class CourseServiceImpl implements CourseService {
         Map<Long, SessionFeeConfigDO> feeConfigBySessionId = sessionFeeConfigMapper.selectBySessionIds(sessionIds)
                 .stream().collect(Collectors.toMap(SessionFeeConfigDO::getSessionId, f -> f, (a, b) -> a));
 
+        // 4.1 查询这批班期的场地信息（城市展示用）
+        Map<Long, SessionVenueDO> venueBySessionId = sessionVenueMapper.selectMapBySessionIds(sessionIds);
+
         // 5. 构建辅助 Map：courseId -> 最近班期（已按 startDate asc 排序，取第一条）
         Map<Long, CourseSessionDO> nearestSessionByCourseId = new LinkedHashMap<>();
         Map<Long, List<CourseSessionDO>> sessionsByCourseId = openSessions.stream()
@@ -157,7 +173,8 @@ public class CourseServiceImpl implements CourseService {
             if (nearest != null) {
                 vo.setNearestSessionId(nearest.getId());
                 vo.setNearestStartDate(nearest.getStartDate());
-                vo.setLocation(nearest.getLocation());
+                SessionVenueDO nearestVenue = venueBySessionId.get(nearest.getId());
+                vo.setCity(nearestVenue != null ? nearestVenue.getCity() : null);
                 vo.setDurationDays(nearest.getDurationDays());
                 vo.setSessionStatus(nearest.getSessionStatus());
             }
@@ -188,6 +205,7 @@ public class CourseServiceImpl implements CourseService {
                 .map(CourseSessionDO::getId).collect(Collectors.toList());
         Map<Long, SessionFeeConfigDO> feeConfigBySessionId = sessionFeeConfigMapper.selectBySessionIds(sessionIds)
                 .stream().collect(Collectors.toMap(SessionFeeConfigDO::getSessionId, f -> f, (a, b) -> a));
+        Map<Long, SessionVenueDO> venueBySessionId = sessionVenueMapper.selectMapBySessionIds(sessionIds);
 
         AppCourseDetailRespVO vo = new AppCourseDetailRespVO();
         vo.setId(course.getId());
@@ -202,7 +220,8 @@ public class CourseServiceImpl implements CourseService {
             svo.setId(session.getId());
             svo.setSessionCode(session.getSessionCode());
             svo.setSessionName(session.getSessionName());
-            svo.setLocation(session.getLocation());
+            SessionVenueDO venue = venueBySessionId.get(session.getId());
+            svo.setCity(venue != null ? venue.getCity() : null);
             svo.setDurationDays(session.getDurationDays());
             svo.setInstructorInfo(session.getInstructorInfo());
             svo.setStartDate(session.getStartDate());
@@ -218,11 +237,8 @@ public class CourseServiceImpl implements CourseService {
                 svo.setTuitionAmount(feeConfig.getTuitionAmount());
                 svo.setDepositAmount(feeConfig.getDepositAmount());
                 svo.setIsGrouponEnabled(feeConfig.getIsGrouponEnabled());
-                if (Boolean.TRUE.equals(feeConfig.getIsGrouponEnabled())
-                        && feeConfig.getDepositAmount() != null
-                        && feeConfig.getGrouponDiscountAmount() != null) {
-                    svo.setGrouponDepositAmount(
-                            feeConfig.getDepositAmount().subtract(feeConfig.getGrouponDiscountAmount()));
+                if (Boolean.TRUE.equals(feeConfig.getIsGrouponEnabled())) {
+                    svo.setGrouponDiscountAmount(feeConfig.getGrouponDiscountAmount());
                 }
             }
             return svo;

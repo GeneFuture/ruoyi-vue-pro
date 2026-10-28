@@ -9,7 +9,7 @@
 
       <view class="wechat-pay-item ss-m-t-60 ss-flex ss-col-center ss-row-center">
         <image class="pay-icon" :src="sheep.$url.static('/static/img/shop/pay/wechat.png')" mode="aspectFit" />
-        <text class="ss-m-l-10">微信支付</text>
+        <text class="ss-m-l-10">{{ payMethodText }}</text>
       </view>
     </view>
 
@@ -30,7 +30,7 @@
   import MaritimeOrderApi from '@/sheep/api/maritime/order';
 
   const params = reactive({
-    type: 'deposit', // deposit | balance
+    type: 'deposit', // deposit | full | balance
     orderId: '',
     enrollmentId: '',
   });
@@ -41,22 +41,37 @@
     submitting: false,
   });
 
-  const payTypeText = computed(() => (params.type === 'deposit' ? '报名定金' : '培训尾款'));
+  const payTypeText = computed(() => {
+    if (params.type === 'balance') return '培训尾款';
+    return params.type === 'full' ? '报名全款' : '报名定金';
+  });
+
+  /** 开发环境走 mock 渠道，避免依赖微信商户号 */
+  const payMethodText = computed(() =>
+    process.env.NODE_ENV === 'development' ? '模拟支付（开发环境）' : '微信支付',
+  );
 
   async function createPayOrder() {
-    const res =
-      params.type === 'deposit'
-        ? await MaritimeOrderApi.payDeposit(params.orderId)
-        : await MaritimeOrderApi.payBalance(params.enrollmentId);
-    if (res.code !== 0) return;
-    state.payOrderId = res.data.payOrderId;
-    state.amount = Number(res.data.amount).toFixed(2);
+    try {
+      // 定金与全款都走同一笔报名订单的支付；尾款单独接口
+      const res =
+        params.type === 'balance'
+          ? await MaritimeOrderApi.payBalance(params.enrollmentId)
+          : await MaritimeOrderApi.payDeposit(params.orderId);
+      if (res.code !== 0) return;
+      state.payOrderId = res.data.payOrderId;
+      state.amount = Number(res.data.amount).toFixed(2);
+    } catch (e) {
+      // 请求层已提示，避免未处理 Promise
+    }
   }
 
   function onPay() {
     if (!state.payOrderId) return;
     state.submitting = true;
-    sheep.$platform.pay('wechat', 'maritime', state.payOrderId);
+    // 开发环境没有微信商户号时用 mock 渠道模拟支付；真机微信支付测试时改为 'wechat'
+    const payMethod = process.env.NODE_ENV === 'development' ? 'mock' : 'wechat';
+    sheep.$platform.pay(payMethod, 'maritime', state.payOrderId);
     setTimeout(() => {
       state.submitting = false;
     }, 1500);

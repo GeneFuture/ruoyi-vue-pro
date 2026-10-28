@@ -27,10 +27,6 @@ public interface MemberUserMapper extends BaseMapperX<MemberUserDO> {
         return selectOne(MemberUserDO::getMobile, mobile);
     }
 
-    default MemberUserDO selectByReferralCode(String referralCode) {
-        return selectOne(MemberUserDO::getReferralCode, referralCode);
-    }
-
     default MemberUserDO selectByEmail(String email) {
         return selectOne(MemberUserDO::getEmail, email);
     }

@@ -3,24 +3,28 @@ package cn.iocoder.yudao.module.maritime.service.enrollment;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.maritime.controller.app.enrollment.vo.AppEnrollmentCreateReqVO;
 import cn.iocoder.yudao.module.maritime.controller.app.enrollment.vo.AppEnrollmentCreateRespVO;
+import cn.iocoder.yudao.module.maritime.controller.app.enrollment.vo.AppRefundApplyReqVO;
 import cn.iocoder.yudao.module.maritime.controller.app.order.vo.AppPayOrderRespVO;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.enrollment.EnrollmentDO;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.enrollmentOrder.EnrollmentOrderDO;
+import cn.iocoder.yudao.module.maritime.dal.dataobject.refundApply.RefundApplyDO;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.session.CourseSessionDO;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.sessionFeeConfig.SessionFeeConfigDO;
 import cn.iocoder.yudao.module.maritime.dal.mysql.enrollment.EnrollmentMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.enrollmentOrder.EnrollmentOrderMapper;
+import cn.iocoder.yudao.module.maritime.dal.mysql.refundApply.RefundApplyMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.session.CourseSessionMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.sessionFeeConfig.SessionFeeConfigMapper;
+import cn.iocoder.yudao.module.maritime.enums.ManualTaskTypeEnum;
 import cn.iocoder.yudao.module.maritime.mq.event.DepositPaidEvent;
 import cn.iocoder.yudao.module.maritime.mq.event.EnrollmentCreatedEvent;
-import cn.iocoder.yudao.module.maritime.service.commissionAccount.CommissionAccountService;
-import cn.iocoder.yudao.module.maritime.service.commissionRecord.CommissionRecordService;
 import cn.iocoder.yudao.module.maritime.service.groupon.GrouponService;
-import cn.iocoder.yudao.module.maritime.service.referralRelation.ReferralRelationService;
+import cn.iocoder.yudao.module.maritime.service.manualTask.ManualTaskService;
 import cn.iocoder.yudao.module.maritime.service.refundApply.RefundApplyService;
+import cn.iocoder.yudao.module.maritime.service.studentInfo.StudentInfoService;
 import cn.iocoder.yudao.module.pay.api.order.PayOrderApi;
 import cn.iocoder.yudao.module.pay.api.order.dto.PayOrderRespDTO;
+import cn.iocoder.yudao.module.pay.enums.order.PayOrderStatusEnum;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,27 +69,26 @@ public class EnrollmentServiceImplTest extends BaseDbUnitTest {
     private CourseSessionMapper courseSessionMapper;
     @Resource
     private SessionFeeConfigMapper sessionFeeConfigMapper;
+    @Resource
+    private RefundApplyMapper refundApplyMapper;
     @Autowired
     private ApplicationEvents events;
 
     @MockitoBean
     private PayOrderApi payOrderApi;
     @MockitoBean
-    private CommissionAccountService commissionAccountService;
-    @MockitoBean
-    private ReferralRelationService referralRelationService;
-    @MockitoBean
-    private CommissionRecordService commissionRecordService;
-    @MockitoBean
     private GrouponService grouponService;
     @MockitoBean
     private RefundApplyService refundApplyService;
+    @MockitoBean
+    private ManualTaskService manualTaskService;
+    @MockitoBean
+    private StudentInfoService studentInfoService;
 
     private CourseSessionDO insertOpenSession(int maxStudents, int enrolledCount) {
         CourseSessionDO session = CourseSessionDO.builder()
                 .courseId(randomLongId())
                 .sessionCode("SC-" + randomLongId())
-                .location("上海")
                 .durationDays(5)
                 .startDate(LocalDate.now().plusDays(30))
                 .endDate(LocalDate.now().plusDays(35))
@@ -107,8 +110,6 @@ public class EnrollmentServiceImplTest extends BaseDbUnitTest {
                 .grouponRequiredCount(3)
                 .grouponExpireHours(24)
                 .grouponFailDiscountAmount(BigDecimal.ZERO)
-                .referralCommissionAmount(BigDecimal.ZERO)
-                .isReferralCommissionEnabled(false)
                 .isDepositRefundable(true)
                 .balanceDueDaysBeforeStart(7)
                 .build();
@@ -141,7 +142,6 @@ public class EnrollmentServiceImplTest extends BaseDbUnitTest {
         EnrollmentDO enrollment = enrollmentMapper.selectById(respVO.getEnrollmentId());
         assertEquals("PENDING_DEPOSIT", enrollment.getEnrollmentStatus());
         assertEquals(memberId, enrollment.getMemberId());
-        assertFalse(enrollment.getReferralRightGranted());
 
         EnrollmentOrderDO order = enrollmentOrderMapper.selectById(respVO.getOrderId());
         assertEquals("DEPOSIT", order.getOrderType());
@@ -214,17 +214,20 @@ public class EnrollmentServiceImplTest extends BaseDbUnitTest {
                 .balanceAmount(balanceAmount)
                 .paidAmount(paidAmount)
                 .enrollmentStatus("PENDING_DEPOSIT")
-                .referralRightGranted(false)
                 .build();
         enrollmentMapper.insert(enrollment);
         return enrollment;
     }
 
     private EnrollmentOrderDO insertDepositOrder(Long enrollmentId, BigDecimal amount, String status) {
+        return insertOrder(enrollmentId, "DEPOSIT", amount, status);
+    }
+
+    private EnrollmentOrderDO insertOrder(Long enrollmentId, String orderType, BigDecimal amount, String status) {
         EnrollmentOrderDO order = EnrollmentOrderDO.builder()
                 .enrollmentId(enrollmentId)
                 .orderNo("OD" + randomLongId())
-                .orderType("DEPOSIT")
+                .orderType(orderType)
                 .amount(amount)
                 .orderStatus(status)
                 .expireTime(LocalDateTime.now().plusMinutes(30))
@@ -233,14 +236,22 @@ public class EnrollmentServiceImplTest extends BaseDbUnitTest {
         return order;
     }
 
+    /** 构造支付成功的 pay 单响应，供回调校验使用 */
+    private PayOrderRespDTO buildSuccessPayOrder(String merchantOrderId, int price) {
+        PayOrderRespDTO payOrderResp = new PayOrderRespDTO();
+        payOrderResp.setMerchantOrderId(merchantOrderId);
+        payOrderResp.setStatus(PayOrderStatusEnum.SUCCESS.getStatus());
+        payOrderResp.setPrice(price);
+        return payOrderResp;
+    }
+
     @Test
-    public void testHandleDepositPaid_success_noBalance_triggersCommission() {
+    public void testHandleDepositPaid_success_noBalance() {
         EnrollmentDO enrollment = insertEnrollment(randomLongId(), new BigDecimal("1000.00"), new BigDecimal("1000.00"),
                 BigDecimal.ZERO, BigDecimal.ZERO, randomLongId());
         EnrollmentOrderDO order = insertDepositOrder(enrollment.getId(), new BigDecimal("1000.00"), "PENDING");
 
-        PayOrderRespDTO payOrderResp = new PayOrderRespDTO();
-        payOrderResp.setPrice(100000); // 1000.00 元 = 100000 分
+        PayOrderRespDTO payOrderResp = buildSuccessPayOrder(order.getOrderNo(), 100000); // 1000.00 元 = 100000 分
         when(payOrderApi.getOrder(eq(888L))).thenReturn(payOrderResp);
 
         enrollmentService.handleDepositPaid(order.getOrderNo(), 888L);
@@ -251,26 +262,21 @@ public class EnrollmentServiceImplTest extends BaseDbUnitTest {
 
         EnrollmentDO updatedEnrollment = enrollmentMapper.selectById(enrollment.getId());
         assertEquals("DEPOSITED", updatedEnrollment.getEnrollmentStatus());
-        assertTrue(updatedEnrollment.getReferralRightGranted());
         assertEquals(new BigDecimal("1000.00"), updatedEnrollment.getPaidAmount());
 
         assertEquals(1, events.stream(DepositPaidEvent.class).count());
-        // 无尾款时，定金支付即触发佣金判定
-        verify(commissionRecordService).triggerCommissionIfEligible(enrollment.getId());
         verify(grouponService).handleMemberPaid(enrollment.getId());
     }
 
     @Test
-    public void testHandleDepositPaid_withBalance_doesNotTriggerCommissionYet() {
+    public void testHandleDepositPaid_withBalance() {
         EnrollmentDO enrollment = insertEnrollment(randomLongId(), new BigDecimal("5000.00"), new BigDecimal("1000.00"),
                 new BigDecimal("4000.00"), BigDecimal.ZERO, randomLongId());
         EnrollmentOrderDO order = insertDepositOrder(enrollment.getId(), new BigDecimal("1000.00"), "PENDING");
-
-        when(payOrderApi.getOrder(any())).thenReturn(null); // 跳过金额校验分支
+        when(payOrderApi.getOrder(any())).thenReturn(buildSuccessPayOrder(order.getOrderNo(), 100000));
 
         enrollmentService.handleDepositPaid(order.getOrderNo(), 999L);
 
-        verify(commissionRecordService, never()).triggerCommissionIfEligible(any());
         assertEquals(1, events.stream(DepositPaidEvent.class).count());
     }
 
@@ -279,12 +285,12 @@ public class EnrollmentServiceImplTest extends BaseDbUnitTest {
         EnrollmentDO enrollment = insertEnrollment(randomLongId(), new BigDecimal("1000.00"), new BigDecimal("1000.00"),
                 BigDecimal.ZERO, BigDecimal.ZERO, randomLongId());
         EnrollmentOrderDO order = insertDepositOrder(enrollment.getId(), new BigDecimal("1000.00"), "PENDING");
-        when(payOrderApi.getOrder(any())).thenReturn(null);
+        when(payOrderApi.getOrder(any())).thenReturn(buildSuccessPayOrder(order.getOrderNo(), 100000));
 
         enrollmentService.handleDepositPaid(order.getOrderNo(), 1L);
         enrollmentService.handleDepositPaid(order.getOrderNo(), 1L); // 重复回调
 
-        // CAS 幂等：事件只应发布一次，佣金/拼团只应处理一次
+        // CAS 幂等：事件只应发布一次，拼团只应处理一次
         assertEquals(1, events.stream(DepositPaidEvent.class).count());
         verify(grouponService, times(1)).handleMemberPaid(enrollment.getId());
     }
@@ -295,8 +301,7 @@ public class EnrollmentServiceImplTest extends BaseDbUnitTest {
                 BigDecimal.ZERO, BigDecimal.ZERO, randomLongId());
         EnrollmentOrderDO order = insertDepositOrder(enrollment.getId(), new BigDecimal("1000.00"), "PENDING");
 
-        PayOrderRespDTO payOrderResp = new PayOrderRespDTO();
-        payOrderResp.setPrice(50000); // 实付 500 元，与应付 1000 元不符
+        PayOrderRespDTO payOrderResp = buildSuccessPayOrder(order.getOrderNo(), 50000); // 实付 500 元，与应付 1000 元不符
         when(payOrderApi.getOrder(any())).thenReturn(payOrderResp);
 
         enrollmentService.handleDepositPaid(order.getOrderNo(), 2L);
@@ -343,6 +348,30 @@ public class EnrollmentServiceImplTest extends BaseDbUnitTest {
 
         assertServiceException(() -> enrollmentService.cancelEnrollmentForApp(enrollment.getId(), 300L),
                 ENROLLMENT_CANCEL_NOT_ALLOWED);
+    }
+
+    @Test
+    public void testApplyRefund_fullPaymentOrder_success() {
+        EnrollmentDO enrollment = insertEnrollment(randomLongId(), new BigDecimal("400.00"), BigDecimal.ZERO,
+                BigDecimal.ZERO, new BigDecimal("400.00"), 400L);
+        enrollmentMapper.updateById(EnrollmentDO.builder()
+                .id(enrollment.getId()).enrollmentStatus("PAID_OFF").build());
+        EnrollmentOrderDO fullOrder = insertOrder(enrollment.getId(), "FULL", new BigDecimal("400.00"), "PAID");
+
+        AppRefundApplyReqVO reqVO = new AppRefundApplyReqVO();
+        reqVO.setEnrollmentId(enrollment.getId());
+        reqVO.setApplyReason("测试全款退费");
+
+        enrollmentService.applyRefund(reqVO, 400L);
+
+        // 全款报名没有定金/尾款订单，退费必须能定位到 FULL 订单
+        RefundApplyDO apply = refundApplyMapper.selectActiveByEnrollmentId(enrollment.getId());
+        assertNotNull(apply);
+        assertEquals(fullOrder.getId(), apply.getOrderId());
+        assertEquals("PENDING", apply.getApplyStatus());
+        assertEquals("MANUAL_PROCESSING", enrollmentMapper.selectById(enrollment.getId()).getEnrollmentStatus());
+        verify(manualTaskService).createTaskIfAbsent(eq(enrollment.getId()), eq(400L), eq(fullOrder.getId()),
+                eq("REFUND"), eq(apply.getId()), eq(ManualTaskTypeEnum.REFUND_APPLY.getType()), any());
     }
 
 }

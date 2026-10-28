@@ -98,9 +98,7 @@
     // 参数校验
     const validate = await unref(resetPasswordRef)
       .validate()
-      .catch((error) => {
-        console.log('error: ', error);
-      });
+      .catch(() => {});
     if (!validate) {
       return;
     }

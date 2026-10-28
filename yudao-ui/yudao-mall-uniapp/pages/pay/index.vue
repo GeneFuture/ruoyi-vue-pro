@@ -75,15 +75,17 @@
   </s-layout>
 </template>
 <script setup>
-  import { computed, reactive } from 'vue';
-  import { onLoad } from '@dcloudio/uni-app';
+  import { computed, reactive, ref } from 'vue';
+  import { onLoad, onUnload } from '@dcloudio/uni-app';
   import sheep from '@/sheep';
-  import { fen2yuan, useDurationTime } from '@/sheep/hooks/useGoods';
+  import { fen2yuan, useDurationTime } from '@/sheep/hooks/usePay';
   import PayOrderApi from '@/sheep/api/pay/order';
   import PayChannelApi from '@/sheep/api/pay/channel';
   import { getPayMethods, goPayResult } from '@/sheep/platform/pay';
 
   const userWallet = computed(() => sheep.$store('user').userWallet);
+  const countdownTick = ref(0);
+  let countdownTimer = null;
 
   // 检测支付环境
   const state = reactive({
@@ -120,6 +122,8 @@
       return '该订单已支付';
     }
     if (state.payStatus === 1) {
+      // 依赖 tick 触发每秒重新计算，不能只在 computed 里创建一次倒计时
+      countdownTick.value;
       const time = useDurationTime(state.orderInfo.expireTime);
       if (time.ms <= 0) {
         state.payStatus = -1;
@@ -164,22 +168,32 @@
 
   // 设置支付订单信息
   async function setOrder(id) {
-    // 获得支付订单信息
-    const { data, code } = await PayOrderApi.getOrder(id, true);
-    if (code !== 0 || !data) {
+    try {
+      // 获得支付订单信息
+      const { data, code } = await PayOrderApi.getOrder(id, true);
+      if (code !== 0 || !data) {
+        state.payStatus = -2;
+        return;
+      }
+      state.orderInfo = data;
+      // 设置支付状态
+      checkPayStatus();
+      // 获得支付方式
+      await setPayMethods();
+    } catch (e) {
       state.payStatus = -2;
-      return;
     }
-    state.orderInfo = data;
-    // 设置支付状态
-    checkPayStatus();
-    // 获得支付方式
-    await setPayMethods();
   }
 
   // 获得支付方式
   async function setPayMethods() {
-    const { data, code } = await PayChannelApi.getEnableChannelCodeList(state.orderInfo.appId);
+    let res;
+    try {
+      res = await PayChannelApi.getEnableChannelCodeList(state.orderInfo.appId);
+    } catch (e) {
+      return;
+    }
+    const { data, code } = res;
     if (code !== 0) {
       return;
     }
@@ -209,6 +223,15 @@
     setOrder(id);
     // 刷新钱包的缓存
     sheep.$store('user').getWallet();
+    countdownTimer = setInterval(() => {
+      if (state.payStatus === 1) {
+        countdownTick.value += 1;
+      }
+    }, 1000);
+  });
+
+  onUnload(() => {
+    if (countdownTimer) clearInterval(countdownTimer);
   });
 </script>
 

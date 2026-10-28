@@ -4,6 +4,8 @@ import java.util.*;
 import jakarta.validation.*;
 import cn.iocoder.yudao.module.maritime.controller.admin.session.vo.*;
 import cn.iocoder.yudao.module.maritime.controller.app.session.vo.AppSessionDetailRespVO;
+import cn.iocoder.yudao.module.maritime.controller.app.session.vo.AppSessionPageReqVO;
+import cn.iocoder.yudao.module.maritime.controller.app.session.vo.AppSessionRespVO;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.session.CourseSessionDO;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
@@ -67,6 +69,14 @@ public interface CourseSessionService {
      * @return 班期详情
      */
     AppSessionDetailRespVO getCourseSessionForApp(Long id);
+
+    /**
+     * 获得招生中班期分页（小程序端，含课程信息与费用摘要）
+     *
+     * @param pageReqVO 分页查询（月份/地点/证书类型）
+     * @return 班期分页
+     */
+    PageResult<AppSessionRespVO> getCourseSessionPageForApp(AppSessionPageReqVO pageReqVO);
 
     /**
      * 修改班期状态

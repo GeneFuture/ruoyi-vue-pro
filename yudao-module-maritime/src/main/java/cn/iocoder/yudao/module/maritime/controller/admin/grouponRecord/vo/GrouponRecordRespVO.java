@@ -48,6 +48,10 @@ public class GrouponRecordRespVO {
     @ExcelProperty("拼团成功时间")
     private LocalDateTime successTime;
 
+    @Schema(description = "拼团结束原因（DEGRADED 时填写）")
+    @ExcelProperty("拼团结束原因")
+    private String degradeReason;
+
     @Schema(description = "创建时间", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("创建时间")
     private LocalDateTime createTime;

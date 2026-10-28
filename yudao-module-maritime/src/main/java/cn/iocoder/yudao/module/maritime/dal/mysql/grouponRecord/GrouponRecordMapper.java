@@ -64,9 +64,11 @@ public interface GrouponRecordMapper extends BaseMapperX<GrouponRecordDO> {
     @Update("UPDATE maritime_groupon_record SET current_count = current_count + 1 WHERE id = #{id} AND current_count < required_count AND deleted = 0")
     int incrementCount(@Param("id") Long id);
 
-    /** CAS IN_PROGRESS → DEGRADED（幂等，定时任务降级 / 管理员关闭用） */
-    @Update("UPDATE maritime_groupon_record SET groupon_status = #{newStatus} WHERE id = #{id} AND groupon_status = 'IN_PROGRESS' AND deleted = 0")
-    int updateStatusIfInProgress(@Param("id") Long id, @Param("newStatus") String newStatus);
+    /** CAS IN_PROGRESS → DEGRADED（幂等，定时任务降级 / 管理员关闭 / 提前付清尾款用） */
+    @Update("UPDATE maritime_groupon_record SET groupon_status = #{newStatus}, degrade_reason = #{reason} " +
+            "WHERE id = #{id} AND groupon_status = 'IN_PROGRESS' AND deleted = 0")
+    int updateStatusIfInProgress(@Param("id") Long id, @Param("newStatus") String newStatus,
+                                 @Param("reason") String reason);
 
     /** CAS IN_PROGRESS → SUCCESS，同时写入 success_time（原子，避免两步更新间的崩溃窗口） */
     @Update("UPDATE maritime_groupon_record SET groupon_status = 'SUCCESS', success_time = #{successTime} WHERE id = #{id} AND groupon_status = 'IN_PROGRESS' AND deleted = 0")

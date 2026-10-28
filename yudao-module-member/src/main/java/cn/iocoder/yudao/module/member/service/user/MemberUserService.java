@@ -179,14 +179,6 @@ public interface MemberUserService {
     Long getUserCountByTagId(Long tagId);
 
     /**
-     * 根据推荐码查询会员
-     *
-     * @param referralCode 推荐码
-     * @return 会员，不存在时返回 null
-     */
-    MemberUserDO getUserByReferralCode(String referralCode);
-
-    /**
      * 更新用户的积分
      *
      * @param userId 用户编号
@@ -194,22 +186,6 @@ public interface MemberUserService {
      * @return 更新结果
      */
     boolean updateUserPoint(Long userId, Integer point);
-
-    /**
-     * 初始化推荐码：如果用户还没有推荐码，则生成并保存
-     *
-     * @param userId 用户编号
-     */
-    void initReferralCodeIfAbsent(Long userId);
-
-    /**
-     * 绑定推荐关系：将 referralCode 对应的用户设为当前用户的推荐人
-     * 若推荐码无效、推荐人与当前用户相同、或已绑定过推荐人则静默忽略
-     *
-     * @param userId       当前用户编号
-     * @param referralCode 推荐码
-     */
-    void bindReferredBy(Long userId, String referralCode);
 
     /**
      * 更新用户的微信 openId

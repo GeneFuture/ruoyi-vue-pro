@@ -14,7 +14,7 @@
     <name>${project.artifactId}</name>
     <description>
         maritime 模块，海员培训平台。
-        包含：课程管理、班期管理、报名流程、定金支付、拼团、推荐佣金、消息通知等业务。
+        包含：课程管理、班期管理、报名流程、定金支付、拼团、消息通知等业务。
     </description>
 
     <dependencies>
@@ -91,7 +91,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Excel 导出（报名/佣金报表） -->
+        <!-- Excel 导出（报名报表） -->
         <dependency>
             <groupId>cn.iocoder.boot</groupId>
             <artifactId>yudao-spring-boot-starter-excel</artifactId>

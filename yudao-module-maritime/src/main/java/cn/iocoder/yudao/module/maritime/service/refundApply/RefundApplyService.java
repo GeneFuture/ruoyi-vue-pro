@@ -63,7 +63,7 @@ public interface RefundApplyService {
     // ========== 管理端 T07 ==========
 
     /**
-     * 管理端：审核通过退费（发起微信退款、取消报名、冻结佣金）
+     * 管理端：审核通过退费（登记退款、取消报名、归还名额）
      *
      * @param id           退费申请ID
      * @param refundAmount 实际退款金额（元）

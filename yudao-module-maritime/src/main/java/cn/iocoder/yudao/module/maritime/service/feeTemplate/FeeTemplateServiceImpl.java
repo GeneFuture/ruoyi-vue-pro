@@ -11,6 +11,7 @@ import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 
@@ -33,6 +34,8 @@ public class FeeTemplateServiceImpl implements FeeTemplateService {
     public Long createFeeTemplate(FeeTemplateSaveReqVO createReqVO) {
         // 校验名称唯一
         validateNameUnique(null, createReqVO.getName());
+        validateFeeAmount(createReqVO.getTuitionAmount(), createReqVO.getDepositAmount(),
+                createReqVO.getIsGrouponEnabled());
         // 插入
         FeeTemplateDO feeTemplate = BeanUtils.toBean(createReqVO, FeeTemplateDO.class);
         feeTemplateMapper.insert(feeTemplate);
@@ -45,6 +48,8 @@ public class FeeTemplateServiceImpl implements FeeTemplateService {
         validateFeeTemplateExists(updateReqVO.getId());
         // 校验名称唯一
         validateNameUnique(updateReqVO.getId(), updateReqVO.getName());
+        validateFeeAmount(updateReqVO.getTuitionAmount(), updateReqVO.getDepositAmount(),
+                updateReqVO.getIsGrouponEnabled());
         // 更新（已快照到班期的费用配置不受影响）
         FeeTemplateDO updateObj = BeanUtils.toBean(updateReqVO, FeeTemplateDO.class);
         feeTemplateMapper.updateById(updateObj);
@@ -66,6 +71,23 @@ public class FeeTemplateServiceImpl implements FeeTemplateService {
     private void validateFeeTemplateExists(Long id) {
         if (feeTemplateMapper.selectById(id) == null) {
             throw exception(FEE_TEMPLATE_NOT_EXISTS);
+        }
+    }
+
+    /**
+     * 金额口径：定金为 0 或等于学费时按全款报名；全款模式不支持拼团。
+     */
+    private void validateFeeAmount(BigDecimal tuition, BigDecimal deposit, Boolean grouponEnabled) {
+        if (tuition == null || deposit == null) {
+            return;
+        }
+        if (deposit.compareTo(tuition) > 0) {
+            throw exception(SESSION_FEE_DEPOSIT_INVALID);
+        }
+        boolean fullPayment = deposit.compareTo(BigDecimal.ZERO) <= 0
+                || deposit.compareTo(tuition) == 0;
+        if (Boolean.TRUE.equals(grouponEnabled) && fullPayment) {
+            throw exception(SESSION_FEE_GROUPON_DEPOSIT_INVALID);
         }
     }
 

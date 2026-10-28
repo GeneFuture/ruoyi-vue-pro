@@ -35,12 +35,12 @@
 
   const list = [
     {
-      url: '/pages/maritime/course-list',
+      url: '/pages/maritime/index',
       icon: '/static/img/shop/tools/home.png',
       title: '课程列表',
     },
     {
-      url: '/pages/maritime/my-enrollments',
+      url: '/pages/maritime-sub/enrollment-list',
       icon: '/static/img/shop/tools/browse.png',
       title: '我的报名',
     },
@@ -50,7 +50,7 @@
       title: '我的',
     },
     {
-      url: '/pages/maritime-sub/notify/index',
+      url: '/pages/maritime/notify',
       icon: '/static/img/shop/tools/service.png',
       title: '消息中心',
     },

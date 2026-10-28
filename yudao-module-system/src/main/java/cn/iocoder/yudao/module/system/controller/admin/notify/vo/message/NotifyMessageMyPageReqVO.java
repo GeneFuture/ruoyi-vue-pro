@@ -20,6 +20,9 @@ public class NotifyMessageMyPageReqVO extends PageParam {
     @Schema(description = "是否已读", example = "true")
     private Boolean readStatus;
 
+    @Schema(description = "模板编码前缀（用于只查询某类通知，如 MARITIME_）", example = "MARITIME_")
+    private String templateCodePrefix;
+
     @Schema(description = "创建时间")
     @DateTimeFormat(pattern = FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND)
     private LocalDateTime[] createTime;

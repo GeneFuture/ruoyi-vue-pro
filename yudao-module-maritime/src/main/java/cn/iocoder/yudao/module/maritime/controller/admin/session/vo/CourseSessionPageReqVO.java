@@ -23,9 +23,6 @@ public class CourseSessionPageReqVO extends PageParam {
     @Schema(description = "班级名称（可选，如：A班）", example = "芋艿")
     private String sessionName;
 
-    @Schema(description = "本期上课地点")
-    private String location;
-
     @Schema(description = "本期课程天数")
     private Integer durationDays;
 

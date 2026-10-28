@@ -34,14 +34,6 @@ public class EnrollmentRespVO {
     @ExcelProperty("关联拼团记录（可为空）")
     private Long grouponRecordId;
 
-    @Schema(description = "推荐人 member_user.id", example = "1937")
-    @ExcelProperty("推荐人 member_user.id")
-    private Long referredByMemberId;
-
-    @Schema(description = "报名时填写的推荐码")
-    @ExcelProperty("报名时填写的推荐码")
-    private String referralCodeUsed;
-
     @Schema(description = "真实姓名", requiredMode = Schema.RequiredMode.REQUIRED, example = "李四")
     @ExcelProperty("真实姓名")
     private String realName;
@@ -74,13 +66,9 @@ public class EnrollmentRespVO {
     @ExcelProperty("尾款截止缴纳日期")
     private LocalDate balanceDueDate;
 
-    @Schema(description = "报名状态(PENDING_DEPOSIT/DEPOSITED/PENDING_BALANCE/IN_PROGRESS/COMPLETED/CANCELLED/REFUNDING)", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
-    @ExcelProperty("报名状态(PENDING_DEPOSIT/DEPOSITED/PENDING_BALANCE/IN_PROGRESS/COMPLETED/CANCELLED/REFUNDING)")
+    @Schema(description = "报名状态(PENDING_DEPOSIT/DEPOSITED/PAID_OFF/MANUAL_PROCESSING/COMPLETED/CANCELLED)", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+    @ExcelProperty("报名状态(PENDING_DEPOSIT/DEPOSITED/PAID_OFF/MANUAL_PROCESSING/COMPLETED/CANCELLED)")
     private String enrollmentStatus;
-
-    @Schema(description = "是否已获得推荐权（支付定金后=1）", requiredMode = Schema.RequiredMode.REQUIRED)
-    @ExcelProperty("是否已获得推荐权（支付定金后=1）")
-    private Boolean referralRightGranted;
 
     @Schema(description = "取消原因", example = "不对")
     @ExcelProperty("取消原因")

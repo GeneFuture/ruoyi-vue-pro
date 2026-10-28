@@ -58,6 +58,9 @@ public class GrouponRecordDO extends BaseDO {
      * 拼团成功时间
      */
     private LocalDateTime successTime;
-
+    /**
+     * 拼团结束原因（DEGRADED 时填写：超时未成团 / 成员提前付清尾款 / 管理员关闭）
+     */
+    private String degradeReason;
 
 }

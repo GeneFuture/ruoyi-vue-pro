@@ -17,9 +17,14 @@ $grey: #8799a3;     // 玄灰
 $gray: #aaaaaa;     // 草灰
 $black: #333333;    // 墨黑
 
+// 品牌色：海员培训主色。加入 $colors 后，theme/_style.scss 会自动生成全套派生变量
+// （--ui-BG-Main / -gradient / -light / -deep / box-shadow 等），成为全站唯一颜色来源
+$brand: #1e5eff;
+
 $colors: ();
 $colors: map-merge(
   (
+    'brand':$brand,
     'red':$red,
     'orange':$orange,
     'gold':$gold,

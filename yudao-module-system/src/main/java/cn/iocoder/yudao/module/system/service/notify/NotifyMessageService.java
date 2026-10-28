@@ -76,6 +76,11 @@ public interface NotifyMessageService {
     Long getUnreadNotifyMessageCount(Long userId, Integer userType);
 
     /**
+     * 获得未读站内信数量（可按模板编码前缀过滤）
+     */
+    Long getUnreadNotifyMessageCount(Long userId, Integer userType, String templateCodePrefix);
+
+    /**
      * 标记站内信为已读
      *
      * @param ids    站内信编号集合

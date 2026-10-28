@@ -10,14 +10,26 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ========== 1. 扩展 member_user 表 ==========
 -- 注意：MySQL 8.0 不支持 ADD COLUMN IF NOT EXISTS，运行前确认列不存在
 ALTER TABLE member_user
-  ADD COLUMN open_id            VARCHAR(64)  DEFAULT NULL COMMENT '微信 openid（用于自推检测、企业付款收款方标识）',
-  ADD COLUMN referral_code      VARCHAR(20)  DEFAULT NULL COMMENT '我的推荐码（格式 REF-{uid}-{4位随机码}）',
-  ADD COLUMN referred_by        BIGINT       DEFAULT NULL COMMENT '被谁推荐的（推荐人 member_user.id）',
-  ADD COLUMN is_referral_banned TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '是否禁止推荐（0正常 1禁推，账号封禁请用 status 字段）';
+  ADD COLUMN open_id            VARCHAR(64)  DEFAULT NULL COMMENT '微信 openid';
 
-ALTER TABLE member_user ADD UNIQUE INDEX uk_referral_code (referral_code, tenant_id);
-ALTER TABLE member_user ADD INDEX idx_referred_by (referred_by);
 ALTER TABLE member_user ADD INDEX idx_open_id (open_id);
+
+-- ========== 1.1 学员信息表（报名常用信息：姓名 / 身份证 / 手机号） ==========
+CREATE TABLE IF NOT EXISTS maritime_student_info (
+  id          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '学员信息ID',
+  member_id   BIGINT       NOT NULL COMMENT '会员ID',
+  real_name   VARCHAR(50)  NOT NULL COMMENT '真实姓名',
+  id_card     VARCHAR(64)  NOT NULL COMMENT '身份证号（加密存储）',
+  phone       VARCHAR(20)  NOT NULL COMMENT '手机号',
+  creator     VARCHAR(64)  NOT NULL DEFAULT '' COMMENT '创建者',
+  updater     VARCHAR(64)  NOT NULL DEFAULT '' COMMENT '更新者',
+  create_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  update_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  deleted     TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '逻辑删除',
+  tenant_id   BIGINT       NOT NULL DEFAULT 0 COMMENT '租户ID',
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_member_id (member_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='学员信息表';
 
 -- ========== 2. 课程模板表 ==========
 CREATE TABLE IF NOT EXISTS maritime_course (
@@ -44,9 +56,8 @@ CREATE TABLE IF NOT EXISTS maritime_course (
 CREATE TABLE IF NOT EXISTS maritime_course_session (
   id              BIGINT       NOT NULL AUTO_INCREMENT COMMENT '班期ID',
   course_id       BIGINT       NOT NULL COMMENT '课程ID',
-  session_code    VARCHAR(30)  NOT NULL COMMENT '班期编号（如：2026-06-SH-001）',
+  session_code    VARCHAR(30)  NOT NULL COMMENT '班期编号（系统自动生成，如：C1-202610-001）',
   session_name    VARCHAR(50)  DEFAULT NULL COMMENT '班级名称（可选，如：A班）',
-  location        VARCHAR(100) NOT NULL COMMENT '本期上课地点',
   duration_days   INT          NOT NULL COMMENT '本期课程天数',
   instructor_info VARCHAR(500) DEFAULT NULL COMMENT '本期讲师信息',
   start_date      DATE         NOT NULL COMMENT '开班日期',
@@ -64,12 +75,11 @@ CREATE TABLE IF NOT EXISTS maritime_course_session (
   deleted         TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '逻辑删除（0正常 1删除）',
   tenant_id       BIGINT       NOT NULL DEFAULT 0 COMMENT '租户ID',
   PRIMARY KEY (id),
-  -- 班期编号含 deleted：同编号的班期软删除后可重新创建
-  UNIQUE INDEX uk_session_code (session_code, deleted),
+  -- 班期编号由系统生成且不复用；tenant_id 参与唯一键，避免不同租户生成相同编号时冲突
+  UNIQUE INDEX uk_tenant_session_code (tenant_id, session_code, deleted),
   INDEX idx_course_id (course_id),
   INDEX idx_start_date (start_date),
-  INDEX idx_session_status (session_status),
-  INDEX idx_location (location)
+  INDEX idx_session_status (session_status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='班期表';
 
 -- ========== 4. 班期费用配置表（与班期 1:1） ==========
@@ -78,15 +88,14 @@ CREATE TABLE IF NOT EXISTS maritime_session_fee_config (
   id                            BIGINT         NOT NULL AUTO_INCREMENT COMMENT '费用配置ID',
   session_id                    BIGINT         NOT NULL COMMENT '班期ID（唯一）',
   tuition_amount                DECIMAL(10,2)  NOT NULL COMMENT '学费总额（元）',
-  tuition_description           JSON           DEFAULT NULL COMMENT '学费说明（{"理论课":"1000","实操":"800"}）',
+  tuition_includes_accommodation TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '学费是否包含住宿费',
+  extra_fee_items               JSON           DEFAULT NULL COMMENT '另行缴费项目（[{"name":"教材费","amount":200,"required":true}]）',
   deposit_amount                DECIMAL(10,2)  NOT NULL COMMENT '定金金额（元）',
   is_groupon_enabled            TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否开启拼团',
   groupon_discount_amount       DECIMAL(10,2)  NOT NULL DEFAULT 0 COMMENT '拼团优惠减免金额（元）',
   groupon_required_count        INT            NOT NULL DEFAULT 3 COMMENT '拼团所需人数',
   groupon_expire_hours          INT            NOT NULL DEFAULT 24 COMMENT '拼团有效时间（小时）',
   groupon_fail_discount_amount  DECIMAL(10,2)  NOT NULL DEFAULT 0 COMMENT '拼团失败降级优惠金额（元，单人可享）',
-  referral_commission_amount    DECIMAL(10,2)  NOT NULL DEFAULT 0 COMMENT '推荐佣金金额（元，每成功推荐一人）',
-  is_referral_commission_enabled TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '是否开启推荐佣金',
   is_deposit_refundable          TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '定金是否可退',
   balance_due_days_before_start  INT          NOT NULL DEFAULT 7  COMMENT '尾款截止：开班前N天',
   refund_policy_text            TEXT           DEFAULT NULL COMMENT '退款政策说明文本',
@@ -101,21 +110,49 @@ CREATE TABLE IF NOT EXISTS maritime_session_fee_config (
   UNIQUE INDEX uk_session_id (session_id, deleted)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='班期费用配置表';
 
+-- ========== 4.4 班期场地信息表（1:1 挂在班期上，随班期表单内嵌面板维护） ==========
+-- 即「学校信息」：名称 / 地址 / 经纬度坐标 + 三个富文本字段承载
+-- 「学校概况 / 住宿条件 / 教学条件」（图片由富文本内嵌，不单列图片字段）；
+-- 与费用配置同属班期附属配置，不建独立管理页面与菜单
+CREATE TABLE IF NOT EXISTS maritime_session_venue (
+  id                    BIGINT       NOT NULL AUTO_INCREMENT COMMENT '班期场地ID',
+  session_id            BIGINT       NOT NULL COMMENT '班期ID（唯一）',
+  campus_name           VARCHAR(100) NOT NULL DEFAULT '' COMMENT '学校名称',
+  province              VARCHAR(50)  NOT NULL DEFAULT '' COMMENT '省',
+  city                  VARCHAR(50)  NOT NULL DEFAULT '' COMMENT '市（列表按此筛选）',
+  district              VARCHAR(50)  NOT NULL DEFAULT '' COMMENT '区 / 县',
+  address               VARCHAR(255) NOT NULL DEFAULT '' COMMENT '详细地址（省市区之后的部分）',
+  latitude              DECIMAL(10,7) DEFAULT NULL COMMENT '纬度（-90 ~ 90）',
+  longitude             DECIMAL(10,7) DEFAULT NULL COMMENT '经度（-180 ~ 180）',
+  contact_phone         VARCHAR(50)  NOT NULL DEFAULT '' COMMENT '咨询电话',
+  campus_intro          TEXT         DEFAULT NULL COMMENT '学校概况（富文本HTML）',
+  accommodation_intro   TEXT         DEFAULT NULL COMMENT '住宿条件（富文本HTML，可空）',
+  classroom_intro       TEXT         DEFAULT NULL COMMENT '教学条件（富文本HTML）',
+  creator               VARCHAR(64)  NOT NULL DEFAULT '' COMMENT '创建者',
+  updater               VARCHAR(64)  NOT NULL DEFAULT '' COMMENT '更新者',
+  create_time           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  update_time           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  deleted               TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '逻辑删除（0正常 1删除）',
+  tenant_id             BIGINT       NOT NULL DEFAULT 0 COMMENT '租户ID',
+  PRIMARY KEY (id),
+  -- 含 deleted：同班期场地信息软删除后可重新创建
+  UNIQUE INDEX uk_session_id (session_id, deleted)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='班期场地信息表';
+
 -- ========== 4.5 费用模板表（独立定价方案；新增班期时选择并快照复制到班期费用配置） ==========
 -- ⚠️ 所有金额字段单位：元（DECIMAL），调用 ruoyi PayOrderApi/PayTransferApi 时需 ×100 转换为分
 CREATE TABLE IF NOT EXISTS maritime_fee_template (
   id                            BIGINT         NOT NULL AUTO_INCREMENT COMMENT '模板ID',
   name                          VARCHAR(50)    NOT NULL COMMENT '模板名称（如：STCW 标准收费）',
   tuition_amount                DECIMAL(10,2)  NOT NULL COMMENT '学费总额（元）',
-  tuition_description           JSON           DEFAULT NULL COMMENT '学费说明（{"理论课":"1000","实操":"800"}）',
+  tuition_includes_accommodation TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '学费是否包含住宿费',
+  extra_fee_items               JSON           DEFAULT NULL COMMENT '另行缴费项目（[{"name":"教材费","amount":200,"required":true}]）',
   deposit_amount                DECIMAL(10,2)  NOT NULL COMMENT '定金金额（元）',
   is_groupon_enabled            TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否开启拼团',
   groupon_discount_amount       DECIMAL(10,2)  NOT NULL DEFAULT 0 COMMENT '拼团优惠减免金额（元）',
   groupon_required_count        INT            NOT NULL DEFAULT 3 COMMENT '拼团所需人数',
   groupon_expire_hours          INT            NOT NULL DEFAULT 24 COMMENT '拼团有效时间（小时）',
   groupon_fail_discount_amount  DECIMAL(10,2)  NOT NULL DEFAULT 0 COMMENT '拼团失败降级优惠金额（元，单人可享）',
-  referral_commission_amount    DECIMAL(10,2)  NOT NULL DEFAULT 0 COMMENT '推荐佣金金额（元，每成功推荐一人）',
-  is_referral_commission_enabled TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '是否开启推荐佣金',
   is_deposit_refundable          TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '定金是否可退',
   balance_due_days_before_start  INT          NOT NULL DEFAULT 7  COMMENT '尾款截止：开班前N天',
   refund_policy_text            TEXT           DEFAULT NULL COMMENT '退款政策说明文本',
@@ -129,6 +166,34 @@ CREATE TABLE IF NOT EXISTS maritime_fee_template (
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='费用模板表';
 
+-- ========== 4.6 学校库表（独立学校资料；新增班期时选择并快照复制到班期场地信息） ==========
+-- 与费用模板同一思路：学校信息只维护一份，班期选择后快照存进 maritime_session_venue，
+-- 学校库后续修改不影响已创建的班期
+CREATE TABLE IF NOT EXISTS maritime_school (
+  id                    BIGINT       NOT NULL AUTO_INCREMENT COMMENT '学校ID',
+  name                  VARCHAR(100) NOT NULL COMMENT '学校名称',
+  province              VARCHAR(50)  NOT NULL DEFAULT '' COMMENT '省',
+  city                  VARCHAR(50)  NOT NULL DEFAULT '' COMMENT '市（列表按此筛选）',
+  district              VARCHAR(50)  NOT NULL DEFAULT '' COMMENT '区 / 县',
+  address               VARCHAR(255) NOT NULL DEFAULT '' COMMENT '详细地址（省市区之后的部分）',
+  latitude              DECIMAL(10,7) DEFAULT NULL COMMENT '纬度（-90 ~ 90）',
+  longitude             DECIMAL(10,7) DEFAULT NULL COMMENT '经度（-180 ~ 180）',
+  contact_phone         VARCHAR(50)  NOT NULL DEFAULT '' COMMENT '咨询电话',
+  campus_intro          TEXT         DEFAULT NULL COMMENT '学校概况（富文本HTML）',
+  classroom_intro       TEXT         DEFAULT NULL COMMENT '教学条件（富文本HTML）',
+  accommodation_intro   TEXT         DEFAULT NULL COMMENT '住宿条件（富文本HTML，可空）',
+  status                TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '状态（CommonStatusEnum：0开启 1关闭）',
+  sort_order            INT          NOT NULL DEFAULT 0 COMMENT '排序权重（越大越靠前）',
+  creator               VARCHAR(64)  NOT NULL DEFAULT '' COMMENT '创建者',
+  updater               VARCHAR(64)  NOT NULL DEFAULT '' COMMENT '更新者',
+  create_time           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  update_time           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  deleted               TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '逻辑删除（0正常 1删除）',
+  tenant_id             BIGINT       NOT NULL DEFAULT 0 COMMENT '租户ID',
+  PRIMARY KEY (id),
+  INDEX idx_status_sort (status, sort_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='学校库表';
+
 -- ========== 5. 报名记录表 ==========
 -- ⚠️ 所有金额字段单位：元（DECIMAL），调用 ruoyi PayOrderApi 时需 ×100 转换为分
 CREATE TABLE IF NOT EXISTS maritime_enrollment (
@@ -137,8 +202,6 @@ CREATE TABLE IF NOT EXISTS maritime_enrollment (
   member_id               BIGINT        NOT NULL COMMENT '学员 member_user.id',
   session_id              BIGINT        NOT NULL COMMENT '班期ID',
   groupon_record_id       BIGINT        DEFAULT NULL COMMENT '关联拼团记录（可为空）',
-  referred_by_member_id   BIGINT        DEFAULT NULL COMMENT '推荐人 member_user.id',
-  referral_code_used      VARCHAR(16)   DEFAULT NULL COMMENT '报名时填写的推荐码',
   real_name               VARCHAR(50)   NOT NULL COMMENT '真实姓名',
   id_card                 VARCHAR(64)   NOT NULL COMMENT '身份证号（加密存储，EnrollmentDO 需配置 EncryptTypeHandler）',
   phone                   VARCHAR(20)   NOT NULL COMMENT '手机号',
@@ -148,8 +211,7 @@ CREATE TABLE IF NOT EXISTS maritime_enrollment (
   paid_amount             DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '已支付金额（元，含定金+已付尾款）',
   balance_due_date        DATE          DEFAULT NULL COMMENT '尾款截止缴纳日期',
   enrollment_status       VARCHAR(30)   NOT NULL DEFAULT 'PENDING_DEPOSIT'
-                          COMMENT '报名状态(PENDING_DEPOSIT/DEPOSITED/PENDING_BALANCE/IN_PROGRESS/COMPLETED/CANCELLED/REFUNDING)',
-  referral_right_granted  TINYINT(1)    NOT NULL DEFAULT 0 COMMENT '是否已获得推荐权（支付定金后=1）',
+                          COMMENT '报名状态(PENDING_DEPOSIT/DEPOSITED/PAID_OFF/MANUAL_PROCESSING/COMPLETED/CANCELLED)',
   cancel_reason           VARCHAR(500)  DEFAULT NULL COMMENT '取消原因',
   creator                 VARCHAR(64)   NOT NULL DEFAULT '' COMMENT '创建者',
   updater                 VARCHAR(64)   NOT NULL DEFAULT '' COMMENT '更新者',
@@ -225,44 +287,16 @@ CREATE TABLE IF NOT EXISTS maritime_refund_apply (
   INDEX idx_apply_status (apply_status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='退费申请表';
 
--- ========== 8. 最新动态/公告表 ==========
-CREATE TABLE IF NOT EXISTS maritime_announcement (
-  id           BIGINT       NOT NULL AUTO_INCREMENT COMMENT '公告ID',
-  title        VARCHAR(200) NOT NULL COMMENT '标题',
-  content      MEDIUMTEXT   DEFAULT NULL COMMENT '正文内容（富文本HTML）',
-  summary      VARCHAR(500) DEFAULT NULL COMMENT '摘要（列表页展示，1-2行）',
-  cover_image  VARCHAR(500) DEFAULT NULL COMMENT '缩略图/封面图URL',
-  type         VARCHAR(20)  NOT NULL DEFAULT 'NOTICE'
-               COMMENT '类型（NEW_COURSE新课/NOTICE公告/ACTIVITY活动/CASE成功案例）',
-  external_url VARCHAR(500) DEFAULT NULL COMMENT '外链URL（可选，点击后跳转）',
-  publish_time DATETIME     DEFAULT NULL COMMENT '发布时间（支持定时发布，NULL表示立即发布）',
-  is_top       TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '是否置顶（0否 1是，最多3条同时置顶）',
-  top_order    INT          DEFAULT NULL COMMENT '置顶排序序号（置顶时有效，越小越靠前）',
-  sort_order   INT          NOT NULL DEFAULT 0 COMMENT '非置顶优先级权重（越大越靠前）',
-  status       VARCHAR(20)  NOT NULL DEFAULT 'DRAFT' COMMENT '状态（DRAFT草稿/PUBLISHED已发布）',
-  view_count   INT          NOT NULL DEFAULT 0 COMMENT '浏览次数',
-  creator      VARCHAR(64)  NOT NULL DEFAULT '' COMMENT '创建者',
-  updater      VARCHAR(64)  NOT NULL DEFAULT '' COMMENT '更新者',
-  create_time  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  update_time  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  deleted      TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '逻辑删除（0正常 1删除）',
-  tenant_id    BIGINT       NOT NULL DEFAULT 0 COMMENT '租户ID',
-  PRIMARY KEY (id),
-  INDEX idx_type (type),
-  INDEX idx_status_publish (status, publish_time),
-  INDEX idx_is_top (is_top)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='最新动态/公告表';
-
 -- ========== 9. 用户站内消息表 ==========
 CREATE TABLE IF NOT EXISTS maritime_user_message (
   id              BIGINT       NOT NULL AUTO_INCREMENT COMMENT '消息ID',
   member_id       BIGINT       NOT NULL COMMENT '接收人 member_user.id',
   type            VARCHAR(30)  NOT NULL
-                  COMMENT '消息类型（ORDER=订单类/GROUPON=拼团类/COMMISSION=佣金类/SYSTEM=系统公告）',
+                  COMMENT '消息类型（ORDER=订单类/GROUPON=拼团类/SYSTEM=系统公告）',
   title           VARCHAR(200) NOT NULL COMMENT '消息标题',
   content         TEXT         DEFAULT NULL COMMENT '消息正文',
-  related_id      BIGINT       DEFAULT NULL COMMENT '关联业务ID（enrollment_id/commission_record_id等，可为空）',
-  related_type    VARCHAR(30)  DEFAULT NULL COMMENT '关联业务类型（ENROLLMENT/COMMISSION/GROUPON）',
+  related_id      BIGINT       DEFAULT NULL COMMENT '关联业务ID（enrollment_id 等，可为空）',
+  related_type    VARCHAR(30)  DEFAULT NULL COMMENT '关联业务类型（ENROLLMENT/GROUPON）',
   is_read         TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '是否已读（0未读 1已读）',
   read_time       DATETIME     DEFAULT NULL COMMENT '阅读时间',
   creator         VARCHAR(64)  NOT NULL DEFAULT '' COMMENT '创建者',
@@ -326,172 +360,7 @@ CREATE TABLE IF NOT EXISTS maritime_groupon_member (
   INDEX idx_member_id (member_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='拼团成员表';
 
--- ========== 12. 推荐关系表 ==========
-CREATE TABLE IF NOT EXISTS maritime_referral_relation (
-  id                     BIGINT       NOT NULL AUTO_INCREMENT COMMENT '推荐关系ID',
-  referrer_member_id     BIGINT       NOT NULL COMMENT '推荐人 member_id',
-  referred_enrollment_id BIGINT       NOT NULL COMMENT '被推荐人的报名ID',
-  referred_member_id     BIGINT       NOT NULL COMMENT '被推荐人 member_id',
-  session_id             BIGINT       NOT NULL COMMENT '班期ID',
-  relation_status        VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE'
-                         COMMENT '关系状态（ACTIVE/INVALID）',
-  invalid_reason         VARCHAR(200) DEFAULT NULL COMMENT '无效原因（风控拒绝等）',
-  first_click_at         DATETIME     DEFAULT NULL COMMENT '推荐链接首次点击时间',
-  referral_locked_at     DATETIME     DEFAULT NULL COMMENT '推荐关系锁定时间（被推荐人支付定金时）',
-  creator                VARCHAR(64)  NOT NULL DEFAULT '' COMMENT '创建者',
-  updater                VARCHAR(64)  NOT NULL DEFAULT '' COMMENT '更新者',
-  create_time            DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  update_time            DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  deleted                TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '逻辑删除（0正常 1删除）',
-  tenant_id              BIGINT       NOT NULL DEFAULT 0 COMMENT '租户ID',
-  PRIMARY KEY (id),
-  -- 含 deleted：推荐关系无效后可为同一报名创建新推荐关系
-  UNIQUE INDEX uk_referred_enrollment (referred_enrollment_id, deleted),
-  INDEX idx_referrer_member (referrer_member_id),
-  INDEX idx_session_id (session_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='推荐关系表';
-
--- ========== 13. 佣金记录表 ==========
--- ⚠️ commission_amount 单位：元（DECIMAL），调用 ruoyi PayTransferCreateReqDTO 时需 ×100 转换为分
-CREATE TABLE IF NOT EXISTS maritime_commission_record (
-  id                     BIGINT         NOT NULL AUTO_INCREMENT COMMENT '佣金记录ID',
-  referrer_member_id     BIGINT         NOT NULL COMMENT '推荐人',
-  referred_enrollment_id BIGINT         NOT NULL COMMENT '被推荐人的报名ID',
-  session_id             BIGINT         NOT NULL COMMENT '班期ID',
-  commission_amount      DECIMAL(10,2)  NOT NULL COMMENT '佣金金额（元）',
-  commission_status      VARCHAR(30)    NOT NULL DEFAULT 'WAITING_FOR_CLASS'
-    COMMENT '状态(WAITING_FOR_CLASS/FROZEN/PENDING_REVIEW/REVIEWING/PENDING_PAYOUT/PAYING/PAID/REJECTED/FAILED/MANUALLY_PAID)',
-  expected_settle_date   DATE           NOT NULL COMMENT '预计结算日期（= 开课日期 + 7天）',
-  is_risk_flagged        TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否风控标记',
-  risk_check_result      JSON           DEFAULT NULL COMMENT '风控检查详情（JSON）',
-  trigger_time           DATETIME       NOT NULL COMMENT '触发时间（全款支付时）',
-  settle_check_time      DATETIME       DEFAULT NULL COMMENT '开课7天检查执行时间',
-  approve_time           DATETIME       DEFAULT NULL COMMENT '审核通过时间',
-  approver_id            BIGINT         DEFAULT NULL COMMENT '审核人',
-  approve_remark         VARCHAR(500)   DEFAULT NULL COMMENT '审核备注',
-  payout_time            DATETIME       DEFAULT NULL COMMENT '发放时间',
-  pay_transfer_id        BIGINT         DEFAULT NULL COMMENT 'ruoyi pay_transfer.id（调用 PayTransferApi 后填写）',
-  fail_reason            VARCHAR(500)   DEFAULT NULL COMMENT '发放失败原因',
-  retry_count            INT            NOT NULL DEFAULT 0 COMMENT '自动发放失败后已重试次数',
-  creator                VARCHAR(64)    NOT NULL DEFAULT '' COMMENT '创建者',
-  updater                VARCHAR(64)    NOT NULL DEFAULT '' COMMENT '更新者',
-  create_time            DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  update_time            DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  deleted                TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '逻辑删除（0正常 1删除）',
-  tenant_id              BIGINT         NOT NULL DEFAULT 0 COMMENT '租户ID',
-  PRIMARY KEY (id),
-  -- 含 deleted：一笔报名只能产生一条有效佣金记录
-  UNIQUE INDEX uk_referred_enrollment (referred_enrollment_id, deleted),
-  INDEX idx_referrer_member (referrer_member_id),
-  INDEX idx_commission_status (commission_status),
-  INDEX idx_expected_settle_date (expected_settle_date),
-  INDEX idx_trigger_time (trigger_time)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='佣金记录表';
-
--- ========== 14. 推荐人佣金账户（汇总） ==========
-CREATE TABLE IF NOT EXISTS maritime_commission_account (
-  id                   BIGINT        NOT NULL AUTO_INCREMENT COMMENT '账户ID',
-  member_id            BIGINT        NOT NULL COMMENT '推荐人 member_id（唯一）',
-  total_amount         DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '累计佣金总额（元）',
-  paid_amount          DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '已发放金额（元）',
-  pending_amount       DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '待发放金额（元）',
-  frozen_amount        DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '冻结中金额（元）',
-  rejected_amount      DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '被拒绝的佣金总额（元）',
-  total_referral_count INT           NOT NULL DEFAULT 0 COMMENT '累计成功推荐人数',
-  version              INT           NOT NULL DEFAULT 0 COMMENT '乐观锁版本号',
-  creator              VARCHAR(64)   NOT NULL DEFAULT '' COMMENT '创建者',
-  updater              VARCHAR(64)   NOT NULL DEFAULT '' COMMENT '更新者',
-  create_time          DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  update_time          DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  deleted              TINYINT(1)    NOT NULL DEFAULT 0 COMMENT '逻辑删除（0正常 1删除）',
-  tenant_id            BIGINT        NOT NULL DEFAULT 0 COMMENT '租户ID',
-  PRIMARY KEY (id),
-  -- 含 deleted：账户异常删除后可为同一会员重建账户
-  UNIQUE INDEX uk_member_id (member_id, deleted)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='推荐人佣金账户';
-
--- ========== 15. 风控手机号黑名单 ==========
-CREATE TABLE IF NOT EXISTS maritime_risk_blacklist (
-  id          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '黑名单ID',
-  phone       VARCHAR(20)  NOT NULL COMMENT '手机号',
-  reason      VARCHAR(200) NOT NULL COMMENT '加入黑名单原因',
-  operator_id BIGINT       DEFAULT NULL COMMENT '操作人（管理员）',
-  creator     VARCHAR(64)  NOT NULL DEFAULT '' COMMENT '创建者',
-  updater     VARCHAR(64)  NOT NULL DEFAULT '' COMMENT '更新者',
-  create_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  update_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  deleted     TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '逻辑删除（0正常 1删除）',
-  tenant_id   BIGINT       NOT NULL DEFAULT 0 COMMENT '租户ID',
-  PRIMARY KEY (id),
-  -- 含 deleted：黑名单软删除后同一手机号可重新拉入黑名单
-  UNIQUE INDEX uk_phone (phone, deleted)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='风控手机号黑名单';
-
--- ========== 16. 提现申请表 ==========
-CREATE TABLE IF NOT EXISTS maritime_withdrawal_apply (
-  id               BIGINT         NOT NULL AUTO_INCREMENT COMMENT '提现ID',
-  member_id        BIGINT         NOT NULL COMMENT '申请人 member_user.id',
-  apply_amount     DECIMAL(10,2)  NOT NULL COMMENT '申请提现金额（元）',
-  tax_amount       DECIMAL(10,2)  NOT NULL DEFAULT 0 COMMENT '代扣税额（元）',
-  net_amount       DECIMAL(10,2)  NOT NULL COMMENT '实际到账金额（元）',
-  channel          VARCHAR(20)    NOT NULL COMMENT '提现渠道（WX_BALANCE/BANK_CARD）',
-  apply_status     VARCHAR(20)    NOT NULL DEFAULT 'PENDING' COMMENT '状态（PENDING/PROCESSING/SUCCESS/FAILED/REJECTED）',
-  pay_transfer_id  BIGINT         DEFAULT NULL COMMENT 'ruoyi pay_transfer.id',
-  reject_reason    VARCHAR(500)   DEFAULT NULL COMMENT '拒绝原因',
-  fail_reason      VARCHAR(500)   DEFAULT NULL COMMENT '失败原因',
-  success_time     DATETIME       DEFAULT NULL COMMENT '到账时间',
-  creator          VARCHAR(64)    NOT NULL DEFAULT '' COMMENT '创建者',
-  updater          VARCHAR(64)    NOT NULL DEFAULT '' COMMENT '更新者',
-  create_time      DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  update_time      DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  deleted          TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '逻辑删除',
-  tenant_id        BIGINT         NOT NULL DEFAULT 0 COMMENT '租户ID',
-  PRIMARY KEY (id),
-  INDEX idx_member_id (member_id),
-  INDEX idx_apply_status (apply_status),
-  INDEX idx_create_time (create_time)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='佣金提现申请表';
-
--- ========== 17. 税务代扣月度记录表 ==========
-CREATE TABLE IF NOT EXISTS maritime_tax_record (
-  id             BIGINT        NOT NULL AUTO_INCREMENT COMMENT '税务记录ID',
-  member_id      BIGINT        NOT NULL COMMENT '推荐人',
-  tax_month      VARCHAR(7)    NOT NULL COMMENT '税务月份（格式：2026-06）',
-  month_income   DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '当月累计到账佣金（元）',
-  tax_paid       DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT '当月已代扣税额（元）',
-  version        INT           NOT NULL DEFAULT 0 COMMENT '乐观锁',
-  creator        VARCHAR(64)   NOT NULL DEFAULT '' COMMENT '创建者',
-  updater        VARCHAR(64)   NOT NULL DEFAULT '' COMMENT '更新者',
-  create_time    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  update_time    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  tenant_id      BIGINT        NOT NULL DEFAULT 0 COMMENT '租户ID',
-  PRIMARY KEY (id),
-  UNIQUE INDEX uk_member_month (member_id, tax_month)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='税务代扣月度记录表';
-
--- ========== 18. 风控事件表 ==========
-CREATE TABLE IF NOT EXISTS maritime_risk_event (
-  id             BIGINT        NOT NULL AUTO_INCREMENT COMMENT '记录ID',
-  event_type     VARCHAR(50)   NOT NULL COMMENT '事件类型（BATCH_REFERRAL / GROUPON_FRAUD）',
-  member_id      BIGINT        NOT NULL COMMENT '涉及的用户ID',
-  detail         TEXT          DEFAULT NULL COMMENT '事件详情',
-  is_reviewed    TINYINT(1)    NOT NULL DEFAULT 0 COMMENT '是否已人工审核（0否 1是）',
-  reviewer_id    BIGINT        DEFAULT NULL COMMENT '审核人管理员ID',
-  review_result  VARCHAR(20)   DEFAULT NULL COMMENT '审核结果（NORMAL正常 / ABNORMAL异常）',
-  review_remark  VARCHAR(500)  DEFAULT NULL COMMENT '审核备注',
-  creator        VARCHAR(64)   NOT NULL DEFAULT '' COMMENT '创建者',
-  updater        VARCHAR(64)   NOT NULL DEFAULT '' COMMENT '更新者',
-  create_time    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  update_time    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  deleted        TINYINT(1)    NOT NULL DEFAULT 0 COMMENT '逻辑删除',
-  tenant_id      BIGINT        NOT NULL DEFAULT 0 COMMENT '租户ID',
-  PRIMARY KEY (id),
-  INDEX idx_member_id (member_id),
-  INDEX idx_is_reviewed (is_reviewed),
-  INDEX idx_event_type (event_type)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='风控事件记录表';
-
--- ========== 19. 会员微信订阅状态表 ==========
+-- ========== 12. 会员微信订阅状态表 ==========
 CREATE TABLE IF NOT EXISTS maritime_member_subscribe (
   id             BIGINT        NOT NULL AUTO_INCREMENT COMMENT '记录ID',
   member_id      BIGINT        NOT NULL COMMENT '会员ID',
@@ -587,74 +456,6 @@ INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, co
 INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('成员删除', 'maritime:groupon-member:delete', 3, 4, @menuId, '', '', '', 0);
 INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('成员导出', 'maritime:groupon-member:export', 3, 5, @menuId, '', '', '', 0);
 
--- ==================== 推荐关系 ====================
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
-VALUES ('推荐关系', '', 2, 9, @maritimeId, 'referral-relation', '', 'maritime/referralRelation/index', 0, 'ReferralRelation');
-SET @menuId := LAST_INSERT_ID();
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('推荐查询', 'maritime:referral-relation:query',  3, 1, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('推荐新增', 'maritime:referral-relation:create', 3, 2, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('推荐编辑', 'maritime:referral-relation:update', 3, 3, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('推荐删除', 'maritime:referral-relation:delete', 3, 4, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('推荐导出', 'maritime:referral-relation:export', 3, 5, @menuId, '', '', '', 0);
-
--- ==================== 佣金记录 ====================
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
-VALUES ('佣金记录', '', 2, 10, @maritimeId, 'commission-record', '', 'maritime/commissionRecord/index', 0, 'CommissionRecord');
-SET @menuId := LAST_INSERT_ID();
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('佣金查询', 'maritime:commission-record:query',  3, 1, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('佣金审核', 'maritime:commission-record:update', 3, 2, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('佣金删除', 'maritime:commission-record:delete', 3, 3, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('佣金导出', 'maritime:commission-record:export', 3, 4, @menuId, '', '', '', 0);
-
--- ==================== 佣金账户 ====================
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
-VALUES ('佣金账户', '', 2, 11, @maritimeId, 'commission-account', '', 'maritime/commissionAccount/index', 0, 'CommissionAccount');
-SET @menuId := LAST_INSERT_ID();
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('账户查询', 'maritime:commission-account:query',  3, 1, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('账户编辑', 'maritime:commission-account:update', 3, 2, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('账户删除', 'maritime:commission-account:delete', 3, 3, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('账户导出', 'maritime:commission-account:export', 3, 4, @menuId, '', '', '', 0);
-
--- ==================== 提现管理 ====================
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
-VALUES ('提现管理', '', 2, 12, @maritimeId, 'withdrawal', '', 'maritime/withdrawal/index', 0, 'MaritimeWithdrawal');
-SET @menuId := LAST_INSERT_ID();
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('提现查询', 'maritime:withdrawal:query',  3, 1, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('提现拒绝', 'maritime:withdrawal:update', 3, 2, @menuId, '', '', '', 0);
-
--- ==================== 会员权限 ====================
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
-VALUES ('会员权限', '', 2, 13, @maritimeId, 'member', '', 'maritime/member/index', 0, 'MaritimeMember');
-SET @menuId := LAST_INSERT_ID();
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('禁推/解禁', 'maritime:member:ban', 3, 1, @menuId, '', '', '', 0);
-
--- ==================== 风控事件 ====================
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
-VALUES ('风控事件', '', 2, 14, @maritimeId, 'risk-event', '', 'maritime/riskEvent/index', 0, 'MaritimeRiskEvent');
-SET @menuId := LAST_INSERT_ID();
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('风控查询', 'maritime:risk-event:query',  3, 1, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('风控审核', 'maritime:risk-event:review', 3, 2, @menuId, '', '', '', 0);
-
--- ==================== 风控黑名单 ====================
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
-VALUES ('风控黑名单', '', 2, 15, @maritimeId, 'blacklist', '', 'maritime/blacklist/index', 0, 'RiskBlacklist');
-SET @menuId := LAST_INSERT_ID();
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('黑名单查询', 'maritime:risk-blacklist:query',  3, 1, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('黑名单新增', 'maritime:risk-blacklist:create', 3, 2, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('黑名单编辑', 'maritime:risk-blacklist:update', 3, 3, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('黑名单删除', 'maritime:risk-blacklist:delete', 3, 4, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('黑名单导出', 'maritime:risk-blacklist:export', 3, 5, @menuId, '', '', '', 0);
-
--- ==================== 公告管理 ====================
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
-VALUES ('公告管理', '', 2, 16, @maritimeId, 'announcement', '', 'maritime/announcement/index', 0, 'Announcement');
-SET @menuId := LAST_INSERT_ID();
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('公告查询', 'maritime:announcement:query',  3, 1, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('公告新增', 'maritime:announcement:create', 3, 2, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('公告编辑', 'maritime:announcement:update', 3, 3, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('公告删除', 'maritime:announcement:delete', 3, 4, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('公告导出', 'maritime:announcement:export', 3, 5, @menuId, '', '', '', 0);
-
 -- ==================== 用户消息 ====================
 INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
 VALUES ('用户消息', '', 2, 17, @maritimeId, 'user-message', '', 'maritime/userMessage/index', 0, 'UserMessage');
@@ -671,7 +472,6 @@ VALUES ('数据统计', '', 2, 18, @maritimeId, 'stats', '', 'maritime/stats/ind
 SET @menuId := LAST_INSERT_ID();
 INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('运营看板',   'maritime:dashboard:view',   3, 1, @menuId, '', '', '', 0);
 INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('财务汇总',   'maritime:finance:view',     3, 2, @menuId, '', '', '', 0);
-INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('佣金导出',   'maritime:commission:export', 3, 3, @menuId, '', '', '', 0);
 
 -- ==================== 费用模板（独立定价方案，菜单顺序可在后台调整） ====================
 INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
@@ -681,3 +481,12 @@ INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, co
 INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('模板新增', 'maritime:fee-template:create', 3, 2, @menuId, '', '', '', 0);
 INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('模板编辑', 'maritime:fee-template:update', 3, 3, @menuId, '', '', '', 0);
 INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('模板删除', 'maritime:fee-template:delete', 3, 4, @menuId, '', '', '', 0);
+
+-- ==================== 学校管理（独立学校资料，新增班期时选择并带入） ====================
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status, component_name)
+VALUES ('学校管理', '', 2, 20, @maritimeId, 'school', '', 'maritime/school/index', 0, 'MaritimeSchool');
+SET @menuId := LAST_INSERT_ID();
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('学校查询', 'maritime:school:query',  3, 1, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('学校新增', 'maritime:school:create', 3, 2, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('学校编辑', 'maritime:school:update', 3, 3, @menuId, '', '', '', 0);
+INSERT INTO system_menu (name, permission, type, sort, parent_id, path, icon, component, status) VALUES ('学校删除', 'maritime:school:delete', 3, 4, @menuId, '', '', '', 0);

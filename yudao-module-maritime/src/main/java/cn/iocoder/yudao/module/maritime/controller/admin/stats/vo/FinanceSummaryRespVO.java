@@ -31,13 +31,6 @@ public class FinanceSummaryRespVO {
     @Schema(description = "净收款 = 总收款 - 退款（元）")
     private BigDecimal netRevenue;
 
-    // 佣金支出
-    @Schema(description = "佣金发放总额（元）")
-    private BigDecimal totalCommissionPaid;
-
-    @Schema(description = "佣金发放笔数")
-    private Integer commissionPaidCount;
-
     // 各班期明细
     @Schema(description = "各班期收款明细")
     private List<SessionRevenueSummaryVO> sessionDetails;

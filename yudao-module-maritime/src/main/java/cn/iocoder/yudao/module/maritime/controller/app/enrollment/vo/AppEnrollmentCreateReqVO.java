@@ -31,9 +31,6 @@ public class AppEnrollmentCreateReqVO {
     @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
     private String phone;
 
-    @Schema(description = "推荐码（可选，来自分享链接）", example = "REF-123-ABCD")
-    private String referralCode;
-
     @Schema(description = "是否参与拼团", example = "false")
     private Boolean joinGroupon;
 

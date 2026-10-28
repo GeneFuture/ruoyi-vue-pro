@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,7 +27,6 @@ public class AppEnrollmentController {
 
     @PostMapping("/create")
     @Operation(summary = "创建报名记录")
-    @PreAuthorize("@ss.hasPermission('maritime:enrollment:create')")
     public CommonResult<AppEnrollmentCreateRespVO> createEnrollment(
             @Valid @RequestBody AppEnrollmentCreateReqVO createReqVO) {
         Long memberId = SecurityFrameworkUtils.getLoginUserId();
@@ -37,7 +35,6 @@ public class AppEnrollmentController {
 
     @GetMapping("/my-list")
     @Operation(summary = "我的报名列表")
-    @PreAuthorize("@ss.hasPermission('maritime:enrollment:query')")
     public CommonResult<List<AppEnrollmentListRespVO>> getMyEnrollments() {
         Long memberId = SecurityFrameworkUtils.getLoginUserId();
         return success(enrollmentService.getMyEnrollments(memberId));
@@ -46,7 +43,6 @@ public class AppEnrollmentController {
     @GetMapping("/get")
     @Operation(summary = "报名详情")
     @Parameter(name = "id", description = "报名ID", required = true, example = "1024")
-    @PreAuthorize("@ss.hasPermission('maritime:enrollment:query')")
     public CommonResult<AppEnrollmentDetailRespVO> getEnrollment(@RequestParam("id") Long id) {
         Long memberId = SecurityFrameworkUtils.getLoginUserId();
         return success(enrollmentService.getEnrollmentForApp(id, memberId));
@@ -55,7 +51,6 @@ public class AppEnrollmentController {
     @PostMapping("/cancel")
     @Operation(summary = "取消报名（仅限待支付定金状态）")
     @Parameter(name = "id", description = "报名ID", required = true, example = "1024")
-    @PreAuthorize("@ss.hasPermission('maritime:enrollment:update')")
     public CommonResult<Boolean> cancelEnrollment(@RequestParam("id") Long id) {
         Long memberId = SecurityFrameworkUtils.getLoginUserId();
         enrollmentService.cancelEnrollmentForApp(id, memberId);
@@ -64,26 +59,15 @@ public class AppEnrollmentController {
 
     @PostMapping("/refund-apply")
     @Operation(summary = "申请退费")
-    @PreAuthorize("@ss.hasPermission('maritime:enrollment:update')")
     public CommonResult<Boolean> applyRefund(@Valid @RequestBody AppRefundApplyReqVO reqVO) {
         Long memberId = SecurityFrameworkUtils.getLoginUserId();
         enrollmentService.applyRefund(reqVO, memberId);
         return success(true);
     }
 
-    @PostMapping("/transfer-apply")
-    @Operation(summary = "申请转课")
-    @PreAuthorize("@ss.hasPermission('maritime:enrollment:update')")
-    public CommonResult<Boolean> applyTransfer(@Valid @RequestBody AppTransferApplyReqVO reqVO) {
-        Long memberId = SecurityFrameworkUtils.getLoginUserId();
-        enrollmentService.applyTransfer(reqVO, memberId);
-        return success(true);
-    }
-
     @GetMapping("/refund-status")
     @Operation(summary = "查询退费状态")
     @Parameter(name = "enrollmentId", description = "报名ID", required = true, example = "1024")
-    @PreAuthorize("@ss.hasPermission('maritime:enrollment:query')")
     public CommonResult<AppRefundStatusRespVO> getRefundStatus(@RequestParam("enrollmentId") Long enrollmentId) {
         Long memberId = SecurityFrameworkUtils.getLoginUserId();
         return success(enrollmentService.getRefundStatus(enrollmentId, memberId));

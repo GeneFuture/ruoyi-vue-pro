@@ -9,12 +9,16 @@ public class EnrollmentCreatedEvent extends ApplicationEvent {
     private final Long enrollmentId;
     private final Long memberId;
     private final Long sessionId;
+    /** 是否全款报名，用于区分“请支付定金”和“请支付全款” */
+    private final boolean fullPayment;
 
-    public EnrollmentCreatedEvent(Object source, Long enrollmentId, Long memberId, Long sessionId) {
+    public EnrollmentCreatedEvent(Object source, Long enrollmentId, Long memberId,
+                                  Long sessionId, boolean fullPayment) {
         super(source);
         this.enrollmentId = enrollmentId;
         this.memberId = memberId;
         this.sessionId = sessionId;
+        this.fullPayment = fullPayment;
     }
 
 }

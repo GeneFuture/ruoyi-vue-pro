@@ -20,8 +20,8 @@ public class UserMessageRespVO {
     @ExcelProperty("接收人 member_user.id")
     private Long memberId;
 
-    @Schema(description = "消息类型（ORDER=订单类/GROUPON=拼团类/COMMISSION=佣金类/SYSTEM=系统公告）", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
-    @ExcelProperty("消息类型（ORDER=订单类/GROUPON=拼团类/COMMISSION=佣金类/SYSTEM=系统公告）")
+    @Schema(description = "消息类型（ORDER=订单类/GROUPON=拼团类/SYSTEM=系统公告）", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+    @ExcelProperty("消息类型（ORDER=订单类/GROUPON=拼团类/SYSTEM=系统公告）")
     private String type;
 
     @Schema(description = "消息标题", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -36,8 +36,8 @@ public class UserMessageRespVO {
     @ExcelProperty("关联业务ID（enrollment_id/commission_record_id等，可为空）")
     private Long relatedId;
 
-    @Schema(description = "关联业务类型（ENROLLMENT/COMMISSION/GROUPON）", example = "1")
-    @ExcelProperty("关联业务类型（ENROLLMENT/COMMISSION/GROUPON）")
+    @Schema(description = "关联业务类型（ENROLLMENT/GROUPON）", example = "1")
+    @ExcelProperty("关联业务类型（ENROLLMENT/GROUPON）")
     private String relatedType;
 
     @Schema(description = "是否已读（0未读 1已读）", requiredMode = Schema.RequiredMode.REQUIRED)

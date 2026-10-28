@@ -1,8 +1,5 @@
 import { defineStore } from 'pinia';
-import $share from '@/sheep/platform/share';
 import { clone } from 'lodash-es';
-import app from './app';
-import { showAuthModal } from '@/sheep/hooks/useModal';
 import UserApi from '@/sheep/api/member/user';
 import PayWalletApi from '@/sheep/api/pay/wallet';
 
@@ -94,14 +91,6 @@ const user = defineStore('user', {
     // 登录后，加载各种信息
     async loginAfter() {
       await this.updateUserData();
-
-      // 登录后设置全局分享参数
-      $share.getShareInfo();
-
-      // 提醒绑定手机号
-      if (app().platform.bind_mobile && !this.userInfo.mobile) {
-        showAuthModal('changeMobile');
-      }
     },
 
     // 登出系统

@@ -63,6 +63,11 @@ public class NotifyMessageServiceImpl implements NotifyMessageService {
     }
 
     @Override
+    public Long getUnreadNotifyMessageCount(Long userId, Integer userType, String templateCodePrefix) {
+        return notifyMessageMapper.selectUnreadCountByUserIdAndUserType(userId, userType, templateCodePrefix);
+    }
+
+    @Override
     public int updateNotifyMessageRead(Collection<Long> ids, Long userId, Integer userType) {
         return notifyMessageMapper.updateListRead(ids, userId, userType);
     }

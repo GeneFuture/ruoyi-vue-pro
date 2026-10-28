@@ -11,6 +11,7 @@
     :opacity="props.opacity"
     :placeholder="props.placeholder"
   >
+    <view class="navbar-bg" :class="{ 'navbar-bg-solid': solid }" />
     <su-status-bar />
     <!-- 
       :class="[{ 'border-bottom': !props.opacity && props.bg != 'bg-none' }]"
@@ -18,14 +19,10 @@
     <view class="ui-navbar-box">
       <view
         class="ui-bar"
-        :class="[{
-           'text-white': state.isDark,
-           'text-black': !state.isDark,
-           'ss-p-x-20': sheep.$platform.provider !== 'alipay'
-        }]"
+        :class="[titleClass, { 'ss-p-x-20': sheep.$platform.provider !== 'alipay' }]"
         :style="[{ height: sys_navBar - sys_statusBar + 'px' }]"
       >
-        <view class="icon-box ss-flex">
+        <view class="icon-box ss-flex" :class="iconBoxClass">
           <view class="icon-button icon-button-left ss-flex ss-row-center" @tap="onClickLeft">
             <text class="sicon-back" v-if="hasHistory" />
             <text class="sicon-home" v-else />
@@ -36,7 +33,7 @@
           </view>
         </view>
         <slot name="center">
-          <view class="center navbar-title">{{ title }}</view>
+          <view class="center navbar-title" :class="{ 'navbar-title-hidden': !titleVisible }">{{ title }}</view>
         </slot>
         <!-- #ifdef MP -->
         <view :style="[state.capsuleStyle]"></view>
@@ -68,7 +65,6 @@
 
   import { computed, reactive, onBeforeMount, ref } from 'vue';
   import sheep from '@/sheep';
-  import { onPageScroll } from '@dcloudio/uni-app';
   import { showMenuTools, closeMenuTools } from '@/sheep/hooks/useModal';
 
   // 本地数据
@@ -76,7 +72,6 @@
     statusCur: '',
     capsuleStyle: {},
     capsuleBack: {},
-    isDark: true,
   });
 
   const sys_statusBar = sheep.$platform.device.statusBarHeight;
@@ -104,6 +99,16 @@
     },
     opacity: {
       //是否开启滑动渐变
+      type: Boolean,
+      default: true,
+    },
+    // 是否显示白色导航背景（沉浸式页面滚动后由页面传入）
+    solid: {
+      type: Boolean,
+      default: true,
+    },
+    // 是否显示标题
+    titleVisible: {
       type: Boolean,
       default: true,
     },
@@ -138,20 +143,28 @@
   const emits = defineEmits(['navback', 'clickLeft']);
   const hasHistory = sheep.$router.hasHistory();
 
+  // 标题颜色：导航栏没有背景时（沉浸式，压在深色头图上）用白色，否则用深色。
+  //
+  // 此前由 onPageScroll 切换 isDark 决定，存在两个问题：
+  // 1) 首屏时 su-fixed 的背景层 opacity 为 0（尚未淡入），导航栏实际是透明状态，
+  //    显示的却是白色标题，压在页面底色上基本看不见；
+  // 2) 浅色顶部页面（如开班页的白色筛选条）滚动前后都不该用白字。
+  // 改为直接由「有没有背景」推导，语义更稳定。
+  const titleClass = computed(() => (props.solid ? 'text-black' : 'text-white'));
+
+  const iconBoxClass = computed(() =>
+    props.solid ? 'icon-box-on-light' : 'icon-box-on-dark',
+  );
+
   onBeforeMount(() => {
     init();
-  });
-
-  onPageScroll((e) => {
-    let top = e.scrollTop;
-    state.isDark = top < sheep.$platform.navbar;
   });
 
   function onClickLeft() {
     if (hasHistory) {
       sheep.$router.back();
     } else {
-      sheep.$router.go('/pages/maritime/course-list');
+      sheep.$router.go('/pages/maritime/index');
     }
     emits('clickLeft');
   }
@@ -174,6 +187,24 @@
 </script>
 
 <style lang="scss" scoped>
+  .navbar-bg {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 0;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(20px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s ease;
+  }
+
+  .navbar-bg-solid {
+    opacity: 1;
+  }
+
   .icon-box {
     box-shadow: 0px 0px 4rpx rgba(51, 51, 51, 0.08), 0px 4rpx 6rpx 2rpx rgba(102, 102, 102, 0.12);
     border-radius: 30rpx;
@@ -181,6 +212,12 @@
     height: 56rpx;
     margin-left: 8rpx;
     border: 1px solid rgba(#fff, 0.4);
+    background: rgba(255, 255, 255, 0.16);
+    transition: background 0.2s ease, border-color 0.2s ease;
+    &-on-light {
+      background: rgba(255, 255, 255, 0.92);
+      border-color: rgba(29, 29, 31, 0.06);
+    }
     .line {
       width: 2rpx;
       height: 24rpx;
@@ -210,6 +247,11 @@
   }
   .navbar-title {
     font-size: 36rpx;
+    transition: color 0.2s ease, opacity 0.2s ease;
+  }
+
+  .navbar-title-hidden {
+    opacity: 0;
   }
   .tools-icon {
     font-size: 40rpx;

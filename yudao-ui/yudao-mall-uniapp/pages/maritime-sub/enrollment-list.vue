@@ -3,13 +3,9 @@
   <s-layout title="我的报名" navbar="inner">
     <!-- 快捷入口 -->
     <view class="quick-nav ss-flex ss-m-20">
-      <view class="nav-item ss-flex-1" @tap="sheep.$router.go('/pages/maritime/course-list')">
+      <view class="nav-item ss-flex-1" @tap="sheep.$router.go('/pages/maritime/index')">
         <text class="cicon-fill-similar nav-icon" />
         <text class="ss-m-l-10">课程列表</text>
-      </view>
-      <view class="nav-item ss-flex-1" @tap="sheep.$router.go('/pages/maritime/referral')">
-        <text class="cicon-fill-friendfill nav-icon" />
-        <text class="ss-m-l-10">推荐中心</text>
       </view>
     </view>
 
@@ -22,17 +18,25 @@
       >
         <view class="ss-flex ss-row-between ss-col-center">
           <view class="session-name ss-line-1">{{ item.sessionName || item.sessionCode }}</view>
-          <view class="status-tag" :class="statusClass(item.enrollmentStatus)">
-            {{ statusText(item.enrollmentStatus) }}
+          <view class="status-tag" :class="statusClass(item)">
+            {{ statusText(item) }}
           </view>
         </view>
         <view class="meta-row ss-m-t-16" v-if="item.startDate">
-          {{ item.startDate }} 开班 · {{ item.location }}
+          {{ item.startDate }} 开班<text v-if="item.city"> · {{ item.city }}</text>
         </view>
         <view class="meta-row ss-m-t-10">报名单号 {{ item.enrollmentNo }}</view>
         <view class="ss-flex ss-row-between ss-col-center ss-m-t-16">
-          <text class="time-text">{{ sheep.$helper.timeFormat(item.createTime, 'yyyy-mm-dd hh:MM') }}</text>
-          <text class="deposit-num">定金 ¥{{ Number(item.depositAmountSnapshot || 0).toFixed(2) }}</text>
+          <text class="time-text">{{
+            sheep.$helper.timeFormat(item.createTime, 'yyyy-mm-dd hh:MM')
+          }}</text>
+          <text class="deposit-num">
+            {{ item.fullPayment ? '全款' : '定金' }} ¥{{
+              Number(
+                (item.fullPayment ? item.totalAmount : item.depositAmountSnapshot) || 0,
+              ).toFixed(2)
+            }}
+          </text>
         </view>
       </view>
     </view>
@@ -42,7 +46,10 @@
       text="暂无报名记录"
       icon="/static/data-empty.png"
     >
-      <button class="ss-reset-button go-course-btn" @tap="sheep.$router.go('/pages/maritime/course-list')">
+      <button
+        class="ss-reset-button go-course-btn"
+        @tap="sheep.$router.go('/pages/maritime/index')"
+      >
         去看看课程
       </button>
     </s-empty>
@@ -63,31 +70,40 @@
   const STATUS_TEXT = {
     PENDING_DEPOSIT: '待付定金',
     DEPOSITED: '已付定金',
-    PENDING_BALANCE: '待付尾款',
-    IN_PROGRESS: '上课中',
+    PAID_OFF: '已付清/待开班',
+    MANUAL_PROCESSING: '人工处理',
     COMPLETED: '已完成',
     CANCELLED: '已取消',
-    REFUNDING: '退款中',
   };
 
-  function statusText(status) {
-    return STATUS_TEXT[status] || status;
+  function statusText(item) {
+    if (item.fullPayment) {
+      if (item.enrollmentStatus === 'PENDING_DEPOSIT') return '待付全款';
+      if (item.enrollmentStatus === 'PAID_OFF') return '已付全款/待开班';
+    }
+    return STATUS_TEXT[item.enrollmentStatus] || item.enrollmentStatus;
   }
 
-  function statusClass(status) {
-    if (['PENDING_DEPOSIT', 'PENDING_BALANCE'].includes(status)) return 'tag-warning';
-    if (['CANCELLED', 'REFUNDING'].includes(status)) return 'tag-default';
+  function statusClass(item) {
+    const status = item.enrollmentStatus;
+    if (['PENDING_DEPOSIT', 'MANUAL_PROCESSING'].includes(status)) return 'tag-warning';
+    if (status === 'CANCELLED') return 'tag-default';
     if (status === 'COMPLETED') return 'tag-success';
     return 'tag-primary';
   }
 
   async function getList() {
     state.loading = true;
-    const { code, data } = await EnrollmentApi.getMyEnrollments();
-    state.loading = false;
-    if (code !== 0) return;
-    state.list = data;
-    uni.stopPullDownRefresh();
+    try {
+      const { code, data } = await EnrollmentApi.getMyEnrollments();
+      if (code !== 0) return;
+      state.list = data || [];
+    } catch (e) {
+      // 请求层已提示，保留旧列表
+    } finally {
+      state.loading = false;
+      uni.stopPullDownRefresh();
+    }
   }
 
   function goDetail(id) {

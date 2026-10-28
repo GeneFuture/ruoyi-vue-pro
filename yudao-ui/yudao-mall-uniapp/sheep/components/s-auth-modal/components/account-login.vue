@@ -82,9 +82,7 @@
     // 表单验证
     const validate = await unref(accountLoginRef)
       .validate()
-      .catch((error) => {
-        console.log('error: ', error);
-      });
+      .catch(() => {});
     if (!validate) return;
 
     // 检查协议状态

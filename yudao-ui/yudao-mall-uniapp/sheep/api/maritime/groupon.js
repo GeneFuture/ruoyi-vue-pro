@@ -13,12 +13,14 @@ const GrouponApi = {
   },
 
   // 查询我的拼团状态
-  getMyGrouponStatus: (enrollmentId) => {
+  // silent=true 时接口报错不弹 toast，用于详情页静默判断是否参与拼团
+  getMyGrouponStatus: (enrollmentId, silent = false) => {
     return request({
       url: `/maritime/groupon/my-status/${enrollmentId}`,
       method: 'GET',
       custom: {
         auth: true,
+        showError: !silent,
       },
     });
   },

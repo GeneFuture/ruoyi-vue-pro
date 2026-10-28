@@ -12,7 +12,9 @@ const sys = defineStore('sys', {
   actions: {
     setTheme(theme = '') {
       if (theme === '') {
-        this.theme = app().template?.basic.theme || 'orange';
+        // 兜底品牌色：后端装修模板（app.template.basic）当前恒为空，因此这里就是全站主题色的事实来源。
+        // 'brand' 由 sheep/scss/_var.scss 的 $colors 提供，对应 --ui-BG-Main = #1e5eff
+        this.theme = app().template?.basic.theme || 'brand';
       } else {
         this.theme = theme;
       }

@@ -29,15 +29,21 @@ public class AppEnrollmentListRespVO {
     @Schema(description = "开班日期", example = "2024-01-15")
     private LocalDate startDate;
 
-    @Schema(description = "上课地点", example = "上海")
-    private String location;
+    @Schema(description = "学校所在城市", example = "青岛市")
+    private String city;
 
     @Schema(description = "定金金额（元）", requiredMode = Schema.RequiredMode.REQUIRED)
     private BigDecimal depositAmountSnapshot;
 
+    @Schema(description = "学费总额（元）")
+    private BigDecimal totalAmount;
+
+    @Schema(description = "是否全款报名（定金为 0 或 ≥ 学费）")
+    private Boolean fullPayment;
+
     @Schema(description = "报名状态", requiredMode = Schema.RequiredMode.REQUIRED,
             example = "PENDING_DEPOSIT",
-            allowableValues = {"PENDING_DEPOSIT", "DEPOSITED", "PENDING_BALANCE", "IN_PROGRESS", "COMPLETED", "CANCELLED", "REFUNDING"})
+            allowableValues = {"PENDING_DEPOSIT", "DEPOSITED", "PAID_OFF", "MANUAL_PROCESSING", "COMPLETED", "CANCELLED"})
     private String enrollmentStatus;
 
     @Schema(description = "创建时间", requiredMode = Schema.RequiredMode.REQUIRED)

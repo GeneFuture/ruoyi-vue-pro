@@ -1,21 +1,14 @@
 package cn.iocoder.yudao.module.maritime.service.stats;
 
 import cn.iocoder.yudao.module.maritime.controller.admin.stats.vo.*;
-import cn.iocoder.yudao.module.maritime.dal.dataobject.commissionRecord.CommissionRecordDO;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.enrollment.EnrollmentDO;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.enrollmentOrder.EnrollmentOrderDO;
-import cn.iocoder.yudao.module.maritime.dal.dataobject.referralRelation.ReferralRelationDO;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.session.CourseSessionDO;
-import cn.iocoder.yudao.module.maritime.dal.mysql.commissionRecord.CommissionRecordMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.enrollment.EnrollmentMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.enrollmentOrder.EnrollmentOrderMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.grouponRecord.GrouponRecordMapper;
-import cn.iocoder.yudao.module.maritime.dal.mysql.referralRelation.ReferralRelationMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.refundApply.RefundApplyMapper;
-import cn.iocoder.yudao.module.maritime.dal.mysql.riskEvent.RiskEventMapper;
 import cn.iocoder.yudao.module.maritime.dal.mysql.session.CourseSessionMapper;
-import cn.iocoder.yudao.module.member.dal.dataobject.user.MemberUserDO;
-import cn.iocoder.yudao.module.member.dal.mysql.user.MemberUserMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +19,6 @@ import java.math.BigDecimal;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -44,19 +36,11 @@ public class AdminStatsServiceImpl implements AdminStatsService {
     @Resource
     private EnrollmentOrderMapper enrollmentOrderMapper;
     @Resource
-    private CommissionRecordMapper commissionRecordMapper;
-    @Resource
     private GrouponRecordMapper grouponRecordMapper;
     @Resource
     private RefundApplyMapper refundApplyMapper;
     @Resource
-    private ReferralRelationMapper referralRelationMapper;
-    @Resource
     private CourseSessionMapper courseSessionMapper;
-    @Resource
-    private RiskEventMapper riskEventMapper;
-    @Resource
-    private MemberUserMapper memberUserMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -83,10 +67,7 @@ public class AdminStatsServiceImpl implements AdminStatsService {
         BigDecimal monthBalance = nullSafe(
                 enrollmentOrderMapper.sumPaidAmountByTypeAndPayTimeBetween("BALANCE", monthStart, monthEnd));
         vo.setMonthTotalRevenue(monthDeposit.add(monthBalance));
-        vo.setMonthCommissionPaid(
-                nullSafe(commissionRecordMapper.sumPaidByPayoutTimeBetween(monthStart, monthEnd)));
         vo.setMonthSuccessGroupons(grouponRecordMapper.countSucceededByTimeBetween(monthStart, monthEnd));
-        vo.setMonthReferralCount(referralRelationMapper.countActiveByCreateTimeBetween(monthStart, monthEnd));
 
         // 班期招生进度
         vo.setOpenSessionProgress(buildSessionProgress());
@@ -95,10 +76,7 @@ public class AdminStatsServiceImpl implements AdminStatsService {
         vo.setEnrollmentTrend(buildEnrollmentTrend());
 
         // 快速待办
-        vo.setPendingCommissionReviews(commissionRecordMapper.countByStatus("PENDING_REVIEW"));
         vo.setPendingRefundApplies(refundApplyMapper.countByApplyStatus("PENDING"));
-        vo.setFailedPayouts(commissionRecordMapper.countByStatus("FAILED"));
-        vo.setPendingRiskEvents(riskEventMapper.countUnreviewed());
 
         return vo;
     }
@@ -117,14 +95,6 @@ public class AdminStatsServiceImpl implements AdminStatsService {
         String sessionCode = session.getSessionCode();
 
         List<Long> enrollmentIds = enrollments.stream().map(EnrollmentDO::getId).collect(Collectors.toList());
-
-        // 批量查推荐关系，一次 IN 查询
-        Map<Long, ReferralRelationDO> relationMap = buildRelationMap(enrollmentIds);
-
-        // 批量查推荐人会员信息
-        Set<Long> referrerMemberIds = relationMap.values().stream()
-                .map(ReferralRelationDO::getReferrerMemberId).collect(Collectors.toSet());
-        Map<Long, MemberUserDO> memberMap = buildMemberMap(referrerMemberIds);
 
         // 批量查 PAID 订单，按报名ID + 订单类型分组
         Map<Long, Map<String, BigDecimal>> paidOrderMap = buildPaidOrderMap(enrollmentIds);
@@ -145,86 +115,6 @@ public class AdminStatsServiceImpl implements AdminStatsService {
             Map<String, BigDecimal> orderAmounts = paidOrderMap.getOrDefault(e.getId(), Collections.emptyMap());
             vo.setDepositAmount(orderAmounts.getOrDefault("DEPOSIT", BigDecimal.ZERO));
             vo.setBalanceAmount(orderAmounts.getOrDefault("BALANCE", BigDecimal.ZERO));
-
-            ReferralRelationDO relation = relationMap.get(e.getId());
-            if (relation != null) {
-                vo.setHasReferrer("是");
-                MemberUserDO referrer = memberMap.get(relation.getReferrerMemberId());
-                vo.setReferrerName(referrer != null ? maskName(referrer.getName()) : "");
-            } else {
-                vo.setHasReferrer("否");
-                vo.setReferrerName("");
-            }
-            result.add(vo);
-        }
-        return result;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<CommissionExcelVO> getCommissionExportData(LocalDateTime startDate, LocalDateTime endDate, String status) {
-        // 未指定时间范围时默认当月，防止全表扫描
-        if (startDate == null && endDate == null) {
-            YearMonth currentMonth = YearMonth.now();
-            startDate = currentMonth.atDay(1).atStartOfDay();
-            endDate = currentMonth.atEndOfMonth().atTime(LocalTime.MAX);
-        }
-        int count = commissionRecordMapper.countForExport(status, startDate, endDate);
-        if (count > EXPORT_MAX_ROWS) {
-            throw exception(EXPORT_ROWS_EXCEEDED);
-        }
-
-        List<CommissionRecordDO> records = commissionRecordMapper.selectListForExport(status, startDate, endDate, EXPORT_MAX_ROWS);
-
-        // 批量查推荐人会员
-        Set<Long> referrerMemberIds = records.stream()
-                .map(CommissionRecordDO::getReferrerMemberId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-        Map<Long, MemberUserDO> memberMap = buildMemberMap(referrerMemberIds);
-
-        // 批量查被推荐报名
-        List<Long> enrollmentIds = records.stream()
-                .map(CommissionRecordDO::getReferredEnrollmentId)
-                .filter(Objects::nonNull)
-                .distinct()
-                .collect(Collectors.toList());
-        Map<Long, EnrollmentDO> enrollmentMap = enrollmentIds.isEmpty() ? Collections.emptyMap() :
-                enrollmentMapper.selectBatchIds(enrollmentIds).stream()
-                        .collect(Collectors.toMap(EnrollmentDO::getId, Function.identity()));
-
-        // 批量查班期
-        List<Long> sessionIds = records.stream()
-                .map(CommissionRecordDO::getSessionId)
-                .filter(Objects::nonNull)
-                .distinct()
-                .collect(Collectors.toList());
-        Map<Long, CourseSessionDO> sessionMap = sessionIds.isEmpty() ? Collections.emptyMap() :
-                courseSessionMapper.selectBatchIds(sessionIds).stream()
-                        .collect(Collectors.toMap(CourseSessionDO::getId, Function.identity()));
-
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        List<CommissionExcelVO> result = new ArrayList<>();
-        for (int i = 0; i < records.size(); i++) {
-            CommissionRecordDO r = records.get(i);
-            CommissionExcelVO vo = new CommissionExcelVO();
-            vo.setIndex(i + 1);
-
-            MemberUserDO referrer = memberMap.get(r.getReferrerMemberId());
-            vo.setReferrerName(referrer != null ? maskName(referrer.getName()) : "");
-            vo.setReferrerPhone(referrer != null ? maskPhone(referrer.getMobile()) : "");
-
-            EnrollmentDO referredEnrollment = enrollmentMap.get(r.getReferredEnrollmentId());
-            vo.setReferredName(referredEnrollment != null ? maskName(referredEnrollment.getRealName()) : "");
-
-            CourseSessionDO sessionDO = sessionMap.get(r.getSessionId());
-            vo.setSessionCode(sessionDO != null ? sessionDO.getSessionCode() : "");
-
-            vo.setCommissionAmount(r.getCommissionAmount());
-            vo.setCommissionStatus(r.getCommissionStatus());
-            vo.setTriggerTime(r.getTriggerTime() != null ? r.getTriggerTime().format(dtf) : "");
-            vo.setPayoutTime(r.getPayoutTime() != null ? r.getPayoutTime().format(dtf) : "");
-            vo.setPayTransferId(r.getPayTransferId() != null ? String.valueOf(r.getPayTransferId()) : "");
             result.add(vo);
         }
         return result;
@@ -250,8 +140,6 @@ public class AdminStatsServiceImpl implements AdminStatsService {
         vo.setTotalRevenue(totalDeposit.add(totalBalance));
         vo.setTotalRefund(totalRefund);
         vo.setNetRevenue(totalDeposit.add(totalBalance).subtract(totalRefund));
-        vo.setTotalCommissionPaid(nullSafe(commissionRecordMapper.sumPaidByPayoutTimeBetween(start, end)));
-        vo.setCommissionPaidCount(commissionRecordMapper.countPaidByPayoutTimeBetween(start, end));
 
         // 各班期明细：按月份聚合查询，避免 N+2 per-session 循环，且只统计本月数据
         List<Map<String, Object>> allPaidRows = enrollmentOrderMapper.sumPaidAmountGroupBySessionAndTypeBetween(start, end);
@@ -304,40 +192,6 @@ public class AdminStatsServiceImpl implements AdminStatsService {
         }
         vo.setSessionDetails(sessionDetails);
         return vo;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ReferralLeaderboardVO> getReferralLeaderboard(String period) {
-        LocalDateTime since = switch (period) {
-            case "WEEK" -> LocalDateTime.now().minusWeeks(1);
-            case "MONTH" -> LocalDateTime.now().withDayOfMonth(1).toLocalDate().atStartOfDay();
-            case "ALL_TIME" -> LocalDateTime.of(2000, 1, 1, 0, 0);
-            default -> throw exception(EXPORT_PERIOD_INVALID);
-        };
-
-        List<Map<String, Object>> raw = commissionRecordMapper.selectLeaderboard(since, 20);
-        Set<Long> memberIds = raw.stream()
-                .map(r -> toLong(r.get("referrer_member_id")))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-        Map<Long, MemberUserDO> memberMap = buildMemberMap(memberIds);
-
-        List<ReferralLeaderboardVO> result = new ArrayList<>();
-        for (int i = 0; i < raw.size(); i++) {
-            Map<String, Object> row = raw.get(i);
-            Long memberId = toLong(row.get("referrer_member_id"));
-            MemberUserDO member = memberMap.get(memberId);
-            ReferralLeaderboardVO vo = new ReferralLeaderboardVO();
-            vo.setRank(i + 1);
-            vo.setMemberId(memberId);
-            vo.setMemberName(member != null ? maskName(member.getName()) : "");
-            vo.setMemberPhone(member != null ? maskPhone(member.getMobile()) : "");
-            Long cnt = toLong(row.get("cnt"));
-            vo.setReferralCount(cnt != null ? cnt : 0L);
-            result.add(vo);
-        }
-        return result;
     }
 
     // ── 私有工具方法 ────────────────────────────────────────────────────────────
@@ -406,18 +260,6 @@ public class AdminStatsServiceImpl implements AdminStatsService {
             result.add(stat);
         }
         return result;
-    }
-
-    private Map<Long, ReferralRelationDO> buildRelationMap(List<Long> enrollmentIds) {
-        if (enrollmentIds.isEmpty()) return Collections.emptyMap();
-        return referralRelationMapper.selectListByReferredEnrollmentIds(enrollmentIds).stream()
-                .collect(Collectors.toMap(ReferralRelationDO::getReferredEnrollmentId, Function.identity()));
-    }
-
-    private Map<Long, MemberUserDO> buildMemberMap(Set<Long> memberIds) {
-        if (memberIds == null || memberIds.isEmpty()) return Collections.emptyMap();
-        return memberUserMapper.selectBatchIds(memberIds).stream()
-                .collect(Collectors.toMap(MemberUserDO::getId, Function.identity()));
     }
 
     private Map<Long, Map<String, BigDecimal>> buildPaidOrderMap(List<Long> enrollmentIds) {

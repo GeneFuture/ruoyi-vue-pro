@@ -18,6 +18,9 @@ public interface ErrorCodeConstants {
     ErrorCode SESSION_NOT_OPEN = new ErrorCode(1_009_002_001, "班期不在招生状态");
     ErrorCode SESSION_FULL = new ErrorCode(1_009_002_002, "班期名额已满");
     ErrorCode SESSION_CODE_DUPLICATE = new ErrorCode(1_009_002_003, "班期编号已存在");
+    ErrorCode SESSION_FEE_DEPOSIT_INVALID = new ErrorCode(1_009_002_006, "定金不能大于学费");
+    ErrorCode SESSION_FEE_GROUPON_DEPOSIT_INVALID = new ErrorCode(1_009_002_007,
+            "全款报名不支持拼团，开启拼团时定金必须大于 0 且小于学费");
 
     // ========== 报名模块 1-009-003-000 ==========
     ErrorCode ENROLLMENT_NOT_EXISTS = new ErrorCode(1_009_003_000, "报名记录不存在");
@@ -40,53 +43,36 @@ public interface ErrorCodeConstants {
     ErrorCode GROUPON_NOT_ENABLED = new ErrorCode(1_009_004_006, "该班期未开启拼团");
     ErrorCode GROUPON_SESSION_MISMATCH = new ErrorCode(1_009_004_007, "邀请码不属于当前班期");
     ErrorCode GROUPON_NOT_IN_PROGRESS = new ErrorCode(1_009_004_008, "拼团已结束，无法加入");
-
-    // ========== 推荐/佣金模块 1-009-005-000 ==========
-    ErrorCode REFERRAL_CODE_NOT_EXISTS = new ErrorCode(1_009_005_000, "推荐码不存在");
-    ErrorCode REFERRAL_SELF_NOT_ALLOWED = new ErrorCode(1_009_005_001, "不能使用自己的推荐码");
-    ErrorCode REFERRAL_ALREADY_EXISTS = new ErrorCode(1_009_005_002, "已有推荐关系，不能重复绑定");
-    ErrorCode COMMISSION_NOT_EXISTS = new ErrorCode(1_009_005_003, "佣金记录不存在");
-    ErrorCode COMMISSION_RECORD_NOT_EXISTS = new ErrorCode(1_009_005_005, "佣金明细记录不存在");
-    ErrorCode COMMISSION_ACCOUNT_NOT_EXISTS = new ErrorCode(1_009_005_006, "佣金账户不存在");
-    ErrorCode REFERRAL_RELATION_NOT_EXISTS = new ErrorCode(1_009_005_007, "推荐关系不存在");
-    ErrorCode COMMISSION_APPROVE_NOT_ALLOWED = new ErrorCode(1_009_005_004, "佣金当前状态不允许审核");
+    ErrorCode GROUPON_CREATE_FREQ_LIMIT = new ErrorCode(1_009_004_009, "操作过于频繁，请稍后再试");
 
     // ========== 退款模块 1-009-006-000 ==========
     ErrorCode REFUND_APPLY_NOT_EXISTS = new ErrorCode(1_009_006_000, "退费申请不存在");
     ErrorCode REFUND_APPLY_DUPLICATE = new ErrorCode(1_009_006_001, "已有进行中的退费申请");
     ErrorCode REFUND_NOT_ALLOWED = new ErrorCode(1_009_006_002, "当前状态不允许发起退费");
 
-    // ========== 提现模块 1-009-009-000 ==========
-    ErrorCode WITHDRAWAL_NOT_EXISTS = new ErrorCode(1_009_009_000, "提现申请不存在");
-    ErrorCode WITHDRAWAL_AMOUNT_TOO_SMALL = new ErrorCode(1_009_009_001, "提现金额不能低于100元");
-    ErrorCode WITHDRAWAL_AMOUNT_TOO_LARGE = new ErrorCode(1_009_009_002, "单次提现金额不能超过1000元");
-    ErrorCode WITHDRAWAL_INSUFFICIENT_BALANCE = new ErrorCode(1_009_009_003, "佣金余额不足");
-    ErrorCode WITHDRAWAL_ACCOUNT_FROZEN = new ErrorCode(1_009_009_004, "账户已被冻结，无法提现");
-    ErrorCode WITHDRAWAL_IN_FREEZE_PERIOD = new ErrorCode(1_009_009_005, "首次定金支付后7天内不可提现");
-    ErrorCode WITHDRAWAL_MONTHLY_LIMIT_EXCEEDED = new ErrorCode(1_009_009_006, "本月提现次数已达上限（5次）");
-    ErrorCode WITHDRAWAL_DAILY_LIMIT_EXCEEDED = new ErrorCode(1_009_009_007, "24小时内累计提现金额已达上限（10000元）");
-    ErrorCode WITHDRAWAL_PENDING_EXISTS = new ErrorCode(1_009_009_008, "已有进行中的提现申请，请等待处理完成");
-    ErrorCode COMMISSION_STATUS_ERROR = new ErrorCode(1_009_009_009, "佣金状态不符，无法执行此操作");
-
-    // ========== 消息/公告模块 1-009-008-000 ==========
-    ErrorCode ANNOUNCEMENT_NOT_EXISTS = new ErrorCode(1_009_008_000, "公告不存在");
+    // ========== 消息模块 1-009-008-000 ==========
     ErrorCode USER_MESSAGE_NOT_EXISTS = new ErrorCode(1_009_008_001, "站内消息不存在");
 
-    // ========== 风控模块 1-009-007-000 ==========
-    ErrorCode RISK_BLACKLIST_EXISTS = new ErrorCode(1_009_007_000, "该手机号已在黑名单中");
-    ErrorCode RISK_BLACKLIST_NOT_EXISTS = new ErrorCode(1_009_007_001, "黑名单记录不存在");
-    ErrorCode RISK_ENROLLMENT_BLOCKED = new ErrorCode(1_009_007_002, "该手机号已被禁止报名");
-    ErrorCode GROUPON_CREATE_FREQ_LIMIT = new ErrorCode(1_009_007_003, "操作过于频繁，请稍后再试");
-    ErrorCode RISK_EVENT_NOT_EXISTS = new ErrorCode(1_009_007_004, "风控事件不存在");
-    ErrorCode RISK_MEMBER_NOT_EXISTS = new ErrorCode(1_009_007_005, "用户不存在");
-
-    // ========== 报表模块 1-009-011-000 ==========
     // ========== 费用模板 1-009-008-000 ==========
     ErrorCode FEE_TEMPLATE_NOT_EXISTS = new ErrorCode(1_009_008_000, "费用模板不存在");
     ErrorCode FEE_TEMPLATE_NAME_DUPLICATE = new ErrorCode(1_009_008_001, "费用模板名称已存在");
     ErrorCode FEE_TEMPLATE_DISABLED = new ErrorCode(1_009_008_002, "费用模板已停用，不能用于新增班期");
 
+    // ========== 导出模块 1-009-011-000 ==========
     ErrorCode EXPORT_ROWS_EXCEEDED = new ErrorCode(1_009_011_000, "导出数据量超过上限 10000 行，请缩小筛选范围");
-    ErrorCode EXPORT_PERIOD_INVALID = new ErrorCode(1_009_011_001, "统计周期只允许 WEEK / MONTH / ALL_TIME");
+
+    // ========== 主页配置模块 1-009-012-000 ==========
+    ErrorCode HOME_CONFIG_NOT_EXISTS = new ErrorCode(1_009_012_000, "主页配置不存在");
+
+    // ========== 学校库模块 1-009-013-000 ==========
+    ErrorCode SCHOOL_NOT_EXISTS = new ErrorCode(1_009_013_000, "学校不存在");
+    ErrorCode SCHOOL_NAME_DUPLICATE = new ErrorCode(1_009_013_001, "学校名称已存在");
+    ErrorCode SCHOOL_DISABLED = new ErrorCode(1_009_013_002, "学校已关闭，不能用于新增班期");
+
+    // ========== 人工处理单 1-009-014-000 ==========
+    ErrorCode MANUAL_TASK_NOT_EXISTS = new ErrorCode(1_009_014_000, "人工处理单不存在");
+    ErrorCode MANUAL_TASK_ALREADY_CLOSED = new ErrorCode(1_009_014_001, "人工处理单已关闭");
+    ErrorCode MANUAL_TASK_REFUND_HANDLE_ELSEWHERE = new ErrorCode(1_009_014_002, "退费类人工单请到退费审核页处理");
+    ErrorCode MANUAL_TASK_TARGET_STATUS_INVALID = new ErrorCode(1_009_014_003, "人工处理目标状态不正确");
 
 }

@@ -1,11 +1,10 @@
 DELETE FROM `maritime_course_session`;
+DELETE FROM `maritime_course`;
 DELETE FROM `maritime_session_fee_config`;
+DELETE FROM `maritime_session_venue`;
+DELETE FROM `maritime_school`;
 DELETE FROM `maritime_enrollment`;
 DELETE FROM `maritime_enrollment_order`;
 DELETE FROM `maritime_refund_apply`;
 DELETE FROM `maritime_groupon_record`;
 DELETE FROM `maritime_groupon_member`;
-DELETE FROM `maritime_referral_relation`;
-DELETE FROM `maritime_commission_record`;
-DELETE FROM `maritime_commission_account`;
-DELETE FROM `maritime_risk_blacklist`;

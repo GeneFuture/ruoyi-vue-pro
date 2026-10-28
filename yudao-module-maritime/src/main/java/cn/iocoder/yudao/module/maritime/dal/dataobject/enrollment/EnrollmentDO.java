@@ -46,14 +46,6 @@ public class EnrollmentDO extends BaseDO {
      */
     private Long grouponRecordId;
     /**
-     * 推荐人 member_user.id
-     */
-    private Long referredByMemberId;
-    /**
-     * 报名时填写的推荐码
-     */
-    private String referralCodeUsed;
-    /**
      * 真实姓名
      */
     private String realName;
@@ -87,13 +79,13 @@ public class EnrollmentDO extends BaseDO {
      */
     private LocalDate balanceDueDate;
     /**
-     * 报名状态(PENDING_DEPOSIT/DEPOSITED/PENDING_BALANCE/IN_PROGRESS/COMPLETED/CANCELLED/REFUNDING)
+     * 最后一次尾款催缴提醒日期（用于去重，避免连续多天重复提醒）
+     */
+    private LocalDate lastBalanceRemindDate;
+    /**
+     * 报名状态(PENDING_DEPOSIT/DEPOSITED/PAID_OFF/MANUAL_PROCESSING/COMPLETED/CANCELLED)
      */
     private String enrollmentStatus;
-    /**
-     * 是否已获得推荐权（支付定金后=1）
-     */
-    private Boolean referralRightGranted;
     /**
      * 取消原因
      */

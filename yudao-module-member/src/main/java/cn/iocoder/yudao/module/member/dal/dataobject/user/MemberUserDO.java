@@ -149,23 +149,8 @@ public class MemberUserDO extends TenantBaseDO {
     // ========== 海员培训平台扩展字段 ==========
 
     /**
-     * 微信 openId（用于自推检测、企业付款收款方标识）
+     * 微信 openId
      */
     private String openId;
-
-    /**
-     * 推荐码（格式：REF-{memberId}-{4位大写随机码}）
-     */
-    private String referralCode;
-
-    /**
-     * 推荐人会员ID（记录是谁推荐了当前用户注册）
-     */
-    private Long referredBy;
-
-    /**
-     * 是否禁止推荐（0正常 1禁推）
-     */
-    private Boolean isReferralBanned;
 
 }

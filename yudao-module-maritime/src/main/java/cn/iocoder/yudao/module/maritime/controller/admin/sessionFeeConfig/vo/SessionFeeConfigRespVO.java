@@ -2,6 +2,8 @@ package cn.iocoder.yudao.module.maritime.controller.admin.sessionFeeConfig.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
+import cn.iocoder.yudao.module.maritime.dal.dataobject.fee.ExtraFeeItem;
+
 import java.util.*;
 import java.math.BigDecimal;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -25,9 +27,11 @@ public class SessionFeeConfigRespVO {
     @ExcelProperty("学费总额（元）")
     private BigDecimal tuitionAmount;
 
-    @Schema(description = "学费说明（key=名称, value=金额描述）")
-    @ExcelProperty("学费说明")
-    private Map<String, String> tuitionDescription;
+    @Schema(description = "学费是否包含住宿费用", example = "false")
+    private Boolean tuitionIncludesAccommodation;
+
+    @Schema(description = "另行缴费项目（到校报到时缴纳，分必须 / 可选）")
+    private List<ExtraFeeItem> extraFeeItems;
 
     @Schema(description = "定金金额（元）", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("定金金额（元）")
@@ -52,14 +56,6 @@ public class SessionFeeConfigRespVO {
     @Schema(description = "拼团失败降级优惠金额（元，单人可享）", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("拼团失败降级优惠金额（元，单人可享）")
     private BigDecimal grouponFailDiscountAmount;
-
-    @Schema(description = "推荐佣金金额（元，每成功推荐一人）", requiredMode = Schema.RequiredMode.REQUIRED)
-    @ExcelProperty("推荐佣金金额（元，每成功推荐一人）")
-    private BigDecimal referralCommissionAmount;
-
-    @Schema(description = "是否开启推荐佣金", requiredMode = Schema.RequiredMode.REQUIRED)
-    @ExcelProperty("是否开启推荐佣金")
-    private Boolean isReferralCommissionEnabled;
 
     @Schema(description = "定金是否可退", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("定金是否可退")

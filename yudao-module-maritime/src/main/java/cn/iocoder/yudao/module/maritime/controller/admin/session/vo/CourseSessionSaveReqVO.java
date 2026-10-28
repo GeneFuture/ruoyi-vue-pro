@@ -17,16 +17,12 @@ public class CourseSessionSaveReqVO {
     @NotNull(message = "课程ID不能为空")
     private Long courseId;
 
-    @Schema(description = "班期编号（如：2026-06-SH-001）", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotEmpty(message = "班期编号（如：2026-06-SH-001）不能为空")
+    @Schema(description = "班期编号（系统自动生成，创建后不可修改，无需传入）", example = "C1-202610-001",
+            accessMode = Schema.AccessMode.READ_ONLY)
     private String sessionCode;
 
     @Schema(description = "班级名称（可选，如：A班）", example = "芋艿")
     private String sessionName;
-
-    @Schema(description = "本期上课地点", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotEmpty(message = "本期上课地点不能为空")
-    private String location;
 
     @Schema(description = "本期课程天数", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "本期课程天数不能为空")

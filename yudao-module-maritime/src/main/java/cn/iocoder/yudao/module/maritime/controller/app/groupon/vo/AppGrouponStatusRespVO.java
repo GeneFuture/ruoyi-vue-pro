@@ -33,4 +33,7 @@ public class AppGrouponStatusRespVO {
     @Schema(description = "成团时间（仅 SUCCESS 状态有值）")
     private LocalDateTime successTime;
 
+    @Schema(description = "拼团结束原因（仅 DEGRADED 状态有值）", example = "成员提前付清尾款，拼团结束")
+    private String degradeReason;
+
 }

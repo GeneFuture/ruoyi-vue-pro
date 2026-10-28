@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.maritime.job;
 
 import cn.iocoder.yudao.framework.quartz.core.handler.JobHandler;
+import cn.iocoder.yudao.framework.tenant.core.job.TenantJob;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.grouponRecord.GrouponRecordDO;
 import cn.iocoder.yudao.module.maritime.dal.mysql.grouponRecord.GrouponRecordMapper;
 import cn.iocoder.yudao.module.maritime.service.groupon.GrouponService;
@@ -29,6 +30,7 @@ public class GrouponExpireJob implements JobHandler {
     @Resource
     private GrouponService grouponService;
 
+    @TenantJob
     @Override
     public String execute(String param) throws Exception {
         List<GrouponRecordDO> expiredRecords = grouponRecordMapper.selectExpiredInProgress(LocalDateTime.now());

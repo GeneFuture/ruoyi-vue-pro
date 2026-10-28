@@ -6,19 +6,45 @@ package cn.iocoder.yudao.module.maritime.service.notify;
  */
 public interface MaritimeNotifyService {
 
-    void sendEnrollSuccess(Long memberId, String sessionName, String startDate);
+    // ========== 报名 / 支付 ==========
 
+    /** 报名提交成功（支付定金前） */
+    void sendEnrollSuccess(Long memberId, String sessionName, String startDate, boolean fullPayment);
+
+    /** 定金支付成功 */
     void sendDepositPaid(Long memberId, String sessionName, String amount);
 
-    void sendGrouponSuccess(Long memberId, String sessionName, int memberCount);
+    /** 全款支付成功 */
+    void sendFullPaid(Long memberId, String sessionName, String amount, String startDate);
 
-    void sendGrouponDegraded(Long memberId);
+    /** 尾款支付成功 */
+    void sendBalancePaid(Long memberId, String sessionName, String amount, String startDate);
 
+    /** 尾款催缴提醒 */
     void sendBalanceReminder(Long memberId, String sessionName, String startDate,
                              String deadline, String amount);
 
-    void sendReferralSuccess(Long memberId, String commissionAmount);
+    /** 尾款逾期转人工 */
+    void sendBalanceOverdue(Long memberId, String sessionName, String amount, String reason);
 
-    void sendCommissionPaid(Long memberId, String netAmount);
+    /** 报名取消 */
+    void sendEnrollCancelled(Long memberId, String sessionName, String reason);
+
+    /** 培训完成 */
+    void sendEnrollCompleted(Long memberId, String sessionName);
+
+    // ========== 拼团 ==========
+
+    void sendGrouponSuccess(Long memberId, String sessionName, int memberCount);
+
+    void sendGrouponDegraded(Long memberId, String sessionName, String reason);
+
+    // ========== 退费 ==========
+
+    void sendRefundApplied(Long memberId, String sessionName);
+
+    void sendRefundApproved(Long memberId, String sessionName, String amount);
+
+    void sendRefundRejected(Long memberId, String sessionName, String reason);
 
 }

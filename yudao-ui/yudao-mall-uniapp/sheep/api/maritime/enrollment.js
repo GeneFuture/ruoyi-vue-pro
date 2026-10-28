@@ -66,20 +66,6 @@ const EnrollmentApi = {
     });
   },
 
-  // 申请转课
-  applyTransfer: (data) => {
-    return request({
-      url: '/maritime/enrollment/transfer-apply',
-      method: 'POST',
-      data,
-      custom: {
-        auth: true,
-        showSuccess: true,
-        successMsg: '转课申请已提交',
-      },
-    });
-  },
-
   // 查询退费状态
   getRefundStatus: (enrollmentId) => {
     return request({

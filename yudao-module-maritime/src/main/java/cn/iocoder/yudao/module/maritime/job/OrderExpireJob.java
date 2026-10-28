@@ -1,6 +1,7 @@
 package cn.iocoder.yudao.module.maritime.job;
 
 import cn.iocoder.yudao.framework.quartz.core.handler.JobHandler;
+import cn.iocoder.yudao.framework.tenant.core.job.TenantJob;
 import cn.iocoder.yudao.module.maritime.dal.dataobject.enrollmentOrder.EnrollmentOrderDO;
 import cn.iocoder.yudao.module.maritime.dal.mysql.enrollmentOrder.EnrollmentOrderMapper;
 import cn.iocoder.yudao.module.maritime.service.enrollment.EnrollmentService;
@@ -29,6 +30,7 @@ public class OrderExpireJob implements JobHandler {
     @Resource
     private EnrollmentService enrollmentService;
 
+    @TenantJob
     @Override
     public String execute(String param) throws Exception {
         List<EnrollmentOrderDO> expiredOrders = enrollmentOrderMapper.selectExpiredPendingOrders(LocalDateTime.now());

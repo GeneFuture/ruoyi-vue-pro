@@ -57,19 +57,23 @@ public interface EnrollmentOrderMapper extends BaseMapperX<EnrollmentOrderDO> {
         return selectOne(EnrollmentOrderDO::getOrderNo, orderNo);
     }
 
-    /** 按报名ID + 订单类型查唯一订单 */
+    /** 按报名ID + 订单类型查最近一次订单（订单可能因过期被关闭并重新创建） */
     default EnrollmentOrderDO selectByEnrollmentIdAndType(Long enrollmentId, String orderType) {
         return selectOne(new LambdaQueryWrapperX<EnrollmentOrderDO>()
                 .eq(EnrollmentOrderDO::getEnrollmentId, enrollmentId)
-                .eq(EnrollmentOrderDO::getOrderType, orderType));
+                .eq(EnrollmentOrderDO::getOrderType, orderType)
+                .orderByDesc(EnrollmentOrderDO::getId)
+                .last("LIMIT 1"));
     }
 
-    /** 按报名ID + 订单类型 + 订单状态查（退款时找已支付订单） */
+    /** 按报名ID + 订单类型 + 订单状态查最近一次订单（退款时找已支付订单） */
     default EnrollmentOrderDO selectByEnrollmentIdAndTypeAndStatus(Long enrollmentId, String orderType, String orderStatus) {
         return selectOne(new LambdaQueryWrapperX<EnrollmentOrderDO>()
                 .eq(EnrollmentOrderDO::getEnrollmentId, enrollmentId)
                 .eq(EnrollmentOrderDO::getOrderType, orderType)
-                .eq(EnrollmentOrderDO::getOrderStatus, orderStatus));
+                .eq(EnrollmentOrderDO::getOrderStatus, orderStatus)
+                .orderByDesc(EnrollmentOrderDO::getId)
+                .last("LIMIT 1"));
     }
 
     /** 查已过期的 PENDING 订单（定时任务用） */

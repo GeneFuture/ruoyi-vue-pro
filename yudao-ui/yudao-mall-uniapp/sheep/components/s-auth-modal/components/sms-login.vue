@@ -109,9 +109,7 @@
     // 参数校验
     const validate = await unref(smsLoginRef)
       .validate()
-      .catch((error) => {
-        console.log('error: ', error);
-      });
+      .catch(() => {});
     if (!validate) {
       return;
     }

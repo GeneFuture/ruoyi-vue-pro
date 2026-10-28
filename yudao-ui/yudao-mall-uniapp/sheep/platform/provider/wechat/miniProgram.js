@@ -1,6 +1,5 @@
 import AuthUtil from '@/sheep/api/member/auth';
 import SocialApi from '@/sheep/api/member/social';
-import UserApi from '@/sheep/api/member/user';
 import sheep from '@/sheep';
 
 const socialType = 34; // 社交类型 - 微信小程序
@@ -81,17 +80,6 @@ const bind = () => {
 const unbind = async (openid) => {
   const { code } = await SocialApi.socialUnbind(socialType, openid);
   return code === 0;
-};
-
-// 绑定用户手机号
-const bindUserPhoneNumber = (e) => {
-  return new Promise(async (resolve, reject) => {
-    const { code } = await UserApi.updateUserMobileByWeixin(e.code);
-    if (code === 0) {
-      resolve(true);
-    }
-    resolve(false);
-  });
 };
 
 // 设置 openid 到本地存储，目前只有 pay 支付时会使用
@@ -231,7 +219,6 @@ export default {
   login,
   bind,
   unbind,
-  bindUserPhoneNumber,
   mobileLogin,
   getInfo,
   getOpenid,

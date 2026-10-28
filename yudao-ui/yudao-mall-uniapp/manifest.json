@@ -1,7 +1,7 @@
 {
   "name": "海员培训",
-  "appid": "__UNI__460BC4C",
-  "description": "基于 uni-app + Vue3 技术驱动的海员培训课程报名、拼团与推荐佣金小程序。",
+  "appid": "__UNI__3417000",
+  "description": "基于 uni-app + Vue3 技术驱动的海员培训课程报名与拼团小程序。",
   "versionName": "2026.04",
   "versionCode": "183",
   "transformPx": false,
@@ -194,10 +194,7 @@
     "plugins": {},
     "lazyCodeLoading": "requiredComponents",
     "usingComponents": {},
-    "permission": {},
-    "requiredPrivateInfos": [
-      "chooseAddress"
-    ]
+    "permission": {}
   },
   "mp-alipay": {
     "usingComponents": true,
@@ -225,7 +222,7 @@
     "async": {
       "timeout": 20000
     },
-    "title": "芋道商城",
+    "title": "海员培训",
     "optimization": {
       "treeShaking": {
         "enable": true

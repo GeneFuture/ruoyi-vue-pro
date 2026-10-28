@@ -136,6 +136,14 @@ public interface EnrollmentService {
     void handleDepositPaid(String merchantOrderId, Long payOrderId);
 
     /**
+     * 支付成功回调统一入口：按订单类型分发到定金/全款或尾款处理
+     *
+     * @param merchantOrderId 商户订单号（即 EnrollmentOrder.orderNo）
+     * @param payOrderId      pay 模块支付单ID
+     */
+    void handlePayNotify(String merchantOrderId, Long payOrderId);
+
+    /**
      * 关闭过期的定金订单（CAS 幂等，供定时任务调用）
      *
      * @param orderId 定金订单ID
@@ -186,14 +194,6 @@ public interface EnrollmentService {
      * @param memberId 当前登录学员ID
      */
     void applyRefund(@Valid AppRefundApplyReqVO reqVO, Long memberId);
-
-    /**
-     * 小程序端：申请转课
-     *
-     * @param reqVO    转课申请参数
-     * @param memberId 当前登录学员ID
-     */
-    void applyTransfer(@Valid AppTransferApplyReqVO reqVO, Long memberId);
 
     /**
      * 小程序端：查询退费状态

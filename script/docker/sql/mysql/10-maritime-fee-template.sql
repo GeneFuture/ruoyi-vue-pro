@@ -15,15 +15,14 @@ CREATE TABLE IF NOT EXISTS maritime_fee_template (
   id                            BIGINT         NOT NULL AUTO_INCREMENT COMMENT '模板ID',
   name                          VARCHAR(50)    NOT NULL COMMENT '模板名称（如：STCW 标准收费）',
   tuition_amount                DECIMAL(10,2)  NOT NULL COMMENT '学费总额（元）',
-  tuition_description           JSON           DEFAULT NULL COMMENT '学费说明（{"理论课":"1000","实操":"800"}）',
+  tuition_includes_accommodation TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '学费是否包含住宿费',
+  extra_fee_items               JSON           DEFAULT NULL COMMENT '另行缴费项目（[{"name":"教材费","amount":200,"required":true}]）',
   deposit_amount                DECIMAL(10,2)  NOT NULL COMMENT '定金金额（元）',
   is_groupon_enabled            TINYINT(1)     NOT NULL DEFAULT 0 COMMENT '是否开启拼团',
   groupon_discount_amount       DECIMAL(10,2)  NOT NULL DEFAULT 0 COMMENT '拼团优惠减免金额（元）',
   groupon_required_count        INT            NOT NULL DEFAULT 3 COMMENT '拼团所需人数',
   groupon_expire_hours          INT            NOT NULL DEFAULT 24 COMMENT '拼团有效时间（小时）',
   groupon_fail_discount_amount  DECIMAL(10,2)  NOT NULL DEFAULT 0 COMMENT '拼团失败降级优惠金额（元，单人可享）',
-  referral_commission_amount    DECIMAL(10,2)  NOT NULL DEFAULT 0 COMMENT '推荐佣金金额（元，每成功推荐一人）',
-  is_referral_commission_enabled TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '是否开启推荐佣金',
   is_deposit_refundable          TINYINT(1)   NOT NULL DEFAULT 1 COMMENT '定金是否可退',
   balance_due_days_before_start  INT          NOT NULL DEFAULT 7  COMMENT '尾款截止：开班前N天',
   refund_policy_text            TEXT           DEFAULT NULL COMMENT '退款政策说明文本',
@@ -55,25 +54,29 @@ WHERE m.permission LIKE 'maritime:fee-template:%' OR (m.component_name = 'FeeTem
 
 -- ========== 3. 示例模板 ==========
 INSERT INTO maritime_fee_template
-  (name, tuition_amount, tuition_description, deposit_amount,
+  (name, tuition_amount, tuition_includes_accommodation, extra_fee_items, deposit_amount,
    is_groupon_enabled, groupon_discount_amount, groupon_required_count, groupon_expire_hours, groupon_fail_discount_amount,
-   referral_commission_amount, is_referral_commission_enabled, is_deposit_refundable, balance_due_days_before_start,
+   is_deposit_refundable, balance_due_days_before_start,
    refund_policy_text, status, creator, updater, deleted, tenant_id)
-SELECT 'STCW 标准收费', 1800.00, JSON_OBJECT('实操', '800', '理论课', '1000'), 300.00,
+SELECT 'STCW 标准收费', 1800.00, 0,
+  JSON_ARRAY(JSON_OBJECT('name', '教材费', 'amount', 200, 'required', true),
+             JSON_OBJECT('name', '住宿费', 'amount', 800, 'required', false)), 300.00,
  0, 0.00, 3, 24, 0.00,
- 50.00, 1, 1, 7,
+ 1, 7,
  '开班前 7 天可全额退款；开班后按已上课时比例扣除。', 0, '1', '1', 0, 1
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM maritime_fee_template WHERE name = 'STCW 标准收费' AND deleted = 0 LIMIT 1);
 
 INSERT INTO maritime_fee_template
-  (name, tuition_amount, tuition_description, deposit_amount,
+  (name, tuition_amount, tuition_includes_accommodation, extra_fee_items, deposit_amount,
    is_groupon_enabled, groupon_discount_amount, groupon_required_count, groupon_expire_hours, groupon_fail_discount_amount,
-   referral_commission_amount, is_referral_commission_enabled, is_deposit_refundable, balance_due_days_before_start,
+   is_deposit_refundable, balance_due_days_before_start,
    refund_policy_text, status, creator, updater, deleted, tenant_id)
-SELECT '拼团优惠收费', 1800.00, JSON_OBJECT('实操', '800', '理论课', '1000'), 300.00,
+SELECT '拼团优惠收费', 1800.00, 0,
+  JSON_ARRAY(JSON_OBJECT('name', '教材费', 'amount', 200, 'required', true),
+             JSON_OBJECT('name', '住宿费', 'amount', 800, 'required', false)), 300.00,
  1, 100.00, 3, 24, 50.00,
- 50.00, 1, 1, 7,
+ 1, 7,
  '开班前 7 天可全额退款；拼团失败自动降级享受单人优惠。', 0, '1', '1', 0, 1
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM maritime_fee_template WHERE name = '拼团优惠收费' AND deleted = 0 LIMIT 1);

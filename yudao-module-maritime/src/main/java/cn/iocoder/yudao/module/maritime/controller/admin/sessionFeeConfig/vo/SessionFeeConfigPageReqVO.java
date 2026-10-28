@@ -38,12 +38,6 @@ public class SessionFeeConfigPageReqVO extends PageParam {
     @Schema(description = "拼团失败降级优惠金额（元，单人可享）")
     private BigDecimal grouponFailDiscountAmount;
 
-    @Schema(description = "推荐佣金金额（元，每成功推荐一人）")
-    private BigDecimal referralCommissionAmount;
-
-    @Schema(description = "是否开启推荐佣金")
-    private Boolean isReferralCommissionEnabled;
-
     @Schema(description = "定金是否可退")
     private Boolean isDepositRefundable;
 

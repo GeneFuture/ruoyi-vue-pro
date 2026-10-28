@@ -17,7 +17,7 @@
 
 1. **模块裁剪**：删除 bpm、crm、erp、iot、mes、report 模块（2467 文件）
 2. **maritime 模块**：海员培训业务（248 文件，依赖 pay/member）
-3. **member 定制**：referralCode 推荐码字段、微信登录增强（约 19 文件）
+3. **member 定制**：微信登录增强（约 19 文件）
 4. **Convert 批量修改**：@Mapper 增加 `unmappedTargetPolicy = ReportingPolicy.IGNORE`（与上游做法大部分重合，可自动合并）
 5. **AiWorkflowServiceImpl**：fastjson → Jackson 迁移（上游迁到 fastjson2，保留我们的 Jackson 版）
 6. **yudao-ui**：新增 maritime 管理端页面 + yudao-mall-uniapp 小程序

@@ -8,12 +8,11 @@ import cn.iocoder.yudao.module.system.api.notify.NotifyMessageSendApi;
 import cn.iocoder.yudao.module.system.api.notify.dto.NotifySendSingleToUserReqDTO;
 import cn.iocoder.yudao.module.system.api.social.SocialClientApi;
 import cn.iocoder.yudao.module.system.api.social.dto.SocialWxaSubscribeMessageSendReqDTO;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import jakarta.annotation.Resource;
 import java.util.Map;
 
 @Service
@@ -30,11 +29,14 @@ public class MaritimeNotifyServiceImpl implements MaritimeNotifyService {
     @Resource
     private MemberSubscribeMapper memberSubscribeMapper;
 
+    // ========== 报名 / 支付 ==========
+
     @Override
-    public void sendEnrollSuccess(Long memberId, String sessionName, String startDate) {
+    public void sendEnrollSuccess(Long memberId, String sessionName, String startDate, boolean fullPayment) {
         sendNotify(memberId,
                 NotifyTemplateCodeConstants.ENROLL_SUCCESS,
-                Map.of("sessionName", sessionName, "startDate", startDate),
+                Map.of("sessionName", sessionName, "startDate", startDate,
+                        "payType", fullPayment ? "全款" : "定金"),
                 WxSubscribeTemplateConstants.ENROLL_SUCCESS,
                 Map.of("thing1", sessionName, "date2", startDate),
                 null);
@@ -51,23 +53,15 @@ public class MaritimeNotifyServiceImpl implements MaritimeNotifyService {
     }
 
     @Override
-    public void sendGrouponSuccess(Long memberId, String sessionName, int memberCount) {
-        sendNotify(memberId,
-                NotifyTemplateCodeConstants.GROUPON_SUCCESS,
-                Map.of("sessionName", sessionName, "memberCount", String.valueOf(memberCount)),
-                WxSubscribeTemplateConstants.GROUPON_SUCCESS,
-                Map.of("thing1", sessionName, "number2", String.valueOf(memberCount)),
-                null);
+    public void sendFullPaid(Long memberId, String sessionName, String amount, String startDate) {
+        sendStationNotify(memberId, NotifyTemplateCodeConstants.FULL_PAID,
+                Map.of("sessionName", sessionName, "amount", amount, "startDate", startDate));
     }
 
     @Override
-    public void sendGrouponDegraded(Long memberId) {
-        sendNotify(memberId,
-                NotifyTemplateCodeConstants.GROUPON_DEGRADED,
-                Map.of(),
-                WxSubscribeTemplateConstants.GROUPON_DEGRADED,
-                Map.of("thing1", "拼团未达成，已自动取消"),
-                null);
+    public void sendBalancePaid(Long memberId, String sessionName, String amount, String startDate) {
+        sendStationNotify(memberId, NotifyTemplateCodeConstants.BALANCE_PAID,
+                Map.of("sessionName", sessionName, "amount", amount, "startDate", startDate));
     }
 
     @Override
@@ -84,27 +78,76 @@ public class MaritimeNotifyServiceImpl implements MaritimeNotifyService {
     }
 
     @Override
-    public void sendReferralSuccess(Long memberId, String commissionAmount) {
+    public void sendBalanceOverdue(Long memberId, String sessionName, String amount, String reason) {
+        sendStationNotify(memberId, NotifyTemplateCodeConstants.BALANCE_OVERDUE,
+                Map.of("sessionName", sessionName, "amount", amount, "reason", reason));
+    }
+
+    @Override
+    public void sendEnrollCancelled(Long memberId, String sessionName, String reason) {
+        sendStationNotify(memberId, NotifyTemplateCodeConstants.ENROLL_CANCELLED,
+                Map.of("sessionName", sessionName, "reason", reason));
+    }
+
+    @Override
+    public void sendEnrollCompleted(Long memberId, String sessionName) {
+        sendStationNotify(memberId, NotifyTemplateCodeConstants.ENROLL_COMPLETED,
+                Map.of("sessionName", sessionName));
+    }
+
+    // ========== 拼团 ==========
+
+    @Override
+    public void sendGrouponSuccess(Long memberId, String sessionName, int memberCount) {
         sendNotify(memberId,
-                NotifyTemplateCodeConstants.REFERRAL_SUCCESS,
-                Map.of("commissionAmount", commissionAmount),
-                WxSubscribeTemplateConstants.REFERRAL_SUCCESS,
-                Map.of("amount1", commissionAmount),
+                NotifyTemplateCodeConstants.GROUPON_SUCCESS,
+                Map.of("sessionName", sessionName, "memberCount", String.valueOf(memberCount)),
+                WxSubscribeTemplateConstants.GROUPON_SUCCESS,
+                Map.of("thing1", sessionName, "number2", String.valueOf(memberCount)),
                 null);
     }
 
     @Override
-    public void sendCommissionPaid(Long memberId, String netAmount) {
+    public void sendGrouponDegraded(Long memberId, String sessionName, String reason) {
         sendNotify(memberId,
-                NotifyTemplateCodeConstants.COMMISSION_PAID,
-                Map.of("netAmount", netAmount),
-                WxSubscribeTemplateConstants.COMMISSION_PAID,
-                Map.of("amount1", netAmount),
+                NotifyTemplateCodeConstants.GROUPON_DEGRADED,
+                Map.of("sessionName", sessionName, "reason", reason),
+                WxSubscribeTemplateConstants.GROUPON_DEGRADED,
+                Map.of("thing1", reason),
                 null);
     }
 
+    // ========== 退费 ==========
+
+    @Override
+    public void sendRefundApplied(Long memberId, String sessionName) {
+        sendStationNotify(memberId, NotifyTemplateCodeConstants.REFUND_APPLIED,
+                Map.of("sessionName", sessionName));
+    }
+
+    @Override
+    public void sendRefundApproved(Long memberId, String sessionName, String amount) {
+        sendStationNotify(memberId, NotifyTemplateCodeConstants.REFUND_APPROVED,
+                Map.of("sessionName", sessionName, "amount", amount));
+    }
+
+    @Override
+    public void sendRefundRejected(Long memberId, String sessionName, String reason) {
+        sendStationNotify(memberId, NotifyTemplateCodeConstants.REFUND_REJECTED,
+                Map.of("sessionName", sessionName, "reason", reason));
+    }
+
+    // ========== 发送实现 ==========
+
     /**
-     * 统一发送入口：同时发送站内信和（若已订阅）微信订阅消息
+     * 只发站内信。用于没有配置微信订阅消息模板的通知类型。
+     */
+    private void sendStationNotify(Long memberId, String notifyTemplateCode, Map<String, Object> notifyParams) {
+        sendNotify(memberId, notifyTemplateCode, notifyParams, null, Map.of(), null);
+    }
+
+    /**
+     * 统一发送入口：站内信始终尝试发送；wxTemplateTitle 不为空且用户已订阅时，再发微信订阅消息。
      */
     private void sendNotify(Long memberId,
                             String notifyTemplateCode,
@@ -112,7 +155,7 @@ public class MaritimeNotifyServiceImpl implements MaritimeNotifyService {
                             String wxTemplateTitle,
                             Map<String, String> wxMessages,
                             String wxPage) {
-        // 站内信（始终发送）
+        // 站内信
         try {
             NotifySendSingleToUserReqDTO notifyReq = new NotifySendSingleToUserReqDTO();
             notifyReq.setUserId(memberId);
@@ -123,7 +166,10 @@ public class MaritimeNotifyServiceImpl implements MaritimeNotifyService {
             log.warn("[sendNotify] 站内信发送失败, memberId={}, template={}", memberId, notifyTemplateCode, e);
         }
 
-        // 微信订阅消息（仅已授权订阅时发送）
+        // 微信订阅消息：没有对应模板时跳过
+        if (wxTemplateTitle == null) {
+            return;
+        }
         if (memberSubscribeMapper.isSubscribed(memberId, wxTemplateTitle)) {
             try {
                 SocialWxaSubscribeMessageSendReqDTO wxReq = new SocialWxaSubscribeMessageSendReqDTO();

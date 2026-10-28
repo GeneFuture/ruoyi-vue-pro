@@ -17,6 +17,15 @@ import java.util.Objects;
  */
 public class DefaultDBFieldHandler implements MetaObjectHandler {
 
+    /**
+     * 系统用户编号
+     *
+     * 支付回调、定时任务、异步事件等场景没有登录上下文，此时 creator / updater 使用该值兜底。
+     * 项目建表规范中 creator / updater 为 NOT NULL，而 MyBatis Plus 对带填充注解的字段
+     * 在 INSERT / UPDATE 时会强制写入（不会因为 null 跳过），因此这里必须保证非空。
+     */
+    private static final String SYSTEM_USER_ID = "0";
+
     @Override
     @SuppressWarnings("PatternVariableCanBeUsed")
     public void insertFill(MetaObject metaObject) {
@@ -33,14 +42,13 @@ public class DefaultDBFieldHandler implements MetaObjectHandler {
                 baseDO.setUpdateTime(current);
             }
 
-            Long userId = SecurityFrameworkUtils.getLoginUserId();
-            // 当前登录用户不为空，创建人为空，则当前登录用户为创建人
-            if (Objects.nonNull(userId) && Objects.isNull(baseDO.getCreator())) {
-                baseDO.setCreator(userId.toString());
+            // 创建人 / 更新人为空，则以当前登录用户填充；无登录上下文（支付回调、定时任务等）则使用系统用户
+            String userId = getUserId();
+            if (Objects.isNull(baseDO.getCreator())) {
+                baseDO.setCreator(userId);
             }
-            // 当前登录用户不为空，更新人为空，则当前登录用户为更新人
-            if (Objects.nonNull(userId) && Objects.isNull(baseDO.getUpdater())) {
-                baseDO.setUpdater(userId.toString());
+            if (Objects.isNull(baseDO.getUpdater())) {
+                baseDO.setUpdater(userId);
             }
         }
     }
@@ -53,11 +61,18 @@ public class DefaultDBFieldHandler implements MetaObjectHandler {
             setFieldValByName("updateTime", LocalDateTime.now(), metaObject);
         }
 
-        // 当前登录用户不为空，更新人为空，则当前登录用户为更新人
+        // 更新人为空，则以当前登录用户填充；无登录上下文（支付回调、定时任务等）则使用系统用户
         Object modifier = getFieldValByName("updater", metaObject);
-        Long userId = SecurityFrameworkUtils.getLoginUserId();
-        if (Objects.nonNull(userId) && Objects.isNull(modifier)) {
-            setFieldValByName("updater", userId.toString(), metaObject);
+        if (Objects.isNull(modifier)) {
+            setFieldValByName("updater", getUserId(), metaObject);
         }
+    }
+
+    /**
+     * 获得当前登录用户编号；无登录上下文时返回系统用户编号
+     */
+    private static String getUserId() {
+        Long userId = SecurityFrameworkUtils.getLoginUserId();
+        return userId != null ? userId.toString() : SYSTEM_USER_ID;
     }
 }

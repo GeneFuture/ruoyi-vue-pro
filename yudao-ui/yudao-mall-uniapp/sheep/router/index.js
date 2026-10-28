@@ -1,6 +1,6 @@
 import $store from '@/sheep/store';
-import { showAuthModal, showShareModal } from '@/sheep/hooks/useModal';
-import { isNumber, isString, isEmpty, startsWith, isObject, isNil, clone } from 'lodash-es';
+import { showAuthModal } from '@/sheep/hooks/useModal';
+import { isString, isEmpty, startsWith, isObject, isNil } from 'lodash-es';
 import throttle from '@/sheep/helper/throttle';
 
 const _go = (
@@ -25,9 +25,6 @@ const _go = (
       page = `/pages/public/webview`;
       query = `url=${encodeURIComponent(path)}`;
       // #endif
-    } else if (startsWith(path, 'action:')) {
-      handleAction(path);
-      return;
     } else {
       [page, query] = path.split('?');
     }
@@ -174,15 +171,6 @@ function getCurrentRoute(field = '') {
 function getCurrentPage() {
   let pages = getCurrentPages();
   return pages[pages.length - 1];
-}
-
-function handleAction(path) {
-  const action = path.split(':');
-  switch (action[1]) {
-    case 'showShareModal':
-      showShareModal();
-      break;
-  }
 }
 
 function error(errCode, errMsg = '') {

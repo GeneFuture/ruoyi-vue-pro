@@ -1,14 +1,4 @@
 import test from './test.js';
-import { round } from './digit.js';
-/**
- * @description 如果value小于min，取min；如果value大于max，取max
- * @param {number} min
- * @param {number} max
- * @param {number} value
- */
-function range(min = 0, max = 0, value = 0) {
-  return Math.max(min, Math.min(max, Number(value)));
-}
 
 /**
  * @description 用于获取用户传递值的px值  如果用户传递了"xxpx"或者"xxrpx"，取出其数值部分，如果是"xxxrpx"还需要用过uni.upx2px进行转换
@@ -39,6 +29,7 @@ export function sleep(value = 30) {
     }, value);
   });
 }
+
 /**
  * @description 运行期判断平台
  * @returns {string} 返回所在平台(小写)
@@ -46,19 +37,6 @@ export function sleep(value = 30) {
  */
 export function os() {
   return uni.getDeviceInfo().platform.toLowerCase();
-}
-
-/**
- * @description 取一个区间数
- * @param {Number} min 最小值
- * @param {Number} max 最大值
- */
-function random(min, max) {
-  if (min >= 0 && max > 0 && max >= min) {
-    const gab = max - min + 1;
-    return Math.floor(Math.random() * gab + min);
-  }
-  return 0;
 }
 
 /**
@@ -96,12 +74,12 @@ export function guid(len = 32, firstU = true, radix = null) {
 }
 
 /**
-* @description 获取父组件的参数，因为支付宝小程序不支持provide/inject的写法
-   this.$parent在非H5中，可以准确获取到父组件，但是在H5中，需要多次this.$parent.$parent.xxx
-   这里默认值等于undefined有它的含义，因为最顶层元素(组件)的$parent就是undefined，意味着不传name
-   值(默认为undefined)，就是查找最顶层的$parent
-*  @param {string|undefined} name 父组件的参数名
-*/
+ * @description 获取父组件的参数，因为支付宝小程序不支持provide/inject的写法
+ * this.$parent在非H5中，可以准确获取到父组件，但是在H5中，需要多次this.$parent.$parent.xxx
+ * 这里默认值等于undefined有它的含义，因为最顶层元素(组件)的$parent就是undefined，意味着不传name
+ * 值(默认为undefined)，就是查找最顶层的$parent
+ * @param {string|undefined} name 父组件的参数名
+ */
 export function $parent(name = undefined) {
   let parent = this.$parent;
   // 通过while历遍，这里主要是为了H5需要多层解析的问题
@@ -221,54 +199,9 @@ export function deepMerge(target = {}, source = {}) {
 }
 
 /**
- * @description error提示
- * @param {*} err 错误内容
- */
-function error(err) {
-  // 开发环境才提示，生产环境不会提示
-  if (process.env.NODE_ENV === 'development') {
-    console.error(`SheepJS:${err}`);
-  }
-}
-
-/**
- * @description 打乱数组
- * @param {array} array 需要打乱的数组
- * @returns {array} 打乱后的数组
- */
-function randomArray(array = []) {
-  // 原理是sort排序,Math.random()产生0<= x < 1之间的数,会导致x-0.05大于或者小于0
-  return array.sort(() => Math.random() - 0.5);
-}
-
-// padStart 的 polyfill，因为某些机型或情况，还无法支持es7的padStart，比如电脑版的微信小程序
-// 所以这里做一个兼容polyfill的兼容处理
-if (!String.prototype.padStart) {
-  // 为了方便表示这里 fillString 用了ES6 的默认参数，不影响理解
-  String.prototype.padStart = function (maxLength, fillString = ' ') {
-    if (Object.prototype.toString.call(fillString) !== '[object String]') {
-      throw new TypeError('fillString must be String');
-    }
-    const str = this;
-    // 返回 String(str) 这里是为了使返回的值是字符串字面量，在控制台中更符合直觉
-    if (str.length >= maxLength) return String(str);
-
-    const fillLength = maxLength - str.length;
-    let times = Math.ceil(fillLength / fillString.length);
-    while ((times >>= 1)) {
-      fillString += fillString;
-      if (times === 1) {
-        fillString += fillString;
-      }
-    }
-    return fillString.slice(0, fillLength) + str;
-  };
-}
-
-/**
  * @description 格式化时间
  * @param {String|Number} dateTime 需要格式化的时间戳
- * @param {String} fmt 格式化规则 yyyy:mm:dd|yyyy:mm|yyyy年mm月dd日|yyyy年mm月dd日 hh时MM分等,可自定义组合 默认yyyy-mm-dd
+ * @param {String} formatStr 格式化规则 yyyy:mm:dd|yyyy:mm|yyyy年mm月dd日|yyyy年mm月dd日 hh时MM分等,可自定义组合 默认yyyy-mm-dd
  * @returns {string} 返回格式化后的字符串
  */
 function timeFormat(dateTime = null, formatStr = 'yyyy-mm-dd') {
@@ -314,135 +247,26 @@ function timeFormat(dateTime = null, formatStr = 'yyyy-mm-dd') {
 }
 
 /**
- * @description 时间戳转为多久之前
- * @param {String|Number} timestamp 时间戳
- * @param {String|Boolean} format
- * 格式化规则如果为时间格式字符串，超出一定时间范围，返回固定的时间格式；
- * 如果为布尔值false，无论什么时间，都返回多久以前的格式
- * @returns {string} 转化后的内容
- */
-function timeFrom(timestamp = null, format = 'yyyy-mm-dd') {
-  if (timestamp == null) timestamp = Number(new Date());
-  timestamp = parseInt(timestamp);
-  // 判断用户输入的时间戳是秒还是毫秒,一般前端js获取的时间戳是毫秒(13位),后端传过来的为秒(10位)
-  if (timestamp.toString().length == 10) timestamp *= 1000;
-  let timer = new Date().getTime() - timestamp;
-  timer = parseInt(timer / 1000);
-  // 如果小于5分钟,则返回"刚刚",其他以此类推
-  let tips = '';
-  switch (true) {
-    case timer < 300:
-      tips = '刚刚';
-      break;
-    case timer >= 300 && timer < 3600:
-      tips = `${parseInt(timer / 60)}分钟前`;
-      break;
-    case timer >= 3600 && timer < 86400:
-      tips = `${parseInt(timer / 3600)}小时前`;
-      break;
-    case timer >= 86400 && timer < 2592000:
-      tips = `${parseInt(timer / 86400)}天前`;
-      break;
-    default:
-      // 如果format为false，则无论什么时间戳，都显示xx之前
-      if (format === false) {
-        if (timer >= 2592000 && timer < 365 * 86400) {
-          tips = `${parseInt(timer / (86400 * 30))}个月前`;
-        } else {
-          tips = `${parseInt(timer / (86400 * 365))}年前`;
-        }
-      } else {
-        tips = timeFormat(timestamp, format);
-      }
-  }
-  return tips;
-}
-
-/**
- * @description 去除空格
- * @param String str 需要去除空格的字符串
- * @param String pos both(左右)|left|right|all 默认both
+ * @description 去除字符串两端空格
+ * @param {String} str 需要处理的字符串
+ * @param {String} pos 去除位置，both|left|right
+ * @returns {string}
  */
 function trim(str, pos = 'both') {
-  str = String(str);
   if (pos == 'both') {
     return str.replace(/^\s+|\s+$/g, '');
-  }
-  if (pos == 'left') {
+  } else if (pos == 'left') {
     return str.replace(/^\s*/, '');
-  }
-  if (pos == 'right') {
+  } else if (pos == 'right') {
     return str.replace(/(\s*$)/g, '');
-  }
-  if (pos == 'all') {
-    return str.replace(/\s+/g, '');
   }
   return str;
 }
 
 /**
- * @description 对象转url参数
- * @param {object} data,对象
- * @param {Boolean} isPrefix,是否自动加上"?"
- * @param {string} arrayFormat 规则 indices|brackets|repeat|comma
- */
-function queryParams(data = {}, isPrefix = true, arrayFormat = 'brackets') {
-  const prefix = isPrefix ? '?' : '';
-  const _result = [];
-  if (['indices', 'brackets', 'repeat', 'comma'].indexOf(arrayFormat) == -1)
-    arrayFormat = 'brackets';
-  for (const key in data) {
-    const value = data[key];
-    // 去掉为空的参数
-    if (['', undefined, null].indexOf(value) >= 0) {
-      continue;
-    }
-    // 如果值为数组，另行处理
-    if (value.constructor === Array) {
-      // e.g. {ids: [1, 2, 3]}
-      switch (arrayFormat) {
-        case 'indices':
-          // 结果: ids[0]=1&ids[1]=2&ids[2]=3
-          for (let i = 0; i < value.length; i++) {
-            _result.push(`${key}[${i}]=${value[i]}`);
-          }
-          break;
-        case 'brackets':
-          // 结果: ids[]=1&ids[]=2&ids[]=3
-          value.forEach((_value) => {
-            _result.push(`${key}[]=${_value}`);
-          });
-          break;
-        case 'repeat':
-          // 结果: ids=1&ids=2&ids=3
-          value.forEach((_value) => {
-            _result.push(`${key}=${_value}`);
-          });
-          break;
-        case 'comma':
-          // 结果: ids=1,2,3
-          let commaStr = '';
-          value.forEach((_value) => {
-            commaStr += (commaStr ? ',' : '') + _value;
-          });
-          _result.push(`${key}=${commaStr}`);
-          break;
-        default:
-          value.forEach((_value) => {
-            _result.push(`${key}[]=${_value}`);
-          });
-      }
-    } else {
-      _result.push(`${key}=${value}`);
-    }
-  }
-  return _result.length ? prefix + _result.join('&') : '';
-}
-
-/**
- * 显示消息提示框
- * @param {String} title 提示的内容，长度与 icon 取值有关。
- * @param {Number} duration 提示的延迟时间，单位毫秒，默认：2000
+ * @description toast提示
+ * @param {String} title 提示内容
+ * @param {Number} duration 提示时长
  */
 function toast(title, duration = 2000) {
   uni.showToast({
@@ -452,182 +276,6 @@ function toast(title, duration = 2000) {
   });
 }
 
-/**
- * @description 根据主题type值,获取对应的图标
- * @param {String} type 主题名称,primary|info|error|warning|success
- * @param {boolean} fill 是否使用fill填充实体的图标
- */
-function type2icon(type = 'success', fill = false) {
-  // 如果非预置值,默认为success
-  if (['primary', 'info', 'error', 'warning', 'success'].indexOf(type) == -1) type = 'success';
-  let iconName = '';
-  // 目前(2019-12-12),info和primary使用同一个图标
-  switch (type) {
-    case 'primary':
-      iconName = 'info-circle';
-      break;
-    case 'info':
-      iconName = 'info-circle';
-      break;
-    case 'error':
-      iconName = 'close-circle';
-      break;
-    case 'warning':
-      iconName = 'error-circle';
-      break;
-    case 'success':
-      iconName = 'checkmark-circle';
-      break;
-    default:
-      iconName = 'checkmark-circle';
-  }
-  // 是否是实体类型,加上-fill,在icon组件库中,实体的类名是后面加-fill的
-  if (fill) iconName += '-fill';
-  return iconName;
-}
-
-/**
- * @description 数字格式化
- * @param {number|string} number 要格式化的数字
- * @param {number} decimals 保留几位小数
- * @param {string} decimalPoint 小数点符号
- * @param {string} thousandsSeparator 千分位符号
- * @returns {string} 格式化后的数字
- */
-function priceFormat(number, decimals = 0, decimalPoint = '.', thousandsSeparator = ',') {
-  number = `${number}`.replace(/[^0-9+-Ee.]/g, '');
-  const n = !isFinite(+number) ? 0 : +number;
-  const prec = !isFinite(+decimals) ? 0 : Math.abs(decimals);
-  const sep = typeof thousandsSeparator === 'undefined' ? ',' : thousandsSeparator;
-  const dec = typeof decimalPoint === 'undefined' ? '.' : decimalPoint;
-  let s = '';
-
-  s = (prec ? round(n, prec) + '' : `${Math.round(n)}`).split('.');
-  const re = /(-?\d+)(\d{3})/;
-  while (re.test(s[0])) {
-    s[0] = s[0].replace(re, `$1${sep}$2`);
-  }
-
-  if ((s[1] || '').length < prec) {
-    s[1] = s[1] || '';
-    s[1] += new Array(prec - s[1].length + 1).join('0');
-  }
-  return s.join(dec);
-}
-
-/**
- * @description 获取duration值
- * 如果带有ms或者s直接返回，如果大于一定值，认为是ms单位，小于一定值，认为是s单位
- * 比如以30位阈值，那么300大于30，可以理解为用户想要的是300ms，而不是想花300s去执行一个动画
- * @param {String|number} value 比如: "1s"|"100ms"|1|100
- * @param {boolean} unit  提示: 如果是false 默认返回number
- * @return {string|number}
- */
-function getDuration(value, unit = true) {
-  const valueNum = parseInt(value);
-  if (unit) {
-    if (/s$/.test(value)) return value;
-    return value > 30 ? `${value}ms` : `${value}s`;
-  }
-  if (/ms$/.test(value)) return valueNum;
-  if (/s$/.test(value)) return valueNum > 30 ? valueNum : valueNum * 1000;
-  return valueNum;
-}
-
-/**
- * @description 日期的月或日补零操作
- * @param {String} value 需要补零的值
- */
-function padZero(value) {
-  return `00${value}`.slice(-2);
-}
-
-/**
- * @description 获取某个对象下的属性，用于通过类似'a.b.c'的形式去获取一个对象的的属性的形式
- * @param {object} obj 对象
- * @param {string} key 需要获取的属性字段
- * @returns {*}
- */
-function getProperty(obj, key) {
-  if (!obj) {
-    return;
-  }
-  if (typeof key !== 'string' || key === '') {
-    return '';
-  }
-  if (key.indexOf('.') !== -1) {
-    const keys = key.split('.');
-    let firstObj = obj[keys[0]] || {};
-
-    for (let i = 1; i < keys.length; i++) {
-      if (firstObj) {
-        firstObj = firstObj[keys[i]];
-      }
-    }
-    return firstObj;
-  }
-  return obj[key];
-}
-
-/**
- * @description 设置对象的属性值，如果'a.b.c'的形式进行设置
- * @param {object} obj 对象
- * @param {string} key 需要设置的属性
- * @param {string} value 设置的值
- */
-function setProperty(obj, key, value) {
-  if (!obj) {
-    return;
-  }
-  // 递归赋值
-  const inFn = function (_obj, keys, v) {
-    // 最后一个属性key
-    if (keys.length === 1) {
-      _obj[keys[0]] = v;
-      return;
-    }
-    // 0~length-1个key
-    while (keys.length > 1) {
-      const k = keys[0];
-      if (!_obj[k] || typeof _obj[k] !== 'object') {
-        _obj[k] = {};
-      }
-      const key = keys.shift();
-      // 自调用判断是否存在属性，不存在则自动创建对象
-      inFn(_obj[k], keys, v);
-    }
-  };
-
-  if (typeof key !== 'string' || key === '') {
-  } else if (key.indexOf('.') !== -1) {
-    // 支持多层级赋值操作
-    const keys = key.split('.');
-    inFn(obj, keys, value);
-  } else {
-    obj[key] = value;
-  }
-}
-
-/**
- * @description 获取当前页面路径
- */
-function page() {
-  const pages = getCurrentPages();
-  // 某些特殊情况下(比如页面进行redirectTo时的一些时机)，pages可能为空数组
-  return `/${pages[pages.length - 1]?.route || ''}`;
-}
-
-/**
- * @description 获取当前路由栈实例数组
- */
-function pages() {
-  const pages = getCurrentPages();
-  return pages;
-}
-
-/**
- * 获取H5-真实根地址 兼容hash+history模式
- */
 export function getRootUrl() {
   let url = '';
   // #ifdef H5
@@ -671,33 +319,16 @@ export function copyText(text) {
 }
 
 export default {
-  range,
   getPx,
   sleep,
   os,
-  random,
   guid,
   $parent,
   addStyle,
   addUnit,
-  deepClone,
   deepMerge,
-  error,
-  randomArray,
   timeFormat,
-  timeFrom,
-  trim,
-  queryParams,
   toast,
-  type2icon,
-  priceFormat,
-  getDuration,
-  padZero,
-  getProperty,
-  setProperty,
-  page,
-  pages,
-  test,
   getRootUrl,
   copyText,
 };

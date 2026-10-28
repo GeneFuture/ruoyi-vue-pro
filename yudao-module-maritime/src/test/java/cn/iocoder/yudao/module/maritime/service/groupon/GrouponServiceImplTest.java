@@ -99,7 +99,6 @@ public class GrouponServiceImplTest extends BaseDbUnitTest {
                 .balanceAmount(java.math.BigDecimal.ZERO)
                 .paidAmount(java.math.BigDecimal.ZERO)
                 .enrollmentStatus("PENDING_DEPOSIT")
-                .referralRightGranted(false)
                 .build();
         enrollmentMapper.insert(enrollment);
         return enrollment;

@@ -32,17 +32,13 @@ public class CourseSessionDO extends BaseDO {
      */
     private Long courseId;
     /**
-     * 班期编号（如：2026-06-SH-001）
+     * 班期编号（系统自动生成，格式：C{课程ID 36进制}-{开班年月}-{3位序号}，如 C1-202610-001；创建后不可修改）
      */
     private String sessionCode;
     /**
      * 班级名称（可选，如：A班）
      */
     private String sessionName;
-    /**
-     * 本期上课地点
-     */
-    private String location;
     /**
      * 本期课程天数
      */

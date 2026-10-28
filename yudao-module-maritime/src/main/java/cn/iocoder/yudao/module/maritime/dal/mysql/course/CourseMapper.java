@@ -24,10 +24,11 @@ public interface CourseMapper extends BaseMapperX<CourseDO> {
                 .orderByDesc(CourseDO::getId));
     }
 
-    /** 小程序端课程分页：仅上架（status=1），支持证书类型筛选，可按courseIds限定范围 */
+    /** 小程序端课程分页：仅上架（status=1），支持课程名称模糊搜索、证书类型筛选，可按 courseIds 限定范围 */
     default PageResult<CourseDO> selectPageForApp(AppCoursePageReqVO reqVO, Collection<Long> courseIds) {
         LambdaQueryWrapperX<CourseDO> wrapper = new LambdaQueryWrapperX<CourseDO>()
                 .eq(CourseDO::getStatus, 1)
+                .likeIfPresent(CourseDO::getName, reqVO.getKeyword())
                 .eqIfPresent(CourseDO::getCertificateType, reqVO.getCertificateType())
                 .orderByDesc(CourseDO::getSortOrder)
                 .orderByDesc(CourseDO::getId);

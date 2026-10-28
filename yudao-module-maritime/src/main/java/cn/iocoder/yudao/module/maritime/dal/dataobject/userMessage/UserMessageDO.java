@@ -31,7 +31,7 @@ public class UserMessageDO extends BaseDO {
      */
     private Long memberId;
     /**
-     * 消息类型（ORDER=订单类/GROUPON=拼团类/COMMISSION=佣金类/SYSTEM=系统公告）
+     * 消息类型（ORDER=订单类/GROUPON=拼团类/SYSTEM=系统公告）
      */
     private String type;
     /**
@@ -47,7 +47,7 @@ public class UserMessageDO extends BaseDO {
      */
     private Long relatedId;
     /**
-     * 关联业务类型（ENROLLMENT/COMMISSION/GROUPON）
+     * 关联业务类型（ENROLLMENT/GROUPON）
      */
     private String relatedType;
     /**

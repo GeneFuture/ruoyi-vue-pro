@@ -45,12 +45,4 @@ public class EnrollmentExcelVO {
     @ColumnWidth(15)
     private BigDecimal balanceAmount;
 
-    @ExcelProperty("是否有推荐人")
-    @ColumnWidth(14)
-    private String hasReferrer;
-
-    @ExcelProperty("推荐人姓名（脱敏）")
-    @ColumnWidth(18)
-    private String referrerName;
-
 }

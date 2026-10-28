@@ -29,12 +29,6 @@ public class EnrollmentSaveReqVO {
     @Schema(description = "关联拼团记录（可为空）", example = "29350")
     private Long grouponRecordId;
 
-    @Schema(description = "推荐人 member_user.id", example = "1937")
-    private Long referredByMemberId;
-
-    @Schema(description = "报名时填写的推荐码")
-    private String referralCodeUsed;
-
     @Schema(description = "真实姓名", requiredMode = Schema.RequiredMode.REQUIRED, example = "李四")
     @NotEmpty(message = "真实姓名不能为空")
     private String realName;
@@ -66,13 +60,9 @@ public class EnrollmentSaveReqVO {
     @Schema(description = "尾款截止缴纳日期")
     private LocalDate balanceDueDate;
 
-    @Schema(description = "报名状态(PENDING_DEPOSIT/DEPOSITED/PENDING_BALANCE/IN_PROGRESS/COMPLETED/CANCELLED/REFUNDING)", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
-    @NotEmpty(message = "报名状态(PENDING_DEPOSIT/DEPOSITED/PENDING_BALANCE/IN_PROGRESS/COMPLETED/CANCELLED/REFUNDING)不能为空")
+    @Schema(description = "报名状态(PENDING_DEPOSIT/DEPOSITED/PAID_OFF/MANUAL_PROCESSING/COMPLETED/CANCELLED)", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+    @NotEmpty(message = "报名状态(PENDING_DEPOSIT/DEPOSITED/PAID_OFF/MANUAL_PROCESSING/COMPLETED/CANCELLED)不能为空")
     private String enrollmentStatus;
-
-    @Schema(description = "是否已获得推荐权（支付定金后=1）", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = "是否已获得推荐权（支付定金后=1）不能为空")
-    private Boolean referralRightGranted;
 
     @Schema(description = "取消原因", example = "不对")
     private String cancelReason;

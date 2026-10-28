@@ -31,20 +31,6 @@ export function closeAuthModal() {
   });
 }
 
-// 打开分享弹框
-export function showShareModal() {
-  $store('modal').$patch((state) => {
-    state.share = true;
-  });
-}
-
-// 关闭分享弹框
-export function closeShareModal() {
-  $store('modal').$patch((state) => {
-    state.share = false;
-  });
-}
-
 // 打开快捷菜单
 export function showMenuTools() {
   $store('modal').$patch((state) => {
@@ -86,12 +72,6 @@ export function getSmsCode(event, mobile) {
     case 'resetPassword':
       scene = 4;
       break;
-    case 'changePassword':
-      scene = 3;
-      break;
-    case 'changeMobile':
-      scene = 2;
-      break;
     case 'smsLogin':
       scene = 1;
       break;
@@ -128,15 +108,4 @@ export function getSmsTimer(event, mobile = '') {
     }, 1000);
     return -duration.value.toString() + ' 秒';
   }
-}
-
-// 记录广告弹框历史
-export function saveAdvHistory(adv) {
-  const modal = $store('modal');
-
-  modal.$patch((state) => {
-    if (!state.advHistory.includes(adv.imgUrl)) {
-      state.advHistory.push(adv.imgUrl);
-    }
-  });
 }

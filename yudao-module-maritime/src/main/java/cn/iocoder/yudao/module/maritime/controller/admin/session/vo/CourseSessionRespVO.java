@@ -29,10 +29,6 @@ public class CourseSessionRespVO {
     @ExcelProperty("班级名称（可选，如：A班）")
     private String sessionName;
 
-    @Schema(description = "本期上课地点", requiredMode = Schema.RequiredMode.REQUIRED)
-    @ExcelProperty("本期上课地点")
-    private String location;
-
     @Schema(description = "本期课程天数", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("本期课程天数")
     private Integer durationDays;

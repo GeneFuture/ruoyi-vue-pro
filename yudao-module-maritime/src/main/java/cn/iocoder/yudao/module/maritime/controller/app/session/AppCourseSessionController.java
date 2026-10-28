@@ -1,13 +1,17 @@
 package cn.iocoder.yudao.module.maritime.controller.app.session;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.maritime.controller.app.session.vo.AppSessionDetailRespVO;
+import cn.iocoder.yudao.module.maritime.controller.app.session.vo.AppSessionPageReqVO;
+import cn.iocoder.yudao.module.maritime.controller.app.session.vo.AppSessionRespVO;
 import cn.iocoder.yudao.module.maritime.service.session.CourseSessionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.annotation.security.PermitAll;
+import jakarta.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,6 +32,13 @@ public class AppCourseSessionController {
     @PermitAll
     public CommonResult<AppSessionDetailRespVO> getSessionDetail(@RequestParam("id") Long id) {
         return success(courseSessionService.getCourseSessionForApp(id));
+    }
+
+    @GetMapping("/page")
+    @Operation(summary = "获取招生中班期分页（按月份/地点/证书类型筛选）")
+    @PermitAll
+    public CommonResult<PageResult<AppSessionRespVO>> getSessionPage(@Valid AppSessionPageReqVO pageReqVO) {
+        return success(courseSessionService.getCourseSessionPageForApp(pageReqVO));
     }
 
 }

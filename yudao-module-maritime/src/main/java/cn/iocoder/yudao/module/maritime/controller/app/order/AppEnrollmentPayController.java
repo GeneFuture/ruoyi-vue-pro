@@ -15,10 +15,11 @@ import jakarta.annotation.Resource;
 import jakarta.annotation.security.PermitAll;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import static cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants.BAD_REQUEST;
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception0;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 @Tag(name = "用户 APP - 报名支付")
@@ -33,7 +34,6 @@ public class AppEnrollmentPayController {
 
     @PostMapping("/pay-deposit")
     @Operation(summary = "发起定金支付（创建 pay 模块订单，返回 payOrderId 供前端调用微信支付）")
-    @PreAuthorize("@ss.hasPermission('maritime:enrollment-order:create')")
     public CommonResult<AppPayOrderRespVO> payDeposit(@Valid @RequestBody AppPayDepositReqVO reqVO) {
         Long memberId = SecurityFrameworkUtils.getLoginUserId();
         AppPayOrderRespVO respVO = enrollmentService.payDeposit(reqVO.getOrderId(), memberId);
@@ -43,7 +43,6 @@ public class AppEnrollmentPayController {
     @GetMapping("/status")
     @Operation(summary = "查询定金支付结果（前端轮询，处理微信回调延迟）")
     @Parameter(name = "payOrderId", description = "pay 模块支付单ID", required = true)
-    @PreAuthorize("@ss.hasPermission('maritime:enrollment-order:query')")
     public CommonResult<AppPayOrderStatusRespVO> getPayOrderStatus(@RequestParam("payOrderId") Long payOrderId) {
         Long memberId = SecurityFrameworkUtils.getLoginUserId();
         return success(enrollmentService.getPayOrderStatus(payOrderId, memberId));
@@ -51,29 +50,22 @@ public class AppEnrollmentPayController {
 
     @PostMapping("/pay-balance")
     @Operation(summary = "发起尾款支付（创建 pay 模块订单，返回 payOrderId 供前端调用微信支付）")
-    @PreAuthorize("@ss.hasPermission('maritime:enrollment-order:create')")
     public CommonResult<AppPayOrderRespVO> payBalance(@Valid @RequestBody AppPayBalanceReqVO reqVO) {
         Long memberId = SecurityFrameworkUtils.getLoginUserId();
         return success(enrollmentService.payBalance(reqVO, memberId));
     }
 
     @PostMapping("/notify")
-    @Operation(summary = "定金支付成功回调（由 pay 模块服务端调用，无需登录）")
+    @Operation(summary = "支付成功回调（由 pay 模块服务端调用，无需登录；内部按订单类型分流）")
     @PermitAll
-    public CommonResult<Boolean> handleDepositPaidNotify(@RequestBody PayOrderNotifyReqDTO notifyReqDTO) {
-        log.info("[handleDepositPaidNotify] merchantOrderId={}, payOrderId={}",
+    public CommonResult<Boolean> handlePayNotify(@RequestBody PayOrderNotifyReqDTO notifyReqDTO) {
+        // 必须携带支付单号：否则 service 会跳过支付单校验，存在伪造回调风险
+        if (notifyReqDTO.getPayOrderId() == null) {
+            throw exception0(BAD_REQUEST.getCode(), "支付单号不能为空");
+        }
+        log.info("[handlePayNotify] merchantOrderId={}, payOrderId={}",
                 notifyReqDTO.getMerchantOrderId(), notifyReqDTO.getPayOrderId());
-        enrollmentService.handleDepositPaid(notifyReqDTO.getMerchantOrderId(), notifyReqDTO.getPayOrderId());
-        return success(true);
-    }
-
-    @PostMapping("/notify-balance")
-    @Operation(summary = "尾款支付成功回调（由 pay 模块服务端调用，无需登录）")
-    @PermitAll
-    public CommonResult<Boolean> handleBalancePaidNotify(@RequestBody PayOrderNotifyReqDTO notifyReqDTO) {
-        log.info("[handleBalancePaidNotify] merchantOrderId={}, payOrderId={}",
-                notifyReqDTO.getMerchantOrderId(), notifyReqDTO.getPayOrderId());
-        enrollmentService.handleBalancePaid(notifyReqDTO.getMerchantOrderId(), notifyReqDTO.getPayOrderId());
+        enrollmentService.handlePayNotify(notifyReqDTO.getMerchantOrderId(), notifyReqDTO.getPayOrderId());
         return success(true);
     }
 
