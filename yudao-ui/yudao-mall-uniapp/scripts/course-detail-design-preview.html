@@ -1,0 +1,787 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>课程详情页视觉稿</title>
+<style>
+  /* ============================================================
+     评审板外壳（跟随阅读主题）
+     设备屏幕内部恒为浅色 —— 小程序 sys.mode 硬编码为 light，
+     刻意单主题，故不参与明暗切换，颜色一律显式写死
+     ============================================================ */
+  :root {
+    --bg: #ffffff;
+    --surface: #f6f7f9;
+    --ink: #12161f;
+    --ink-2: #5b6472;
+    --ink-3: #8a93a3;
+    --line: #e4e8ef;
+    --accent: #1e5eff;
+    --accent-soft: rgba(30, 94, 255, 0.08);
+    --font: -apple-system, BlinkMacSystemFont, 'SF Pro SC', 'PingFang SC', 'Hiragino Sans GB',
+      'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --bg: #0f1116;
+      --surface: #161920;
+      --ink: #eceef2;
+      --ink-2: #a2abb9;
+      --ink-3: #78818f;
+      --line: #262b35;
+      --accent: #6f9bff;
+      --accent-soft: rgba(111, 155, 255, 0.14);
+    }
+  }
+
+  :root[data-theme='dark'] {
+    --bg: #0f1116;
+    --surface: #161920;
+    --ink: #eceef2;
+    --ink-2: #a2abb9;
+    --ink-3: #78818f;
+    --line: #262b35;
+    --accent: #6f9bff;
+    --accent-soft: rgba(111, 155, 255, 0.14);
+  }
+
+  body {
+    margin: 0;
+    padding-block: 40px 72px;
+    padding-inline: 20px;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .board {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* ---- 板头 ---- */
+  .board-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .board-title {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  .board-sub {
+    margin: 6px 0 0;
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+
+  .board-meta {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .board-lede {
+    max-width: 66ch;
+    margin: 24px 0 0;
+    font-size: 15px;
+    color: var(--ink-2);
+  }
+
+  /* ---- 通用小节 ---- */
+  .section {
+    margin-top: 48px;
+  }
+
+  .section-title {
+    margin: 0 0 4px;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .section-note {
+    margin: 0 0 20px;
+    font-size: 13px;
+    color: var(--ink-3);
+  }
+
+  /* ---- 改动清单 ---- */
+  .changes {
+    display: grid;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .change {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 0 20px;
+    padding: 18px 20px;
+    background: var(--surface);
+  }
+
+  .change-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    padding-top: 3px;
+  }
+
+  .change-body h3 {
+    margin: 0 0 6px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .change-body p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+
+  .change-body code {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--accent-soft);
+    color: var(--ink);
+  }
+
+  /* ---- 令牌表 ---- */
+  .tokens {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .token {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px 6px 8px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-2);
+  }
+
+  .swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    flex-shrink: 0;
+  }
+
+  /* ---- 屏幕 ---- */
+  .screens {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    margin-top: 20px;
+  }
+
+  .screen {
+    width: 375px;
+    max-width: 100%;
+  }
+
+  .screen-cap {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  .screen-name {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .screen-why {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+  }
+
+  /* 设备屏幕：恒为浅色，颜色显式写死 */
+  .phone {
+    width: 100%;
+    background: #f6f6f6;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .phone-nav {
+    height: 44px;
+    background: #fff;
+    border-bottom: 1px solid #e8ebf0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    font-weight: 500;
+    color: #12161f;
+  }
+
+  /* ============================================================
+     以下为课程详情页本身，px = rpx / 2，数值与 .vue 中一一对应
+     ============================================================ */
+  .p-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 210px;
+    background: linear-gradient(135deg, #2e6bff, #0b3b8c);
+  }
+
+  .p-hero-cert {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: rgba(255, 255, 255, 0.92);
+    text-align: center;
+    padding: 0 20px;
+  }
+
+  .p-band {
+    padding: 32px 20px 0;
+    background: #fff;
+  }
+
+  .p-band-intro {
+    padding-top: 24px;
+  }
+
+  .p-band-gray {
+    background: #f5f7fa;
+  }
+
+  .p-title {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.24;
+    color: #12161f;
+  }
+
+  .p-cert {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #5b6472;
+  }
+
+  .p-floor-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .p-floor-title {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.018em;
+    line-height: 1.2;
+    color: #12161f;
+  }
+
+  .p-card {
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(20, 30, 60, 0.06);
+  }
+
+  .p-card-list {
+    padding: 4px 16px;
+  }
+
+  .p-card-detail {
+    padding: 16px;
+  }
+
+  /* 班期卡 */
+  .p-session {
+    padding: 16px;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(20, 30, 60, 0.06);
+  }
+
+  .p-session + .p-session {
+    margin-top: 12px;
+  }
+
+  .p-session-name {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.012em;
+    line-height: 1.32;
+    color: #12161f;
+  }
+
+  .p-meta {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #5b6472;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .p-session-name + .p-meta {
+    margin-top: 8px;
+  }
+
+  .p-seats {
+    display: flex;
+    align-items: center;
+    margin-top: 12px;
+  }
+
+  .p-seats-track {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: #e8ebf0;
+    overflow: hidden;
+  }
+
+  .p-seats-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: #1e5eff;
+  }
+
+  .p-seats-text {
+    margin-left: 8px;
+    font-size: 11px;
+    color: #5b6472;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .p-foot {
+    display: flex;
+    align-items: baseline;
+    margin-top: 12px;
+  }
+
+  .p-price {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: #12161f;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .p-deposit {
+    margin-left: 8px;
+    font-size: 12px;
+    color: #5b6472;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .p-save {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #f83528;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* 报名条件 */
+  .p-condition {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px 0;
+  }
+
+  .p-condition + .p-condition {
+    border-top: 1px solid #e8ebf0;
+  }
+
+  .p-condition-index {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    margin-right: 12px;
+    border-radius: 50%;
+    background: #f5f7fa;
+    color: #12161f;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .p-condition-text {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #5b6472;
+  }
+
+  /* 课程详情富文本：对应 .vue 中的 DETAIL_TAG_STYLE */
+  .p-rich {
+    font-size: 14px;
+    color: #5b6472;
+    line-height: 1.6;
+  }
+
+  .p-rich h3 {
+    margin: 24px 0 8px;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.012em;
+    line-height: 1.32;
+    color: #12161f;
+  }
+
+  .p-rich h3:first-child {
+    margin-top: 0;
+  }
+
+  .p-rich p {
+    margin: 0 0 12px;
+  }
+
+  .p-rich ul {
+    margin: 0 0 12px;
+    padding-left: 16px;
+  }
+
+  .p-rich li {
+    margin-bottom: 8px;
+  }
+
+  .p-tail {
+    height: 32px;
+  }
+
+  /* 空态：整段不渲染后，班期区之后直接接报名条件 */
+  .p-absent {
+    margin: 0 20px;
+    padding: 12px 16px;
+    border: 1px dashed #c8cede;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    color: #5b6472;
+    text-align: center;
+  }
+
+  @media (max-width: 860px) {
+    .change {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+
+    .change-tag {
+      padding-top: 0;
+    }
+  }
+</style>
+
+<div class="board">
+  <header class="board-head">
+    <div>
+      <h1 class="board-title">课程详情页视觉稿</h1>
+      <p class="board-sub">小程序 · pages/maritime-sub/course-detail.vue</p>
+    </div>
+    <div class="board-meta">375px 实尺 · 1px = 2rpx</div>
+  </header>
+
+  <p class="board-lede">
+    本次只改展示层：班期区按数据有无整段隐藏，报名条件与课程详情从「一整块纯文本」改为结构化排版。
+    配色、字号、圆角、投影全部取自首页
+    <code style="font-family: var(--mono); font-size: 13px">pages/maritime/index.vue</code>
+    已有的设计令牌，不引入新色值。下方屏幕为真实种子数据。
+  </p>
+
+  <section class="section">
+    <h2 class="section-title">逐条改动</h2>
+    <p class="section-note">对照右侧屏幕，自上而下</p>
+
+    <div class="changes">
+      <div class="change">
+        <div class="change-tag">班期区</div>
+        <div class="change-body">
+          <h3>没有班期时整段不渲染</h3>
+          <p>
+            原来无论有没有班期都会占一块位置，里面放一个「暂无可报名班期」的空态。现在改成
+            <code>v-if="sessions.length"</code>：标题、卡片、空态一起消失，后面的报名条件直接接上来。
+            右屏 B 是这个状态。
+          </p>
+        </div>
+      </div>
+
+      <div class="change">
+        <div class="change-tag">报名条件</div>
+        <div class="change-body">
+          <h3>纯文本 → 带序号的列表</h3>
+          <p>
+            后台存的是 <code>1. xxx；\n2. yyy；</code> 这样一行一条的纯文本，直接塞进
+            <code>&lt;view&gt;</code> 后换行被折叠成空格，四条挤成一整段——这是「文案乱」的直接原因。
+            现在按换行拆条、去掉序号和行尾标点，每条一行、序号做成圆形角标。只有一条时不显示角标。
+          </p>
+        </div>
+      </div>
+
+      <div class="change">
+        <div class="change-tag">课程详情</div>
+        <div class="change-body">
+          <h3>rich-text → mp-html + 统一排版</h3>
+          <p>
+            原来的 <code>&lt;rich-text&gt;</code> 不继承页面样式，<code>&lt;h3&gt;</code> 用的是浏览器默认边距，
+            和卡片内边距叠加后顶部空一大块。改用项目已有的 <code>mp-html</code>，通过
+            <code>tag-style</code> 给 h3 / p / ul / li 指定字号行高，并压掉首个标题的上边距。
+          </p>
+        </div>
+      </div>
+
+      <div class="change">
+        <div class="change-tag">整页</div>
+        <div class="change-body">
+          <h3>改用首页那套设计语言</h3>
+          <p>
+            原先用的是早期 <code>sessions.vue</code> 的风格（<code>#222/#666/#999</code>、
+            16rpx 圆角、无投影）。现改为首页 <code>index.vue</code> 的令牌：
+            近黑 <code>#12161f</code>、大圆角 <code>40rpx</code>、极淡投影、发丝分隔线，
+            标题字重 600 + 负字距，价格用 <code>tabular-nums</code>。
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2 class="section-title">设计令牌</h2>
+    <p class="section-note">全部来自首页已有的 scoped 变量，未新增</p>
+    <ul class="tokens">
+      <li class="token"><span class="swatch" style="background: #12161f"></span>$ink #12161f</li>
+      <li class="token"><span class="swatch" style="background: #5b6472"></span>$ink-2 #5b6472</li>
+      <li class="token"><span class="swatch" style="background: #8a93a3"></span>$ink-3 #8a93a3</li>
+      <li class="token"><span class="swatch" style="background: #e8ebf0"></span>$line #e8ebf0</li>
+      <li class="token"><span class="swatch" style="background: #f5f7fa"></span>$band #f5f7fa</li>
+      <li class="token"><span class="swatch" style="background: #1e5eff"></span>brand #1e5eff</li>
+      <li class="token">card 40rpx 圆角 · 0 4rpx 20rpx rgba(20,30,60,.06)</li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <h2 class="section-title">屏幕</h2>
+    <p class="section-note">左右两屏只差「有没有班期」，其余完全相同</p>
+
+    <div class="screens">
+      <!-- ============ A：有班期 ============ -->
+      <div class="screen">
+        <div class="screen-cap">
+          <span class="screen-name">A · 有可报班期</span>
+          <span class="screen-why">2 个 OPEN 班期</span>
+        </div>
+
+        <div class="phone">
+          <div class="phone-nav">课程详情</div>
+
+          <div class="p-hero">
+            <span class="p-hero-cert">适任培训</span>
+          </div>
+
+          <div class="p-band p-band-intro">
+            <div class="p-title">值班水手适任培训</div>
+            <div class="p-cert">适任培训</div>
+          </div>
+
+          <div class="p-band p-band-gray">
+            <div class="p-floor-head"><span class="p-floor-title">可报班期</span></div>
+
+            <div class="p-session">
+              <div class="p-session-name">9月一期</div>
+              <div class="p-meta">2026-09-27 ~ 2026-10-03 · 7天</div>
+              <div class="p-meta">青岛</div>
+              <div class="p-meta">报名截止 2026-09-24</div>
+              <div class="p-seats">
+                <div class="p-seats-track"><div class="p-seats-fill" style="width: 73%"></div></div>
+                <span class="p-seats-text">余 8/30</span>
+              </div>
+              <div class="p-foot">
+                <span class="p-price">¥3800</span>
+                <span class="p-deposit">定金 ¥500</span>
+              </div>
+              <div class="p-save">拼团立减 ¥100</div>
+            </div>
+
+            <div class="p-session">
+              <div class="p-session-name">10月一期</div>
+              <div class="p-meta">2026-10-12 ~ 2026-10-17 · 6天</div>
+              <div class="p-meta">上海</div>
+              <div class="p-meta">报名截止 2026-10-09</div>
+              <div class="p-seats">
+                <div class="p-seats-track"><div class="p-seats-fill" style="width: 20%"></div></div>
+                <span class="p-seats-text">余 20/25</span>
+              </div>
+              <div class="p-foot">
+                <span class="p-price">¥3200</span>
+                <span class="p-deposit">定金 ¥500</span>
+              </div>
+              <div class="p-save">拼团立减 ¥150</div>
+            </div>
+          </div>
+
+          <div class="p-band p-band-gray">
+            <div class="p-floor-head"><span class="p-floor-title">报名条件</span></div>
+            <div class="p-card p-card-list">
+              <div class="p-condition">
+                <span class="p-condition-index">1</span>
+                <span class="p-condition-text"
+                  >年满 16 周岁，符合海船船员健康检查标准（持有有效体检证明）</span
+                >
+              </div>
+              <div class="p-condition">
+                <span class="p-condition-index">2</span>
+                <span class="p-condition-text"
+                  >已完成基本安全培训（Z01）及保安意识、负有指定保安职责船员培训</span
+                >
+              </div>
+              <div class="p-condition">
+                <span class="p-condition-index">3</span>
+                <span class="p-condition-text"
+                  >学历与资历要求按航区（远洋/沿海等）执行《适任考试和发证规则》相关规定</span
+                >
+              </div>
+              <div class="p-condition">
+                <span class="p-condition-index">4</span>
+                <span class="p-condition-text">具体材料以现场审核为准</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-band p-band-gray">
+            <div class="p-floor-head"><span class="p-floor-title">课程详情</span></div>
+            <div class="p-card p-card-detail">
+              <div class="p-rich">
+                <h3>课程简介</h3>
+                <p>
+                  值班水手是甲板部基础值班岗位，承担操舵、航行值班、系离泊作业与船舶保养等职责，是进入远洋甲板职业的起点。本课程依据《海船船员培训大纲（2021
+                  版）》设置，理论结合实操，帮助学员系统掌握甲板值班核心技能，一次性通过海事局适任考试与评估。
+                </p>
+                <h3>培训内容</h3>
+                <ul>
+                  <li>船舶基础知识与船舶避碰基本知识</li>
+                  <li>航海基础知识与航行值班规范</li>
+                  <li>锚泊作业、系泊操作与值班</li>
+                  <li>货物作业辅助与船舶日常保养</li>
+                  <li>船艺技能（绳结、撇缆、甲板工艺）</li>
+                  <li>海洋环境保护基本知识</li>
+                  <li>水手英语听力与会话</li>
+                </ul>
+                <h3>考核方式</h3>
+                <p>理论考试 + 实操评估（船艺评估、水手英语听力与会话评估）。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-tail"></div>
+        </div>
+      </div>
+
+      <!-- ============ B：无班期 ============ -->
+      <div class="screen">
+        <div class="screen-cap">
+          <span class="screen-name">B · 无可报班期</span>
+          <span class="screen-why">openSessions 为空</span>
+        </div>
+
+        <div class="phone">
+          <div class="phone-nav">课程详情</div>
+
+          <div class="p-hero">
+            <span class="p-hero-cert">适任培训</span>
+          </div>
+
+          <div class="p-band p-band-intro">
+            <div class="p-title">值班水手适任培训</div>
+            <div class="p-cert">适任培训</div>
+          </div>
+
+          <div style="background: #f5f7fa; padding: 32px 0 0">
+            <div class="p-absent">「可报班期」整段不渲染 —— 标题、卡片、空态都不占位</div>
+          </div>
+
+          <div class="p-band p-band-gray">
+            <div class="p-floor-head"><span class="p-floor-title">报名条件</span></div>
+            <div class="p-card p-card-list">
+              <div class="p-condition">
+                <span class="p-condition-index">1</span>
+                <span class="p-condition-text"
+                  >年满 16 周岁，符合海船船员健康检查标准（持有有效体检证明）</span
+                >
+              </div>
+              <div class="p-condition">
+                <span class="p-condition-index">2</span>
+                <span class="p-condition-text"
+                  >已完成基本安全培训（Z01）及保安意识、负有指定保安职责船员培训</span
+                >
+              </div>
+              <div class="p-condition">
+                <span class="p-condition-index">3</span>
+                <span class="p-condition-text"
+                  >学历与资历要求按航区（远洋/沿海等）执行《适任考试和发证规则》相关规定</span
+                >
+              </div>
+              <div class="p-condition">
+                <span class="p-condition-index">4</span>
+                <span class="p-condition-text">具体材料以现场审核为准</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-band p-band-gray">
+            <div class="p-floor-head"><span class="p-floor-title">课程详情</span></div>
+            <div class="p-card p-card-detail">
+              <div class="p-rich">
+                <h3>课程简介</h3>
+                <p>
+                  值班水手是甲板部基础值班岗位，承担操舵、航行值班、系离泊作业与船舶保养等职责，是进入远洋甲板职业的起点。
+                </p>
+                <h3>培训内容</h3>
+                <ul>
+                  <li>船舶基础知识与船舶避碰基本知识</li>
+                  <li>航海基础知识与航行值班规范</li>
+                  <li>锚泊作业、系泊操作与值班</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-tail"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

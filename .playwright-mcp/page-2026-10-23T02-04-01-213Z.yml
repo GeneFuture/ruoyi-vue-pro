@@ -1,0 +1,338 @@
+- generic [ref=f2e11]:
+  - generic [ref=f2e12]:
+    - link "芋道管理系统" [ref=f2e14] [cursor=pointer]:
+      - /url: /
+    - generic [ref=f2e18]:
+      - menubar [ref=f2e21]:
+        - menuitem "首页" [ref=f2e22] [cursor=pointer]
+        - menuitem "作者动态" [ref=f2e27] [cursor=pointer]
+        - menuitem "Boot 开发文档" [ref=f2e32] [cursor=pointer]
+        - menuitem "Cloud 开发文档" [ref=f2e37] [cursor=pointer]
+        - menuitem "系统管理" [ref=f2e42]
+        - menuitem "海员培训" [expanded] [ref=f2e51]:
+          - menu [ref=f2e487]:
+            - menuitem "最新动态管理" [ref=f2e488] [cursor=pointer]
+            - menuitem "佣金账户管理" [ref=f2e490] [cursor=pointer]
+            - menuitem "佣金记录管理" [ref=f2e492] [cursor=pointer]
+            - menuitem "报名订单管理" [ref=f2e494] [cursor=pointer]
+            - menuitem "报名管理" [ref=f2e496] [cursor=pointer]
+            - menuitem "拼团成员管理" [ref=f2e498] [cursor=pointer]
+            - menuitem "拼团记录管理" [ref=f2e500] [cursor=pointer]
+            - menuitem "推荐关系管理" [ref=f2e502] [cursor=pointer]
+            - menuitem "退费申请管理" [ref=f2e504] [cursor=pointer]
+            - menuitem "风控黑名单管理" [ref=f2e506] [cursor=pointer]
+            - menuitem "站内消息管理" [ref=f2e508] [cursor=pointer]
+            - menuitem "主页配置" [ref=f2e510] [cursor=pointer]
+            - menuitem "主页配置" [ref=f2e512] [cursor=pointer]
+            - menuitem "海员会员管理" [ref=f2e514] [cursor=pointer]
+            - menuitem "风控事件管理" [ref=f2e516] [cursor=pointer]
+            - menuitem "课程管理" [ref=f2e518] [cursor=pointer]
+            - menuitem "费用模板" [ref=f2e520] [cursor=pointer]
+            - menuitem "班期管理" [active] [ref=f2e522] [cursor=pointer]
+            - menuitem "学校管理" [ref=f2e524] [cursor=pointer]
+        - menuitem "基础设施" [ref=f2e60]
+        - menuitem "支付管理" [ref=f2e69]
+        - menuitem "报表管理" [ref=f2e80]
+        - menuitem "工作流程" [ref=f2e90]
+        - menuitem "会员中心" [ref=f2e99]
+        - menuitem "商城系统" [ref=f2e112]
+        - menuitem "公众号管理" [ref=f2e121]
+        - menuitem "CRM 系统" [ref=f2e131]
+        - menuitem "ERP 系统" [ref=f2e140]
+        - menuitem "AI 大模型" [ref=f2e149]
+        - menuitem "IoT 物联网" [ref=f2e158]
+        - menuitem "MES 系统" [ref=f2e167]
+      - generic [ref=f2e527] [cursor=pointer]
+  - generic [ref=f2e180]:
+    - generic [ref=f2e181]:
+      - generic [ref=f2e182]:
+        - generic [ref=f2e183]:
+          - generic [ref=f2e184] [cursor=pointer]
+          - navigation "面包屑" [ref=f2e188]:
+            - generic [ref=f2e528]:
+              - link "海员培训" [ref=f2e529]
+              - text: /
+            - link "班期管理" [ref=f2e535]
+        - generic [ref=f2e195]:
+          - generic [ref=f2e198]:
+            - generic:
+              - combobox [ref=f2e200]
+              - generic [ref=f2e201]: 请选择租户
+            - generic [ref=f2e203] [cursor=pointer]
+          - generic [ref=f2e206] [cursor=pointer]
+          - generic [ref=f2e214]:
+            - generic:
+              - combobox [ref=f2e216]
+              - generic: 请输入菜单内容
+          - button [ref=f2e218] [cursor=pointer]
+          - button [ref=f2e222] [cursor=pointer]
+          - generic [ref=f2e225] [cursor=pointer]
+          - generic [ref=f2e232] [cursor=pointer]
+          - button "芋道源码" [ref=f2e238] [cursor=pointer]
+      - generic [ref=f2e241]:
+        - generic [ref=f2e242] [cursor=pointer]
+        - generic [ref=f2e250]:
+          - button "首页" [ref=f2e252] [cursor=pointer]
+          - button "班期管理" [ref=f2e537] [cursor=pointer]
+        - generic [ref=f2e257] [cursor=pointer]
+        - generic [ref=f2e261] [cursor=pointer]
+        - button [ref=f2e266] [cursor=pointer]
+    - generic [ref=f2e270]:
+      - generic [ref=f2e541]:
+        - generic [ref=f2e542]:
+          - generic [ref=f2e543]: 班期编号
+          - textbox "班期编号" [ref=f2e547]:
+            - /placeholder: 请输入班期编号
+        - generic [ref=f2e548]:
+          - generic [ref=f2e549]: 班级名称
+          - textbox "班级名称" [ref=f2e553]:
+            - /placeholder: 请输入班级名称
+        - generic [ref=f2e554]:
+          - generic [ref=f2e555]: 班期状态
+          - generic [ref=f2e558] [cursor=pointer]:
+            - generic:
+              - combobox "班期状态" [ref=f2e560]
+              - generic [ref=f2e561]: 请选择状态
+        - generic [ref=f2e567]:
+          - button "搜索" [ref=f2e568] [cursor=pointer]
+          - button "重置" [ref=f2e573] [cursor=pointer]
+          - button "展开" [ref=f2e578] [cursor=pointer]
+        - generic [ref=f2e584]:
+          - button "新增" [ref=f2e585] [cursor=pointer]
+          - button "导出" [ref=f2e590] [cursor=pointer]
+          - button "批量删除" [disabled] [ref=f2e595]
+      - generic [ref=f2e601]:
+        - generic [ref=f2e603]:
+          - table [ref=f2e605]:
+            - rowgroup [ref=f2e616]:
+              - row [ref=f2e617]:
+                - columnheader [ref=f2e618]:
+                  - generic "选择所有行" [ref=f2e620] [cursor=pointer]:
+                    - generic [ref=f2e621]:
+                      - checkbox "选择所有行"
+                - columnheader "班级 / 班期编号" [ref=f2e623]
+                - columnheader "课程" [ref=f2e625]
+                - columnheader "班期时间" [ref=f2e627]
+                - columnheader "讲师" [ref=f2e629]
+                - columnheader "报名截止" [ref=f2e631]
+                - columnheader "报名进度" [ref=f2e633]
+                - columnheader "状态" [ref=f2e635]
+                - columnheader "操作" [ref=f2e637]
+          - table [ref=f2e643]:
+            - rowgroup [ref=f2e654]:
+              - row [ref=f2e655]:
+                - cell [ref=f2e656]:
+                  - generic "选择当前行" [ref=f2e658] [cursor=pointer]:
+                    - generic [ref=f2e659]:
+                      - checkbox "选择当前行"
+                - cell "值班水手-10月班 2026-10-QD-002" [ref=f2e661]:
+                  - generic [ref=f2e662]:
+                    - generic [ref=f2e663]: 值班水手-10月班
+                    - generic [ref=f2e664]: 2026-10-QD-002
+                - cell "值班水手培训" [ref=f2e665]
+                - cell "2026-10-16 ~ 2026-10-30 共 14 天" [ref=f2e667]:
+                  - generic [ref=f2e668]:
+                    - generic [ref=f2e669]: 2026-10-16 ~ 2026-10-30
+                    - generic [ref=f2e670]: 共 14 天
+                - cell "张船长" [ref=f2e671]
+                - cell "2026-10-13" [ref=f2e673]
+                - cell "3 / 20 15" [ref=f2e675]:
+                  - generic [ref=f2e676]:
+                    - generic [ref=f2e677]: 3 / 20
+                    - progressbar [ref=f2e678]
+                - cell "招生中" [ref=f2e682]
+                - cell [ref=f2e686]:
+                  - generic [ref=f2e687]:
+                    - button "编辑" [ref=f2e688] [cursor=pointer]
+                    - button "删除" [ref=f2e690] [cursor=pointer]
+              - row [ref=f2e692]:
+                - cell [ref=f2e693]:
+                  - generic "选择当前行" [ref=f2e695] [cursor=pointer]:
+                    - generic [ref=f2e696]:
+                      - checkbox "选择当前行"
+                - cell "10月一期 2026-10-SH-001" [ref=f2e698]:
+                  - generic [ref=f2e699]:
+                    - generic [ref=f2e700]: 10月一期
+                    - generic [ref=f2e701]: 2026-10-SH-001
+                - cell "基本安全更新（Z01）" [ref=f2e702]
+                - cell "2026-10-12 ~ 2026-10-17 共 6 天" [ref=f2e704]:
+                  - generic [ref=f2e705]:
+                    - generic [ref=f2e706]: 2026-10-12 ~ 2026-10-17
+                    - generic [ref=f2e707]: 共 6 天
+                - cell "—" [ref=f2e708]
+                - cell "2026-10-09" [ref=f2e710]
+                - cell "5 / 25 20" [ref=f2e712]:
+                  - generic [ref=f2e713]:
+                    - generic [ref=f2e714]: 5 / 25
+                    - progressbar [ref=f2e715]
+                - cell "招生中" [ref=f2e719]
+                - cell [ref=f2e723]:
+                  - generic [ref=f2e724]:
+                    - button "编辑" [ref=f2e725] [cursor=pointer]
+                    - button "删除" [ref=f2e727] [cursor=pointer]
+              - row [ref=f2e729]:
+                - cell [ref=f2e730]:
+                  - generic "选择当前行" [ref=f2e732] [cursor=pointer]:
+                    - generic [ref=f2e733]:
+                      - checkbox "选择当前行"
+                - cell "9月二期 2026-09-DL-001" [ref=f2e735]:
+                  - generic [ref=f2e736]:
+                    - generic [ref=f2e737]: 9月二期
+                    - generic [ref=f2e738]: 2026-09-DL-001
+                - cell "一年制三副培训" [ref=f2e739]
+                - cell "2026-10-04 ~ 2026-10-08 共 5 天" [ref=f2e741]:
+                  - generic [ref=f2e742]:
+                    - generic [ref=f2e743]: 2026-10-04 ~ 2026-10-08
+                    - generic [ref=f2e744]: 共 5 天
+                - cell "—" [ref=f2e745]
+                - cell "2026-10-01" [ref=f2e747]
+                - cell "12 / 30 40" [ref=f2e749]:
+                  - generic [ref=f2e750]:
+                    - generic [ref=f2e751]: 12 / 30
+                    - progressbar [ref=f2e752]
+                - cell "招生中" [ref=f2e756]
+                - cell [ref=f2e760]:
+                  - generic [ref=f2e761]:
+                    - button "编辑" [ref=f2e762] [cursor=pointer]
+                    - button "删除" [ref=f2e764] [cursor=pointer]
+              - row [ref=f2e766]:
+                - cell [ref=f2e767]:
+                  - generic "选择当前行" [ref=f2e769] [cursor=pointer]:
+                    - generic [ref=f2e770]:
+                      - checkbox "选择当前行"
+                - cell "9月一期 2026-09-QD-001" [ref=f2e772]:
+                  - generic [ref=f2e773]:
+                    - generic [ref=f2e774]: 9月一期
+                    - generic [ref=f2e775]: 2026-09-QD-001
+                - cell "二管轮 / 三管轮航区扩大" [ref=f2e776]
+                - cell "2026-09-27 ~ 2026-10-03 共 7 天" [ref=f2e778]:
+                  - generic [ref=f2e779]:
+                    - generic [ref=f2e780]: 2026-09-27 ~ 2026-10-03
+                    - generic [ref=f2e781]: 共 7 天
+                - cell "—" [ref=f2e782]
+                - cell "2026-09-24" [ref=f2e784]
+                - cell "22 / 30 73" [ref=f2e786]:
+                  - generic [ref=f2e787]:
+                    - generic [ref=f2e788]: 22 / 30
+                    - progressbar [ref=f2e789]
+                - cell "招生中" [ref=f2e793]
+                - cell [ref=f2e797]:
+                  - generic [ref=f2e798]:
+                    - button "编辑" [ref=f2e799] [cursor=pointer]
+                    - button "删除" [ref=f2e801] [cursor=pointer]
+              - row [ref=f2e803]:
+                - cell [ref=f2e804]:
+                  - generic "选择当前行" [ref=f2e806] [cursor=pointer]:
+                    - generic [ref=f2e807]:
+                      - checkbox "选择当前行"
+                - cell "武汉航院9月班 2026-08-WH-01" [ref=f2e809]:
+                  - generic [ref=f2e810]:
+                    - generic [ref=f2e811]: 武汉航院9月班
+                    - generic [ref=f2e812]: 2026-08-WH-01
+                - cell "二管轮 / 三管轮航区扩大" [ref=f2e813]
+                - cell "2026-09-03 ~ 2026-08-28 共 11 天" [ref=f2e815]:
+                  - generic [ref=f2e816]:
+                    - generic [ref=f2e817]: 2026-09-03 ~ 2026-08-28
+                    - generic [ref=f2e818]: 共 11 天
+                - cell "—" [ref=f2e819]
+                - cell "2026-08-27" [ref=f2e821]
+                - cell "0 / 40 0" [ref=f2e823]:
+                  - generic [ref=f2e824]:
+                    - generic [ref=f2e825]: 0 / 40
+                    - progressbar [ref=f2e826]
+                - cell "招生中" [ref=f2e829]
+                - cell [ref=f2e833]:
+                  - generic [ref=f2e834]:
+                    - button "编辑" [ref=f2e835] [cursor=pointer]
+                    - button "删除" [ref=f2e837] [cursor=pointer]
+              - row [ref=f2e839]:
+                - cell [ref=f2e840]:
+                  - generic "选择当前行" [ref=f2e842] [cursor=pointer]:
+                    - generic [ref=f2e843]:
+                      - checkbox "选择当前行"
+                - cell "未命名班级 MED-202607-001" [ref=f2e845]:
+                  - generic [ref=f2e846]:
+                    - generic [ref=f2e847]: 未命名班级
+                    - generic [ref=f2e848]: MED-202607-001
+                - cell "一年制三副培训" [ref=f2e849]
+                - cell "2026-07-26 ~ 2026-07-29 共 3 天" [ref=f2e851]:
+                  - generic [ref=f2e852]:
+                    - generic [ref=f2e853]: 2026-07-26 ~ 2026-07-29
+                    - generic [ref=f2e854]: 共 3 天
+                - cell "张医生（船医背景，10年培训经验）" [ref=f2e855]
+                - cell "2026-07-21" [ref=f2e857]
+                - cell "0 / 20 0" [ref=f2e859]:
+                  - generic [ref=f2e860]:
+                    - generic [ref=f2e861]: 0 / 20
+                    - progressbar [ref=f2e862]
+                - cell "招生中" [ref=f2e865]
+                - cell [ref=f2e869]:
+                  - generic [ref=f2e870]:
+                    - button "编辑" [ref=f2e871] [cursor=pointer]
+                    - button "删除" [ref=f2e873] [cursor=pointer]
+              - row [ref=f2e875]:
+                - cell [ref=f2e876]:
+                  - generic "选择当前行" [ref=f2e878] [cursor=pointer]:
+                    - generic [ref=f2e879]:
+                      - checkbox "选择当前行"
+                - cell "B班（拼团班） STCW-202607-002" [ref=f2e881]:
+                  - generic [ref=f2e882]:
+                    - generic [ref=f2e883]: B班（拼团班）
+                    - generic [ref=f2e884]: STCW-202607-002
+                - cell "二管轮 / 三管轮航区扩大" [ref=f2e885]
+                - cell "2026-08-04 ~ 2026-08-09 共 5 天" [ref=f2e887]:
+                  - generic [ref=f2e888]:
+                    - generic [ref=f2e889]: 2026-08-04 ~ 2026-08-09
+                    - generic [ref=f2e890]: 共 5 天
+                - cell "李教官（15年培训经验）" [ref=f2e891]
+                - cell "2026-07-30" [ref=f2e893]
+                - cell "0 / 30 0" [ref=f2e895]:
+                  - generic [ref=f2e896]:
+                    - generic [ref=f2e897]: 0 / 30
+                    - progressbar [ref=f2e898]
+                - cell "招生中" [ref=f2e901]
+                - cell [ref=f2e905]:
+                  - generic [ref=f2e906]:
+                    - button "编辑" [ref=f2e907] [cursor=pointer]
+                    - button "删除" [ref=f2e909] [cursor=pointer]
+              - row [ref=f2e911]:
+                - cell [ref=f2e912]:
+                  - generic "选择当前行" [ref=f2e914] [cursor=pointer]:
+                    - generic [ref=f2e915]:
+                      - checkbox "选择当前行"
+                - cell "A班 STCW-202607-001" [ref=f2e917]:
+                  - generic [ref=f2e918]:
+                    - generic [ref=f2e919]: A班
+                    - generic [ref=f2e920]: STCW-202607-001
+                - cell "二管轮 / 三管轮航区扩大" [ref=f2e921]
+                - cell "2026-07-19 ~ 2026-07-24 共 5 天" [ref=f2e923]:
+                  - generic [ref=f2e924]:
+                    - generic [ref=f2e925]: 2026-07-19 ~ 2026-07-24
+                    - generic [ref=f2e926]: 共 5 天
+                - cell "王教官（20年远洋船员经验）" [ref=f2e927]
+                - cell "2026-07-15" [ref=f2e929]
+                - cell "0 / 30 0" [ref=f2e931]:
+                  - generic [ref=f2e932]:
+                    - generic [ref=f2e933]: 0 / 30
+                    - progressbar [ref=f2e934]
+                - cell "招生中" [ref=f2e937]
+                - cell [ref=f2e941]:
+                  - generic [ref=f2e942]:
+                    - button "编辑" [ref=f2e943] [cursor=pointer]
+                    - button "删除" [ref=f2e945] [cursor=pointer]
+        - generic [ref=f2e947]:
+          - generic [ref=f2e948]: 共 8 条
+          - generic [ref=f2e951] [cursor=pointer]:
+            - generic:
+              - combobox [ref=f2e953]
+              - generic [ref=f2e954]: 10条/页
+          - button "上一页" [disabled] [ref=f2e959]
+          - list [ref=f2e960]:
+            - listitem "第 1 页" [ref=f2e961]: "1"
+          - button "下一页" [disabled] [ref=f2e962]
+          - generic [ref=f2e963]:
+            - generic [ref=f2e964]: 前往
+            - spinbutton "页" [ref=f2e967]: "1"
+            - generic [ref=f2e968]: 页
+    - generic [ref=f2e482]: Copyright ©2026 芋道管理系统
+  - generic [ref=f2e483] [cursor=pointer]

@@ -20,6 +20,9 @@ public class FinanceSummaryRespVO {
     @Schema(description = "尾款收款总额（元）")
     private BigDecimal totalBalance;
 
+    @Schema(description = "全款收款总额（元）")
+    private BigDecimal totalFull;
+
     @Schema(description = "合计收款（元）")
     private BigDecimal totalRevenue;
 
@@ -48,6 +51,9 @@ public class FinanceSummaryRespVO {
 
         @Schema(description = "尾款收款（元）")
         private BigDecimal balanceAmount;
+
+        @Schema(description = "全款收款（元）")
+        private BigDecimal fullAmount;
 
         @Schema(description = "退款金额（元）")
         private BigDecimal refundAmount;

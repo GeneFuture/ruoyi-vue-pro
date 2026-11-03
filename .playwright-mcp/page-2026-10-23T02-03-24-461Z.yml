@@ -1,0 +1,48 @@
+- generic [ref=e4]:
+  - generic [ref=e5]:
+    - generic [ref=e6]: 芋道管理系统
+    - generic [ref=e9]:
+      - generic [ref=e10]: 欢迎使用本系统
+      - generic [ref=e11]: 开箱即用的中后台管理系统
+  - generic [ref=e12]:
+    - generic [ref=e14]:
+      - generic [ref=e15]:
+        - switch
+        - generic [ref=e16] [cursor=pointer]
+      - button [ref=e24] [cursor=pointer]
+    - generic [ref=e28]:
+      - heading "登录" [level=2] [ref=e32]
+      - textbox "请输入租户名称" [ref=e43]: 芋道源码
+      - textbox "请输入用户名" [ref=e54]: admin
+      - generic [ref=e59]:
+        - textbox "请输入密码" [ref=e66]: admin123
+        - generic [ref=e68] [cursor=pointer]
+      - generic [ref=e75]:
+        - generic [ref=e77] [cursor=pointer]:
+          - generic [ref=e78]:
+            - checkbox "记住我" [checked]
+          - generic [ref=e80]: 记住我
+        - generic [ref=e81]: 忘记密码?
+      - button "登录" [ref=e87] [cursor=pointer]
+      - generic [ref=e92]:
+        - button "手机登录" [ref=e94] [cursor=pointer]
+        - button "二维码登录" [ref=e97] [cursor=pointer]
+        - button "注册" [ref=e100] [cursor=pointer]
+      - separator [ref=e102]:
+        - generic [ref=e103]: 其他登录方式
+      - generic [ref=e107]:
+        - generic [ref=e108] [cursor=pointer]
+        - generic [ref=e110] [cursor=pointer]
+        - generic [ref=e112] [cursor=pointer]
+        - generic [ref=e114] [cursor=pointer]
+      - separator [ref=e116]:
+        - generic [ref=e117]: 萌新必读
+      - generic [ref=e121]:
+        - link "📚开发指南" [ref=e122] [cursor=pointer]:
+          - /url: https://doc.iocoder.cn/
+        - link "🔥视频教程" [ref=e124] [cursor=pointer]:
+          - /url: https://doc.iocoder.cn/video/
+        - link "⚡面试手册" [ref=e126] [cursor=pointer]:
+          - /url: https://www.iocoder.cn/Interview/good-collection/
+        - link "🤝外包咨询" [ref=e128] [cursor=pointer]:
+          - /url: http://static.yudao.iocoder.cn/mp/Aix9975.jpeg

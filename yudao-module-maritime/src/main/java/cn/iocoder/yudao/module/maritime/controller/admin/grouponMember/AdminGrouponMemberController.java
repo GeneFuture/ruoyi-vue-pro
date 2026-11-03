@@ -17,7 +17,6 @@ import java.io.IOException;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
@@ -26,7 +25,7 @@ import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import static cn.iocoder.yudao.framework.apilog.core.enums.OperateTypeEnum.*;
 
 import cn.iocoder.yudao.module.maritime.controller.admin.grouponMember.vo.*;
-import cn.iocoder.yudao.module.maritime.dal.dataobject.grouponMember.GrouponMemberDO;
+import cn.iocoder.yudao.module.maritime.service.grouponMember.AdminGrouponMemberQueryService;
 import cn.iocoder.yudao.module.maritime.service.grouponMember.GrouponMemberService;
 
 @Tag(name = "管理后台 - 拼团成员")
@@ -37,6 +36,9 @@ public class AdminGrouponMemberController {
 
     @Resource
     private GrouponMemberService grouponMemberService;
+
+    @Resource
+    private AdminGrouponMemberQueryService adminGrouponMemberQueryService;
 
     @PostMapping("/create")
     @Operation(summary = "创建拼团成员")
@@ -76,16 +78,14 @@ public class AdminGrouponMemberController {
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
     @PreAuthorize("@ss.hasPermission('maritime:groupon-member:query')")
     public CommonResult<GrouponMemberRespVO> getGrouponMember(@RequestParam("id") Long id) {
-        GrouponMemberDO grouponMember = grouponMemberService.getGrouponMember(id);
-        return success(BeanUtils.toBean(grouponMember, GrouponMemberRespVO.class));
+        return success(adminGrouponMemberQueryService.getGrouponMember(id));
     }
 
     @GetMapping("/page")
     @Operation(summary = "获得拼团成员分页")
     @PreAuthorize("@ss.hasPermission('maritime:groupon-member:query')")
     public CommonResult<PageResult<GrouponMemberRespVO>> getGrouponMemberPage(@Valid GrouponMemberPageReqVO pageReqVO) {
-        PageResult<GrouponMemberDO> pageResult = grouponMemberService.getGrouponMemberPage(pageReqVO);
-        return success(BeanUtils.toBean(pageResult, GrouponMemberRespVO.class));
+        return success(adminGrouponMemberQueryService.getGrouponMemberPage(pageReqVO));
     }
 
     @GetMapping("/export-excel")
@@ -95,10 +95,9 @@ public class AdminGrouponMemberController {
     public void exportGrouponMemberExcel(@Valid GrouponMemberPageReqVO pageReqVO,
               HttpServletResponse response) throws IOException {
         pageReqVO.setPageSize(PageParam.PAGE_SIZE_NONE);
-        List<GrouponMemberDO> list = grouponMemberService.getGrouponMemberPage(pageReqVO).getList();
-        // 导出 Excel
-        ExcelUtils.write(response, "拼团成员.xls", "数据", GrouponMemberRespVO.class,
-                        BeanUtils.toBean(list, GrouponMemberRespVO.class));
+        List<GrouponMemberRespVO> list = adminGrouponMemberQueryService
+                .getGrouponMemberPage(pageReqVO).getList();
+        ExcelUtils.write(response, "拼团成员.xls", "数据", GrouponMemberRespVO.class, list);
     }
 
 }

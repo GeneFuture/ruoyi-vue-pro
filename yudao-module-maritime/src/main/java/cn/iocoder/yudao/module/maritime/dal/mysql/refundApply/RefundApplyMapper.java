@@ -10,6 +10,7 @@ import cn.iocoder.yudao.module.maritime.dal.dataobject.refundApply.RefundApplyDO
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 import cn.iocoder.yudao.module.maritime.controller.admin.refundApply.vo.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -68,5 +69,35 @@ public interface RefundApplyMapper extends BaseMapperX<RefundApplyDO> {
             "WHERE apply_status = 'REFUNDED' AND refund_time >= #{start} AND refund_time <= #{end} AND deleted = 0")
     BigDecimal sumRefundedAmountByRefundTimeBetween(@Param("start") LocalDateTime start,
                                                     @Param("end") LocalDateTime end);
+
+    /** 按退款到账日期汇总资金流出（资金流水页用） */
+    @Select("SELECT DATE(refund_time) AS statDate, " +
+            "COALESCE(SUM(refund_amount), 0) AS refundAmount, " +
+            "COUNT(*) AS refundCount " +
+            "FROM maritime_refund_apply " +
+            "WHERE apply_status = 'REFUNDED' AND deleted = 0 " +
+            "AND refund_time >= #{start} AND refund_time < #{end} " +
+            "GROUP BY DATE(refund_time) ORDER BY statDate")
+    List<Map<String, Object>> sumRefundedAmountGroupByDateBetween(@Param("start") LocalDateTime start,
+                                                                  @Param("end") LocalDateTime end);
+
+    /** 按班期 + 退款到账时间汇总月度退款（财务汇总班期明细用，口径与总退款一致） */
+    @Select("SELECT e.session_id AS sessionId, COALESCE(SUM(r.refund_amount), 0) AS total " +
+            "FROM maritime_refund_apply r " +
+            "INNER JOIN maritime_enrollment e ON e.id = r.enrollment_id AND e.deleted = 0 " +
+            "WHERE r.apply_status = 'REFUNDED' AND r.deleted = 0 " +
+            "AND r.refund_time >= #{start} AND r.refund_time <= #{end} " +
+            "GROUP BY e.session_id")
+    List<Map<String, Object>> sumRefundedAmountGroupBySessionBetween(@Param("start") LocalDateTime start,
+                                                                    @Param("end") LocalDateTime end);
+
+    /**
+     * CAS 更新申请状态：只有 PENDING 才能流转，防止审核/拒绝并发重复处理
+     *
+     * @return 影响行数，0 表示已被其他操作处理
+     */
+    @Update("UPDATE maritime_refund_apply SET apply_status = #{newStatus} " +
+            "WHERE id = #{id} AND apply_status = 'PENDING' AND deleted = 0")
+    int updateStatusIfPending(@Param("id") Long id, @Param("newStatus") String newStatus);
 
 }

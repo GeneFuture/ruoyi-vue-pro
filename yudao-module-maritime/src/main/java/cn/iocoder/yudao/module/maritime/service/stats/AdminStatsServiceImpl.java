@@ -66,7 +66,9 @@ public class AdminStatsServiceImpl implements AdminStatsService {
                 enrollmentOrderMapper.sumPaidAmountByTypeAndPayTimeBetween("DEPOSIT", monthStart, monthEnd));
         BigDecimal monthBalance = nullSafe(
                 enrollmentOrderMapper.sumPaidAmountByTypeAndPayTimeBetween("BALANCE", monthStart, monthEnd));
-        vo.setMonthTotalRevenue(monthDeposit.add(monthBalance));
+        BigDecimal monthFull = nullSafe(
+                enrollmentOrderMapper.sumPaidAmountByTypeAndPayTimeBetween("FULL", monthStart, monthEnd));
+        vo.setMonthTotalRevenue(monthDeposit.add(monthBalance).add(monthFull));
         vo.setMonthSuccessGroupons(grouponRecordMapper.countSucceededByTimeBetween(monthStart, monthEnd));
 
         // 班期招生进度
@@ -133,17 +135,20 @@ public class AdminStatsServiceImpl implements AdminStatsService {
                 enrollmentOrderMapper.sumPaidAmountByTypeAndPayTimeBetween("DEPOSIT", start, end));
         BigDecimal totalBalance = nullSafe(
                 enrollmentOrderMapper.sumPaidAmountByTypeAndPayTimeBetween("BALANCE", start, end));
+        BigDecimal totalFull = nullSafe(
+                enrollmentOrderMapper.sumPaidAmountByTypeAndPayTimeBetween("FULL", start, end));
         BigDecimal totalRefund = nullSafe(refundApplyMapper.sumRefundedAmountByRefundTimeBetween(start, end));
 
         vo.setTotalDeposit(totalDeposit);
         vo.setTotalBalance(totalBalance);
-        vo.setTotalRevenue(totalDeposit.add(totalBalance));
+        vo.setTotalFull(totalFull);
+        vo.setTotalRevenue(totalDeposit.add(totalBalance).add(totalFull));
         vo.setTotalRefund(totalRefund);
-        vo.setNetRevenue(totalDeposit.add(totalBalance).subtract(totalRefund));
+        vo.setNetRevenue(totalDeposit.add(totalBalance).add(totalFull).subtract(totalRefund));
 
         // 各班期明细：按月份聚合查询，避免 N+2 per-session 循环，且只统计本月数据
         List<Map<String, Object>> allPaidRows = enrollmentOrderMapper.sumPaidAmountGroupBySessionAndTypeBetween(start, end);
-        List<Map<String, Object>> allRefundRows = enrollmentOrderMapper.sumRefundedAmountGroupBySessionBetween(start, end);
+        List<Map<String, Object>> allRefundRows = refundApplyMapper.sumRefundedAmountGroupBySessionBetween(start, end);
 
         // 按 sessionId 聚合: sessionId → { orderType → amount }
         Map<Long, Map<String, BigDecimal>> paidBySession = new HashMap<>();
@@ -171,10 +176,12 @@ public class AdminStatsServiceImpl implements AdminStatsService {
                 Map<String, BigDecimal> typeAmounts = paidBySession.getOrDefault(session.getId(), Collections.emptyMap());
                 BigDecimal depositAmt = typeAmounts.getOrDefault("DEPOSIT", BigDecimal.ZERO);
                 BigDecimal balanceAmt = typeAmounts.getOrDefault("BALANCE", BigDecimal.ZERO);
+                BigDecimal fullAmt = typeAmounts.getOrDefault("FULL", BigDecimal.ZERO);
                 BigDecimal refundAmt = refundBySession.getOrDefault(session.getId(), BigDecimal.ZERO);
 
                 if (depositAmt.compareTo(BigDecimal.ZERO) == 0
                         && balanceAmt.compareTo(BigDecimal.ZERO) == 0
+                        && fullAmt.compareTo(BigDecimal.ZERO) == 0
                         && refundAmt.compareTo(BigDecimal.ZERO) == 0) {
                     continue;
                 }
@@ -184,8 +191,9 @@ public class AdminStatsServiceImpl implements AdminStatsService {
                 detail.setSessionName(session.getSessionName());
                 detail.setDepositAmount(depositAmt);
                 detail.setBalanceAmount(balanceAmt);
+                detail.setFullAmount(fullAmt);
                 detail.setRefundAmount(refundAmt);
-                detail.setNetAmount(depositAmt.add(balanceAmt).subtract(refundAmt));
+                detail.setNetAmount(depositAmt.add(balanceAmt).add(fullAmt).subtract(refundAmt));
                 detail.setEnrollmentCount(session.getEnrolledCount());
                 sessionDetails.add(detail);
             }

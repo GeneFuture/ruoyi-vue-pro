@@ -10,12 +10,21 @@ import java.time.LocalDateTime;
 
 import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND;
 
-@Schema(description = "管理后台 - 报名订单分页 Request VO")
+@Schema(description = "管理后台 - 支付订单分页 Request VO")
 @Data
 public class EnrollmentOrderPageReqVO extends PageParam {
 
     @Schema(description = "报名ID", example = "15831")
     private Long enrollmentId;
+
+    @Schema(description = "学员姓名", example = "张三")
+    private String realName;
+
+    @Schema(description = "学员手机号", example = "13800000000")
+    private String phone;
+
+    @Schema(description = "报名ID集合（内部筛选使用）", hidden = true)
+    private List<Long> enrollmentIds;
 
     @Schema(description = "订单号（系统生成，即 PayOrderCreateReqDTO.merchantOrderId）")
     private String orderNo;

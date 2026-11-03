@@ -1,0 +1,1076 @@
+<!doctype html>
+<!-- charset 必须显式声明：发布时 Artifact 外壳会自动补，但直接用浏览器打开本地文件时
+     没有它浏览器会按 GBK 解码，整页中文变乱码 -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>海员培训首页视觉稿</title>
+<style>
+  /* ============================================================
+     评审板外壳（跟随阅读主题）
+     设备屏幕内部恒为浅色 —— 小程序 sys.mode 硬编码为 light，
+     刻意单主题，故不参与明暗切换
+     ============================================================ */
+  :root {
+    --bg: #ffffff;
+    --surface: #f7f8fa;
+    --ink: #12161f;
+    --ink-2: #5b6472;
+    --ink-3: #8a93a3;
+    --line: #e4e8ef;
+    --accent: #1e5eff;
+    --accent-soft: rgba(30, 94, 255, 0.08);
+    --font: -apple-system, BlinkMacSystemFont, 'SF Pro SC', 'PingFang SC', 'Hiragino Sans GB',
+      'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --bg: #0e1116;
+      --surface: #161a21;
+      --ink: #eceef2;
+      --ink-2: #9aa3b2;
+      --ink-3: #6b7484;
+      --line: #262b34;
+      --accent: #6f9bff;
+      --accent-soft: rgba(111, 155, 255, 0.12);
+    }
+  }
+
+  :root[data-theme='dark'] {
+    --bg: #0e1116;
+    --surface: #161a21;
+    --ink: #eceef2;
+    --ink-2: #9aa3b2;
+    --ink-3: #6b7484;
+    --line: #262b34;
+    --accent: #6f9bff;
+    --accent-soft: rgba(111, 155, 255, 0.12);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    padding: 0 20px 80px;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- 板头 ---------- */
+  .head {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 56px 0 40px;
+  }
+
+  .eyebrow {
+    margin: 0 0 14px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 34px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+
+  .lede {
+    margin: 16px 0 0;
+    max-width: 62ch;
+    font-size: 15px;
+    color: var(--ink-2);
+  }
+
+  /* ---------- 主体两栏 ---------- */
+  .board {
+    max-width: 1080px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(300px, 1fr) 375px;
+    gap: 64px;
+    align-items: start;
+  }
+
+  @media (max-width: 860px) {
+    .board {
+      grid-template-columns: 1fr;
+      gap: 48px;
+    }
+  }
+
+  /* ---------- 左栏：细节清单 ---------- */
+  .notes h2 {
+    margin: 0 0 4px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .notes .hint {
+    margin: 0 0 28px;
+    font-size: 13px;
+    color: var(--ink-3);
+  }
+
+  .notes ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: n;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .notes li {
+    counter-increment: n;
+    position: relative;
+    padding: 14px 0 14px 42px;
+    border-top: 1px solid var(--line);
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+
+  .notes li::before {
+    content: counter(n, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    top: 15px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+
+  .notes li b {
+    display: block;
+    margin-bottom: 3px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* ---------- 右栏：设备 ---------- */
+  .device-col {
+    position: sticky;
+    top: 40px;
+  }
+
+  @media (max-width: 860px) {
+    .device-col {
+      position: static;
+    }
+  }
+
+  .device-label {
+    margin: 0 0 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--ink-3);
+  }
+
+  .phone {
+    width: 375px;
+    max-width: 100%;
+    border-radius: 44px;
+    padding: 10px;
+    background: #1c1f26;
+    box-shadow: 0 24px 60px rgba(10, 20, 50, 0.18);
+  }
+
+  .screen {
+    border-radius: 36px;
+    overflow: hidden;
+    background: #f5f7fa;
+    /* 屏幕内部固定浅色，不随阅读主题变化 */
+    color: #12161f;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  /* ============================================================
+     以下为小程序首页本体（375px 实尺，1px = 2rpx）
+     ============================================================ */
+  .statusbar {
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 44px;
+    padding: 0 22px;
+    font-size: 14px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: #fff;
+  }
+
+  .sb-right {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .sb-right i {
+    display: block;
+    background: #fff;
+    border-radius: 1px;
+  }
+
+  .sb-signal {
+    width: 16px;
+    height: 10px;
+    clip-path: polygon(0 100%, 20% 100%, 20% 60%, 0 60%, 0 100%, 33% 100%, 33% 40%, 53% 40%, 53% 100%, 66% 100%, 66% 20%, 86% 20%, 86% 100%, 100% 100%, 100% 0, 100% 100%);
+  }
+
+  .sb-wifi {
+    width: 14px;
+    height: 10px;
+    clip-path: polygon(50% 100%, 0 40%, 15% 26%, 50% 62%, 85% 26%, 100% 40%);
+  }
+
+  .sb-batt {
+    width: 22px;
+    height: 11px;
+    border-radius: 3px;
+    background: #fff;
+    opacity: 0.9;
+  }
+
+  /* ---- F0 Hero ---- */
+  .hero {
+    position: relative;
+    padding: 96px 20px 24px;
+    background: linear-gradient(165deg, #2e6bff 0%, #1e5eff 44%, #0b3b8c 100%);
+  }
+
+  /* 叠一层径向高光，避免三段渐变右上角发闷 */
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(120% 78% at 84% -12%, rgba(255, 255, 255, 0.2), transparent 62%);
+  }
+
+  .hero > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .capsule {
+    position: absolute;
+    z-index: 4;
+    top: 51px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 8px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+    font-size: 15px;
+    letter-spacing: 2px;
+  }
+
+  .capsule-sep {
+    width: 1px;
+    height: 14px;
+    margin: 0 9px;
+    background: rgba(255, 255, 255, 0.35);
+  }
+
+  .hero-eyebrow {
+    margin: 0 0 10px;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: rgba(255, 255, 255, 0.62);
+  }
+
+  .hero-title {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: -0.022em;
+    line-height: 1.24;
+    color: #fff;
+  }
+
+  .hero-sub {
+    margin: 12px 0 0;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.72);
+  }
+
+  .search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 48px;
+    margin-top: 24px;
+    padding: 0 16px;
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: 0 4px 14px rgba(6, 24, 70, 0.14);
+  }
+
+  .search svg {
+    flex-shrink: 0;
+  }
+
+  .search-ph {
+    font-size: 15px;
+    color: #8a93a3;
+  }
+
+  /* ---- 分区带 ---- */
+  .band {
+    padding: 32px 20px 0;
+    background: #fff;
+  }
+
+  .band-gray {
+    background: #f5f7fa;
+  }
+
+  /* ---- F1 金刚区 ---- */
+  .menu {
+    display: flex;
+  }
+
+  .menu-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 25%;
+  }
+
+  .menu-tile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    background: #f5f7fa;
+    /* 内高光让灰块有厚度，而不是一片平色 */
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .menu-label {
+    font-size: 12px;
+    color: #5b6472;
+  }
+
+  /* ---- 通用楼层标题 ---- */
+  .floor-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .floor-title {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.018em;
+    color: #12161f;
+  }
+
+  .floor-link {
+    font-size: 14px;
+    color: #1e5eff;
+  }
+
+  /* ---- F2 Banner ---- */
+  .banner {
+    height: 150px;
+    border-radius: 20px;
+    background: linear-gradient(120deg, #1e5eff, #0b3b8c);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 24px;
+    color: #fff;
+  }
+
+  .banner b {
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .banner span {
+    margin-top: 6px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.78);
+  }
+
+  /* ---- F3 近期开班 ---- */
+  .rail {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  .session {
+    flex: 0 0 250px;
+    width: 250px;
+    border-radius: 20px;
+    background: #fff;
+    overflow: hidden;
+    /* 几乎不可见的阴影：在浅灰带上建立层次，又不产生"贴纸感" */
+    box-shadow: 0 2px 10px rgba(20, 30, 60, 0.06);
+  }
+
+  .session-cover {
+    position: relative;
+    height: 140px;
+    background: linear-gradient(135deg, #2e6bff, #0b3b8c);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cover-cert {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: rgba(255, 255, 255, 0.92);
+    text-align: center;
+    padding: 0 20px;
+  }
+
+  /* 底部遮罩：让倒计时压图后依然可读 */
+  .session-cover::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0;
+    height: 64px;
+    background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.42));
+  }
+
+  .countdown {
+    position: absolute;
+    z-index: 1;
+    left: 12px;
+    bottom: 10px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: #fff;
+  }
+
+  .session-body {
+    padding: 16px;
+  }
+
+  .session-name {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.012em;
+    line-height: 1.32;
+    color: #12161f;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .session-meta {
+    margin: 8px 0 0;
+    font-size: 12px;
+    color: #5b6472;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .seats {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .seats-track {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: #e8ebf0;
+    overflow: hidden;
+  }
+
+  .seats-fill {
+    display: block;
+    height: 100%;
+    border-radius: 2px;
+    background: #1e5eff;
+  }
+
+  .seats-text {
+    flex-shrink: 0;
+    font-size: 11px;
+    color: #5b6472;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .session-foot {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .price {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: #12161f;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .price small {
+    font-size: 11px;
+    font-weight: 400;
+    color: #8a93a3;
+  }
+
+  .deposit {
+    font-size: 12px;
+    color: #5b6472;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- F4 课程列表 ---- */
+  .chips {
+    display: flex;
+    gap: 8px;
+    margin: 0 -20px 4px;
+    padding: 0 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chip {
+    flex-shrink: 0;
+    height: 32px;
+    line-height: 32px;
+    padding: 0 16px;
+    border-radius: 16px;
+    font-size: 14px;
+    color: #12161f;
+    background: #f5f7fa;
+  }
+
+  .chip.on {
+    color: #fff;
+    background: #12161f;
+  }
+
+  .course {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px 0;
+  }
+
+  /* 分隔线内缩到文字左边缘（84 缩略图 + 16 间距），不通栏 */
+  .course + .course::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 100px;
+    right: 0;
+    height: 1px;
+    background: #e8ebf0;
+  }
+
+  .course.first {
+    padding-top: 8px;
+  }
+
+  .course-thumb {
+    flex-shrink: 0;
+    width: 84px;
+    height: 84px;
+    border-radius: 14px;
+    background: linear-gradient(140deg, #d7e2ff, #b7cbff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #3b5fb8;
+  }
+
+  .course-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .course-name {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.012em;
+    line-height: 1.32;
+    color: #12161f;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .course-meta {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: #5b6472;
+  }
+
+  .course-foot {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-top: 8px;
+  }
+
+  .course-price {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: #12161f;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .course-price small {
+    font-size: 11px;
+    font-weight: 400;
+    color: #8a93a3;
+  }
+
+  .course-status {
+    font-size: 12px;
+    color: #19be6b;
+  }
+
+  /* ---- F5 公告 ---- */
+  .notices {
+    border-radius: 20px;
+    background: #fff;
+    padding: 0 16px;
+  }
+
+  .notice {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    height: 56px;
+    font-size: 15px;
+  }
+
+  .notice + .notice {
+    border-top: 1px solid #e8ebf0;
+  }
+
+  .notice span:first-child {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .notice time {
+    flex-shrink: 0;
+    font-size: 13px;
+    color: #8a93a3;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- F6 报名流程 ---- */
+  .flow {
+    display: flex;
+  }
+
+  .flow-step {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .flow-step + .flow-step::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    right: calc(50% + 24px);
+    left: calc(-50% + 24px);
+    height: 1px;
+    background: #d5dae3;
+  }
+
+  .flow-node {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #12161f;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .flow-step b {
+    margin-top: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #12161f;
+  }
+
+  .flow-step em {
+    margin-top: 4px;
+    font-size: 11px;
+    font-style: normal;
+    color: #8a93a3;
+  }
+
+  .flow-note {
+    margin: 24px 0 0;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #5b6472;
+    text-align: center;
+  }
+
+  .screen-end {
+    height: 28px;
+    background: #fff;
+  }
+</style>
+
+<header class="head">
+  <p class="eyebrow">海员培训小程序 · 设计评审</p>
+  <h1>首页视觉稿</h1>
+  <p class="lede">
+    这版针对「细节不够精心」重做了 12 处。右栏是 375px 实尺稿，可直接滚动看完六层楼。文案与数字为示例数据，用于展示真实排布。
+  </p>
+</header>
+
+<main class="board">
+  <section class="notes">
+    <h2>逐条改动</h2>
+    <p class="hint">对应右栏，自上而下</p>
+    <ol>
+      <li>
+        <b>渐变改为三段 + 叠径向高光</b>
+        原来两端直连，右上角发闷。现在 165° 三段过渡，再叠一层偏右上角的白色高光。
+      </li>
+      <li>
+        <b>标题加负字距，副标题降到 72% 白</b>
+        大字不加字距会散；副标题用 62%/72% 两档白，和标题拉开层次而不是只靠字号。
+      </li>
+      <li>
+        <b>搜索框从半透明改为实心白</b>
+        半透明白压在渐变浅端几乎没有边界，输入区看不出范围。实心白 + 4px 投影，位置一眼可辨。
+      </li>
+      <li>
+        <b>金刚区图标/外框比例 0.36 → 0.47</b>
+        原 132rpx 方框配 48rpx 图标，图标孤零零悬在中间。现在 64px 框配 30px 图标，并加内高光让灰块有厚度。
+      </li>
+      <li>
+        <b>倒计时挪到封面图上</b>
+        卡片内少一层信息。图片底部加黑色渐变遮罩保证文字可读 —— 压图必配遮罩，不能直接压。
+      </li>
+      <li>
+        <b>卡片阴影改为几乎不可见</b>
+        <code>0 2px 10px rgba(20,30,60,.06)</code>。刻意保留而非去掉：在 #F5F7FA 浅灰带上，纯白卡片需要一点点投影才有层次，但不能重到发"贴纸感"。
+      </li>
+      <li>
+        <b>余位进度条的轨道从主题色改为冷灰</b>
+        原来是整条蓝，和价格抢视觉。现在轨道 #E8EBF0、填充才用品牌蓝，只做氛围不做主角；数字等宽，滚动不抖。
+      </li>
+      <li>
+        <b>课程列表分隔线内缩到文字左边缘</b>
+        原来通栏分隔线横穿缩略图，把一行切两半。现在线从文字列开始，视线自然沿文字走 —— 这是 Apple 列表的常规做法。
+      </li>
+      <li>
+        <b>所有数字改用 tabular-nums</b>
+        价格、余位、日期、时间：等宽数字，列表滚动和数字变化时宽度不跳动。
+      </li>
+      <li>
+        <b>缩略图统一 84px / 圆角 14px，与文字顶对齐</b>
+        原来缩略图和文字块等高，文字少时价格被 <code>margin-top:auto</code> 顶到底部，行高参差。
+      </li>
+      <li>
+        <b>流程节点 32px、连接线 1px、节点用近黑</b>
+        原来节点是品牌蓝、线是 2rpx。流程是结构信息不是操作入口，不该用强调色；线细一档更利落。
+      </li>
+      <li>
+        <b>间距收敛到 4px 基准</b>
+        全部内距、外边距、间隙取自 4 / 8 / 12 / 16 / 24 / 32 / 96，不再出现 5、6、14、22 这类随手值。
+      </li>
+    </ol>
+  </section>
+
+  <div class="device-col">
+    <p class="device-label">375 × 812 · 实尺</p>
+    <div class="phone">
+      <div class="screen">
+        <!-- F0 Hero -->
+        <section class="hero">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="sb-right"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="capsule"><span>‹</span><i class="capsule-sep"></i><span>•••</span></div>
+
+          <p class="hero-eyebrow">海员培训平台</p>
+          <h2 class="hero-title">持证上岗<br />从这里开始</h2>
+          <p class="hero-sub">STCW 四小证 · 适任证书 · 特种培训</p>
+
+          <div class="search">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <circle cx="8" cy="8" r="5.4" stroke="#8a93a3" stroke-width="1.6" />
+              <path d="M12.2 12.2 16 16" stroke="#8a93a3" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+            <span class="search-ph">搜索上课地点，如：青岛</span>
+          </div>
+        </section>
+
+        <!-- F1 金刚区 -->
+        <div class="band">
+          <div class="menu">
+            <div class="menu-cell">
+              <div class="menu-tile">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="10.5" cy="10.5" r="6.4" stroke="#1e5eff" stroke-width="1.8" />
+                  <path d="M15.4 15.4 20 20" stroke="#1e5eff" stroke-width="1.8" stroke-linecap="round" />
+                </svg>
+              </div>
+              <span class="menu-label">找课程</span>
+            </div>
+            <div class="menu-cell">
+              <div class="menu-tile">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="3.4" y="5.4" width="17.2" height="15.2" rx="3.2" stroke="#1e5eff" stroke-width="1.8" />
+                  <path d="M3.4 10.2h17.2M8.2 3v4.2M15.8 3v4.2" stroke="#1e5eff" stroke-width="1.8" stroke-linecap="round" />
+                </svg>
+              </div>
+              <span class="menu-label">开班计划</span>
+            </div>
+            <div class="menu-cell">
+              <div class="menu-tile">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M6 3.6h9.4L19 7.2v13.2H6z" stroke="#1e5eff" stroke-width="1.8" stroke-linejoin="round" />
+                  <path d="M9 11h7M9 15h5" stroke="#1e5eff" stroke-width="1.8" stroke-linecap="round" />
+                </svg>
+              </div>
+              <span class="menu-label">我的报名</span>
+            </div>
+            <div class="menu-cell">
+              <div class="menu-tile">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="9" cy="9" r="3" stroke="#1e5eff" stroke-width="1.8" />
+                  <path d="M3.6 19.4c0-3 2.4-5 5.4-5s5.4 2 5.4 5" stroke="#1e5eff" stroke-width="1.8" stroke-linecap="round" />
+                  <path d="M16.4 8.2h4.2M18.5 6.1v4.2" stroke="#1e5eff" stroke-width="1.8" stroke-linecap="round" />
+                </svg>
+              </div>
+              <span class="menu-label">推荐有礼</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- F2 Banner -->
+        <div class="band" style="padding-top: 16px">
+          <div class="banner">
+            <b>9 月新班期开放报名</b>
+            <span>青岛 · 大连 · 上海 三地同步开班</span>
+          </div>
+        </div>
+
+        <!-- F3 近期开班 -->
+        <div class="band band-gray" style="padding-top: 32px">
+          <div class="floor-head">
+            <h3 class="floor-title">近期开班</h3>
+            <span class="floor-link">全部 ›</span>
+          </div>
+          <div class="rail">
+            <article class="session">
+              <div class="session-cover">
+                <span class="cover-cert">STCW</span>
+                <em class="countdown">9 天后开班</em>
+              </div>
+              <div class="session-body">
+                <h4 class="session-name">STCW 基本安全培训</h4>
+                <p class="session-meta">9 月一期 · 青岛 · 7 天</p>
+                <div class="seats">
+                  <span class="seats-track"><i class="seats-fill" style="width: 73%"></i></span>
+                  <span class="seats-text">余 8/30</span>
+                </div>
+                <div class="session-foot">
+                  <span class="price">¥3800</span>
+                  <span class="deposit">定金 ¥500</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="session">
+              <div class="session-cover">
+                <span class="cover-cert">适任证书</span>
+                <em class="countdown">16 天后开班</em>
+              </div>
+              <div class="session-body">
+                <h4 class="session-name">精通急救培训</h4>
+                <p class="session-meta">9 月二期 · 大连 · 5 天</p>
+                <div class="seats">
+                  <span class="seats-track"><i class="seats-fill" style="width: 40%"></i></span>
+                  <span class="seats-text">余 18/30</span>
+                </div>
+                <div class="session-foot">
+                  <span class="price">¥2600</span>
+                  <span class="deposit">定金 ¥400</span>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <!-- F4 课程列表 -->
+        <div class="band">
+          <div class="floor-head">
+            <h3 class="floor-title">全部课程</h3>
+          </div>
+
+          <div class="chips">
+            <span class="chip on">全部</span>
+            <span class="chip">STCW</span>
+            <span class="chip">适任证书</span>
+            <span class="chip">特种培训</span>
+          </div>
+
+          <div class="course first">
+            <div class="course-thumb">封面</div>
+            <div class="course-main">
+              <h4 class="course-name">STCW 基本安全培训（四小证）</h4>
+              <p class="course-meta">STCW · 7 天</p>
+              <p class="course-meta">09-20 开班 · 青岛</p>
+              <div class="course-foot">
+                <span class="course-price">¥3800<small> 起</small></span>
+                <span class="course-status">招生中</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="course">
+            <div class="course-thumb">封面</div>
+            <div class="course-main">
+              <h4 class="course-name">精通救生艇筏和救助艇培训</h4>
+              <p class="course-meta">适任证书 · 5 天</p>
+              <p class="course-meta">09-24 开班 · 大连</p>
+              <div class="course-foot">
+                <span class="course-price">¥2600<small> 起</small></span>
+                <span class="course-status">招生中</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="course">
+            <div class="course-thumb">封面</div>
+            <div class="course-main">
+              <h4 class="course-name">高级消防培训</h4>
+              <p class="course-meta">特种培训 · 4 天</p>
+              <p class="course-meta">10-08 开班 · 上海</p>
+              <div class="course-foot">
+                <span class="course-price">¥3200<small> 起</small></span>
+                <span class="course-status">招生中</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- F5 我的消息 -->
+        <div class="band band-gray" style="padding-top: 32px">
+          <div class="floor-head">
+            <h3 class="floor-title">我的消息</h3>
+          </div>
+          <div class="notices">
+            <div class="notice">
+              <span>报名成功通知</span>
+              <time>10-20 14:30</time>
+            </div>
+            <div class="notice">
+              <span>定金支付成功</span>
+              <time>10-20 14:28</time>
+            </div>
+          </div>
+        </div>
+
+        <!-- F6 报名流程 -->
+        <div class="band" style="padding-top: 32px">
+          <div class="floor-head">
+            <h3 class="floor-title">报名流程</h3>
+          </div>
+          <div class="flow">
+            <div class="flow-step">
+              <span class="flow-node">1</span>
+              <b>选班期</b>
+              <em>挑时间地点</em>
+            </div>
+            <div class="flow-step">
+              <span class="flow-node">2</span>
+              <b>付定金</b>
+              <em>锁定名额</em>
+            </div>
+            <div class="flow-step">
+              <span class="flow-node">3</span>
+              <b>付尾款</b>
+              <em>开班前结清</em>
+            </div>
+            <div class="flow-step">
+              <span class="flow-node">4</span>
+              <b>参加培训</b>
+              <em>结业拿证</em>
+            </div>
+          </div>
+          <p class="flow-note">未付定金可直接取消；开班前可申请退费，开班后不支持</p>
+        </div>
+
+        <div class="screen-end"></div>
+      </div>
+    </div>
+  </div>
+</main>

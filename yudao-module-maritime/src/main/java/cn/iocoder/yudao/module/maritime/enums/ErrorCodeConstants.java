@@ -32,6 +32,7 @@ public interface ErrorCodeConstants {
     ErrorCode ORDER_EXPIRED = new ErrorCode(1_009_003_006, "订单已过期");
     ErrorCode ENROLLMENT_STATUS_ERROR = new ErrorCode(1_009_003_007, "报名状态不正确，无法执行此操作");
     ErrorCode BALANCE_NOT_REQUIRED = new ErrorCode(1_009_003_008, "该报名无需支付尾款（已全额支付）");
+    ErrorCode ENROLLMENT_DELETE_NOT_ALLOWED = new ErrorCode(1_009_003_009, "只有待支付定金的报名可以删除，其余请走取消/退费流程");
 
     // ========== 拼团模块 1-009-004-000 ==========
     ErrorCode GROUPON_NOT_EXISTS = new ErrorCode(1_009_004_000, "拼团不存在");
@@ -49,9 +50,9 @@ public interface ErrorCodeConstants {
     ErrorCode REFUND_APPLY_NOT_EXISTS = new ErrorCode(1_009_006_000, "退费申请不存在");
     ErrorCode REFUND_APPLY_DUPLICATE = new ErrorCode(1_009_006_001, "已有进行中的退费申请");
     ErrorCode REFUND_NOT_ALLOWED = new ErrorCode(1_009_006_002, "当前状态不允许发起退费");
+    ErrorCode REFUND_AMOUNT_EXCEEDED = new ErrorCode(1_009_006_003, "退款金额不能超过该报名已支付金额");
 
     // ========== 消息模块 1-009-008-000 ==========
-    ErrorCode USER_MESSAGE_NOT_EXISTS = new ErrorCode(1_009_008_001, "站内消息不存在");
 
     // ========== 费用模板 1-009-008-000 ==========
     ErrorCode FEE_TEMPLATE_NOT_EXISTS = new ErrorCode(1_009_008_000, "费用模板不存在");
@@ -72,7 +73,16 @@ public interface ErrorCodeConstants {
     // ========== 人工处理单 1-009-014-000 ==========
     ErrorCode MANUAL_TASK_NOT_EXISTS = new ErrorCode(1_009_014_000, "人工处理单不存在");
     ErrorCode MANUAL_TASK_ALREADY_CLOSED = new ErrorCode(1_009_014_001, "人工处理单已关闭");
-    ErrorCode MANUAL_TASK_REFUND_HANDLE_ELSEWHERE = new ErrorCode(1_009_014_002, "退费类人工单请到退费审核页处理");
+    ErrorCode MANUAL_TASK_REFUND_HANDLE_ELSEWHERE = new ErrorCode(1_009_014_002, "退费类人工单请使用退费审核操作");
     ErrorCode MANUAL_TASK_TARGET_STATUS_INVALID = new ErrorCode(1_009_014_003, "人工处理目标状态不正确");
+    ErrorCode MANUAL_TASK_NOT_REFUND = new ErrorCode(1_009_014_004, "该人工单不是退费类任务");
+    ErrorCode MANUAL_TASK_REFUND_APPLY_MISSING = new ErrorCode(1_009_014_005, "人工单未关联退费申请");
+    ErrorCode MANUAL_TASK_REFUND_AMOUNT_REQUIRED = new ErrorCode(1_009_014_006, "退款金额必须大于 0");
+    ErrorCode MANUAL_TASK_REJECT_REASON_REQUIRED = new ErrorCode(1_009_014_007, "拒绝原因不能为空");
+    ErrorCode MANUAL_TASK_REFUND_RESULT_INVALID = new ErrorCode(1_009_014_008, "退费审核结果不正确");
+
+    // ========== 资金流水 1-009-015-000 ==========
+    ErrorCode FINANCE_DATE_RANGE_INVALID = new ErrorCode(1_009_015_000, "资金流水日期范围不正确");
+    ErrorCode FINANCE_DATE_RANGE_TOO_LARGE = new ErrorCode(1_009_015_001, "资金流水查询范围不能超过 366 天");
 
 }

@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.maritime.dal.mysql.enrollment;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -70,6 +71,34 @@ public interface EnrollmentMapper extends BaseMapperX<EnrollmentDO> {
     /** 更新报名状态（幂等，CAS 由调用方保证） */
     @Update("UPDATE maritime_enrollment SET enrollment_status = #{newStatus} WHERE id = #{id} AND deleted = 0")
     int updateStatus(@Param("id") Long id, @Param("newStatus") String newStatus);
+
+    /**
+     * 取消待支付报名：CAS 只允许 PENDING_DEPOSIT → CANCELLED，
+     * 避免与支付回调并发时把已支付的报名覆盖成取消。
+     */
+    @Update("UPDATE maritime_enrollment SET enrollment_status = 'CANCELLED', cancel_reason = #{reason} " +
+            "WHERE id = #{id} AND enrollment_status = 'PENDING_DEPOSIT' AND deleted = 0")
+    int cancelPendingEnrollment(@Param("id") Long id, @Param("reason") String reason);
+
+    /**
+     * 支付成功后原子累加已付金额并推进状态；已取消的报名不再复活。
+     *
+     * @return 0 表示报名已取消或不存在，调用方需转人工退款
+     */
+    @Update("UPDATE maritime_enrollment SET enrollment_status = #{newStatus}, " +
+            "paid_amount = paid_amount + #{amount} " +
+            "WHERE id = #{id} AND deleted = 0 AND enrollment_status <> 'CANCELLED'")
+    int updateStatusAndAddPaidAmount(@Param("id") Long id, @Param("newStatus") String newStatus,
+                                     @Param("amount") BigDecimal amount);
+
+    /**
+     * 尾款支付成功：原子累加已付金额、推进状态并清零尾款；已取消的报名不再复活。
+     */
+    @Update("UPDATE maritime_enrollment SET enrollment_status = #{newStatus}, " +
+            "paid_amount = paid_amount + #{amount}, balance_amount = 0 " +
+            "WHERE id = #{id} AND deleted = 0 AND enrollment_status <> 'CANCELLED'")
+    int updateStatusAndAddPaidAmountAndClearBalance(@Param("id") Long id, @Param("newStatus") String newStatus,
+                                                    @Param("amount") BigDecimal amount);
 
     /** 查询 DEPOSITED 状态且班期开始日期在指定日期之前的报名（尾款催缴用） */
     default List<EnrollmentDO> selectDepositedWithBalanceDueBefore(LocalDate dueDate) {

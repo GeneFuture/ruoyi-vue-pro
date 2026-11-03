@@ -77,7 +77,11 @@
 
   const countdownText = computed(() => {
     if (!state.groupon?.expireTime) return '';
-    const expire = new Date(state.groupon.expireTime.replace(/-/g, '/')).getTime();
+    // 后端 LocalDateTime 默认序列化为时间戳；兼容字符串格式的旧数据
+    const rawExpire = state.groupon.expireTime;
+    const expire =
+      typeof rawExpire === 'number' ? rawExpire : new Date(String(rawExpire).replace(/-/g, '/')).getTime();
+    if (!Number.isFinite(expire)) return '';
     const diff = expire - state.now;
     if (diff <= 0) return '已截止';
     const h = Math.floor(diff / 3600000);

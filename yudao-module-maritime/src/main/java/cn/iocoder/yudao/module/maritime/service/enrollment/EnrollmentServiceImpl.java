@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.mybatis.core.type.EncryptTypeHandler;
 import cn.iocoder.yudao.module.maritime.controller.admin.enrollment.vo.EnrollmentPageReqVO;
 import cn.iocoder.yudao.module.maritime.controller.admin.enrollment.vo.EnrollmentSaveReqVO;
+import cn.iocoder.yudao.module.maritime.controller.admin.enrollment.vo.EnrollmentUpdateReqVO;
 import cn.iocoder.yudao.module.maritime.controller.app.enrollment.vo.*;
 import cn.iocoder.yudao.module.maritime.controller.app.order.vo.AppPayBalanceReqVO;
 import cn.iocoder.yudao.module.maritime.controller.app.order.vo.AppPayOrderRespVO;
@@ -49,11 +50,13 @@ import cn.iocoder.yudao.module.pay.enums.order.PayOrderStatusEnum;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -132,7 +135,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     }
 
     @Override
-    public void updateEnrollment(EnrollmentSaveReqVO updateReqVO) {
+    public void updateEnrollment(EnrollmentUpdateReqVO updateReqVO) {
         EnrollmentDO enrollment = validateEnrollmentExists(updateReqVO.getId());
         String oldStatus = enrollment.getEnrollmentStatus();
         String newStatus = updateReqVO.getEnrollmentStatus();
@@ -150,7 +153,12 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         }
 
         EnrollmentDO updateObj = BeanUtils.toBean(updateReqVO, EnrollmentDO.class);
-        enrollmentMapper.updateById(updateObj);
+        try {
+            enrollmentMapper.updateById(updateObj);
+        } catch (DuplicateKeyException e) {
+            // 取消后重新启用时，若同班期已存在新的有效报名，唯一索引会拦截
+            throw exception(ENROLLMENT_DUPLICATE);
+        }
 
         // 管理员提前/补录结班：通用编辑把状态改为 COMPLETED 时补发完成通知
         if (EnrollmentStatusEnum.COMPLETED.getStatus().equals(newStatus)
@@ -162,13 +170,21 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
     @Override
     public void deleteEnrollment(Long id) {
-        validateEnrollmentExists(id);
+        validateEnrollmentDeletable(validateEnrollmentExists(id));
         enrollmentMapper.deleteById(id);
     }
 
     @Override
     public void deleteEnrollmentListByIds(List<Long> ids) {
+        // 先整体校验，避免批量删除到一半才发现含已付款报名
+        ids.forEach(id -> validateEnrollmentDeletable(validateEnrollmentExists(id)));
         enrollmentMapper.deleteByIds(ids);
+    }
+
+    private void validateEnrollmentDeletable(EnrollmentDO enrollment) {
+        if (!EnrollmentStatusEnum.PENDING_DEPOSIT.getStatus().equals(enrollment.getEnrollmentStatus())) {
+            throw exception(ENROLLMENT_DELETE_NOT_ALLOWED);
+        }
     }
 
     @Override
@@ -194,6 +210,11 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         if (!"OPEN".equals(session.getSessionStatus())) {
             throw exception(SESSION_NOT_OPEN);
         }
+        // 报名截止日期当天仍可报名，次日起关闭入口
+        if (session.getEnrollmentDeadline() != null
+                && session.getEnrollmentDeadline().isBefore(LocalDate.now())) {
+            throw exception(SESSION_NOT_OPEN);
+        }
         if (session.getEnrolledCount() >= session.getMaxStudents()) {
             throw exception(SESSION_FULL);
         }
@@ -205,7 +226,9 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         }
 
         // Step 3: 同一身份证未重复报名同班期（加密后与库中加密值比对）
-        String encryptedIdCard = EncryptTypeHandler.encrypt(createReqVO.getIdCard());
+        // 身份证统一去空格、转大写，避免 ...123x / ...123X 被当成两个人
+        String idCard = createReqVO.getIdCard().trim().toUpperCase();
+        String encryptedIdCard = EncryptTypeHandler.encrypt(idCard);
         EnrollmentDO existing = enrollmentMapper.selectByIdCardAndSession(encryptedIdCard, createReqVO.getSessionId());
         if (existing != null) {
             throw exception(ENROLLMENT_DUPLICATE);
@@ -220,7 +243,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         enrollment.setMemberId(memberId);
         enrollment.setSessionId(createReqVO.getSessionId());
         enrollment.setRealName(createReqVO.getRealName());
-        enrollment.setIdCard(createReqVO.getIdCard()); // 明文，EncryptTypeHandler 写库时自动加密
+        enrollment.setIdCard(idCard); // 明文，EncryptTypeHandler 写库时自动加密
         enrollment.setPhone(createReqVO.getPhone());
         enrollment.setTotalAmount(feeConfig.getTuitionAmount());
         enrollment.setDepositAmountSnapshot(fullPayment ? BigDecimal.ZERO : feeConfig.getDepositAmount());
@@ -232,10 +255,15 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         if (!fullPayment && session.getStartDate() != null && feeConfig.getBalanceDueDaysBeforeStart() != null) {
             enrollment.setBalanceDueDate(session.getStartDate().minusDays(feeConfig.getBalanceDueDaysBeforeStart()));
         }
-        enrollmentMapper.insert(enrollment);
+        try {
+            enrollmentMapper.insert(enrollment);
+        } catch (DuplicateKeyException e) {
+            // 并发报名时唯一索引兜底，转成业务异常而不是 500
+            throw exception(ENROLLMENT_DUPLICATE);
+        }
         // 首次报名时顺带补充学员信息，后续报名/资料页可直接带出
         studentInfoService.saveIfAbsent(memberId, createReqVO.getRealName(),
-                createReqVO.getIdCard(), createReqVO.getPhone());
+                idCard, createReqVO.getPhone());
         eventPublisher.publishEvent(new EnrollmentCreatedEvent(
                 this, enrollment.getId(), memberId, enrollment.getSessionId(), fullPayment));
 
@@ -405,21 +433,20 @@ public class EnrollmentServiceImpl implements EnrollmentService {
             throw exception(ENROLLMENT_CANCEL_NOT_ALLOWED);
         }
 
-        // 更新报名状态为取消
-        EnrollmentDO updateObj = new EnrollmentDO();
-        updateObj.setId(id);
-        updateObj.setEnrollmentStatus(EnrollmentStatusEnum.CANCELLED.getStatus());
-        updateObj.setCancelReason("用户取消报名");
-        enrollmentMapper.updateById(updateObj);
+        // CAS 取消：若支付回调已抢先推进状态，这里失败并提示，避免把已支付报名覆盖成取消
+        int cancelled = enrollmentMapper.cancelPendingEnrollment(id, "用户取消报名");
+        if (cancelled == 0) {
+            throw exception(ENROLLMENT_CANCEL_NOT_ALLOWED);
+        }
 
-        // 关闭待支付订单
+        // 关闭待支付订单：用 CAS 只关 PENDING，避免覆盖并发支付回调刚写入的 PAID
         List<EnrollmentOrderDO> pendingOrders = enrollmentOrderMapper.selectPendingByEnrollmentId(id);
         for (EnrollmentOrderDO order : pendingOrders) {
-            EnrollmentOrderDO closeObj = new EnrollmentOrderDO();
-            closeObj.setId(order.getId());
-            closeObj.setOrderStatus(OrderStatusEnum.CLOSED.getStatus());
-            enrollmentOrderMapper.updateById(closeObj);
+            enrollmentOrderMapper.updateStatusIfPending(order.getId(), OrderStatusEnum.CLOSED.getStatus());
         }
+
+        // 释放拼团席位（未成团的拼团人数 -1，发起人退出且无成员时结束拼团）
+        grouponService.releaseMember(id);
 
         // 归还班期名额
         courseSessionMapper.decrementEnrolledCount(enrollment.getSessionId());
@@ -460,20 +487,20 @@ public class EnrollmentServiceImpl implements EnrollmentService {
             throw exception(ENROLLMENT_CANCEL_NOT_ALLOWED);
         }
 
-        EnrollmentDO updateObj = new EnrollmentDO();
-        updateObj.setId(id);
-        updateObj.setEnrollmentStatus(EnrollmentStatusEnum.CANCELLED.getStatus());
-        updateObj.setCancelReason(cancelReason);
-        enrollmentMapper.updateById(updateObj);
+        // CAS 取消：若支付回调已抢先推进状态，这里失败并提示，避免把已支付报名覆盖成取消
+        int cancelled = enrollmentMapper.cancelPendingEnrollment(id, cancelReason);
+        if (cancelled == 0) {
+            throw exception(ENROLLMENT_CANCEL_NOT_ALLOWED);
+        }
 
-        // 关闭待支付订单
+        // 关闭待支付订单：用 CAS 只关 PENDING，避免覆盖并发支付回调刚写入的 PAID
         List<EnrollmentOrderDO> pendingOrders = enrollmentOrderMapper.selectPendingByEnrollmentId(id);
         for (EnrollmentOrderDO order : pendingOrders) {
-            EnrollmentOrderDO closeObj = new EnrollmentOrderDO();
-            closeObj.setId(order.getId());
-            closeObj.setOrderStatus(OrderStatusEnum.CLOSED.getStatus());
-            enrollmentOrderMapper.updateById(closeObj);
+            enrollmentOrderMapper.updateStatusIfPending(order.getId(), OrderStatusEnum.CLOSED.getStatus());
         }
+
+        // 释放拼团席位（未成团的拼团人数 -1，发起人退出且无成员时结束拼团）
+        grouponService.releaseMember(id);
 
         // 凡未到终态的报名都已占用名额（CAS 时已 +1），取消时必须归还
         courseSessionMapper.decrementEnrolledCount(enrollment.getSessionId());
@@ -495,12 +522,16 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         if (!OrderStatusEnum.PENDING.getStatus().equals(order.getOrderStatus())) {
             throw exception(ORDER_ALREADY_PAID);
         }
-        if (order.getExpireTime().isBefore(LocalDateTime.now())) {
+        if (order.getExpireTime() != null && order.getExpireTime().isBefore(LocalDateTime.now())) {
             throw exception(ORDER_EXPIRED);
         }
         EnrollmentDO enrollment = enrollmentMapper.selectById(order.getEnrollmentId());
         if (enrollment == null || !enrollment.getMemberId().equals(memberId)) {
             throw exception(ENROLLMENT_NOT_EXISTS);
+        }
+        // 报名已取消 / 已支付时不允许再拉起支付，避免为取消的报名收款
+        if (!EnrollmentStatusEnum.PENDING_DEPOSIT.getStatus().equals(enrollment.getEnrollmentStatus())) {
+            throw exception(ENROLLMENT_STATUS_ERROR);
         }
 
         // 幂等：已创建过 pay 单则直接返回
@@ -582,7 +613,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         // CAS 幂等：只处理 PENDING → PAID
         int updated = enrollmentOrderMapper.updateStatusIfPending(order.getId(), OrderStatusEnum.PAID.getStatus());
         if (updated == 0) {
-            log.warn("[handleDepositPaid] 订单已处理，跳过: {}", merchantOrderId);
+            handlePaymentForClosedOrder(order, merchantOrderId, "handleDepositPaid");
             return;
         }
 
@@ -599,12 +630,18 @@ public class EnrollmentServiceImpl implements EnrollmentService {
             log.error("[handleDepositPaid] 报名记录不存在, enrollmentId={}", order.getEnrollmentId());
             return;
         }
-        EnrollmentDO updateEnrollment = new EnrollmentDO();
-        updateEnrollment.setId(enrollment.getId());
-        updateEnrollment.setEnrollmentStatus(fullPayment
-                ? EnrollmentStatusEnum.PAID_OFF.getStatus() : EnrollmentStatusEnum.DEPOSITED.getStatus());
-        updateEnrollment.setPaidAmount(enrollment.getPaidAmount().add(order.getAmount()));
-        enrollmentMapper.updateById(updateEnrollment);
+        int updatedEnrollment = enrollmentMapper.updateStatusAndAddPaidAmount(
+                enrollment.getId(),
+                fullPayment ? EnrollmentStatusEnum.PAID_OFF.getStatus() : EnrollmentStatusEnum.DEPOSITED.getStatus(),
+                order.getAmount());
+        if (updatedEnrollment == 0) {
+            // 报名已被取消：支付无法入账，转人工退款，避免钱货不一致
+            log.error("[handleDepositPaid] 报名已取消，支付无法入账，转人工退款: orderNo={}", merchantOrderId);
+            manualTaskService.createTaskIfAbsent(enrollment.getId(), enrollment.getMemberId(), order.getId(),
+                    "OTHER", order.getId(), ManualTaskTypeEnum.OTHER.getType(),
+                    "支付成功但报名已取消（订单号 " + merchantOrderId + "），请核实并原路退款");
+            return;
+        }
 
         eventPublisher.publishEvent(new DepositPaidEvent(
                 this, enrollment.getId(), enrollment.getMemberId(), enrollment.getSessionId(),
@@ -614,6 +651,28 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         if (!fullPayment) {
             grouponService.handleMemberPaid(enrollment.getId());
         }
+    }
+
+    /**
+     * 订单已经关闭（用户取消 / 超时关闭）后仍收到支付：不能恢复报名，转人工退款，
+     * 避免出现「钱已收、报名已取消、名额已释放」的账实不一致。
+     */
+    private void handlePaymentForClosedOrder(EnrollmentOrderDO order, String merchantOrderId, String source) {
+        EnrollmentOrderDO latest = enrollmentOrderMapper.selectById(order.getId());
+        if (latest == null || !OrderStatusEnum.CLOSED.getStatus().equals(latest.getOrderStatus())) {
+            log.warn("[{}] 订单已处理，跳过: {}", source, merchantOrderId);
+            return;
+        }
+        EnrollmentDO enrollment = enrollmentMapper.selectById(order.getEnrollmentId());
+        if (enrollment == null) {
+            log.error("[{}] 订单关闭后收到支付，但报名不存在，需人工核对: {}", source, merchantOrderId);
+            return;
+        }
+        log.error("[{}] 订单关闭后仍收到支付，转人工退款: orderNo={}, enrollmentId={}",
+                source, merchantOrderId, enrollment.getId());
+        manualTaskService.createTaskIfAbsent(enrollment.getId(), enrollment.getMemberId(), order.getId(),
+                "OTHER", order.getId(), ManualTaskTypeEnum.OTHER.getType(),
+                "订单关闭后仍收到支付（订单号 " + merchantOrderId + "），请核实并原路退款");
     }
 
     @Override
@@ -630,15 +689,13 @@ public class EnrollmentServiceImpl implements EnrollmentService {
             return;
         }
 
-        // 若报名仍是 PENDING_DEPOSIT，取消报名并归还名额
+        // 若报名仍是 PENDING_DEPOSIT，CAS 取消并归还名额（防止覆盖并发支付成功的状态）
         EnrollmentDO enrollment = enrollmentMapper.selectById(order.getEnrollmentId());
         if (enrollment != null
-                && EnrollmentStatusEnum.PENDING_DEPOSIT.getStatus().equals(enrollment.getEnrollmentStatus())) {
-            EnrollmentDO updateEnrollment = new EnrollmentDO();
-            updateEnrollment.setId(enrollment.getId());
-            updateEnrollment.setEnrollmentStatus(EnrollmentStatusEnum.CANCELLED.getStatus());
-            updateEnrollment.setCancelReason("定金订单超时未支付，报名已取消");
-            enrollmentMapper.updateById(updateEnrollment);
+                && EnrollmentStatusEnum.PENDING_DEPOSIT.getStatus().equals(enrollment.getEnrollmentStatus())
+                && enrollmentMapper.cancelPendingEnrollment(
+                        enrollment.getId(), "定金订单超时未支付，报名已取消") > 0) {
+            grouponService.releaseMember(enrollment.getId());
             courseSessionMapper.decrementEnrolledCount(enrollment.getSessionId());
 
             eventPublisher.publishEvent(new EnrollmentCancelledEvent(
@@ -724,10 +781,14 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         if (isFullPayment(feeConfig)) {
             throw exception(BALANCE_NOT_REQUIRED);
         }
-        // 尾款 = 学费 - 拼团优惠（仅成团生效）- 实付定金
-        BigDecimal balanceAmount = feeConfig.getTuitionAmount()
-                .subtract(resolveGrouponDiscount(enrollment, feeConfig))
-                .subtract(depositOrder.getAmount());
+        // 尾款以报名时的金额快照为准（成团后由 refreshMemberBalances 更新快照），
+        // 不按当前费用配置重新定价，避免班期调价影响已报名学员。
+        BigDecimal balanceAmount = enrollment.getBalanceAmount();
+        if (balanceAmount == null) {
+            balanceAmount = feeConfig.getTuitionAmount()
+                    .subtract(resolveGrouponDiscount(enrollment, feeConfig))
+                    .subtract(depositOrder.getAmount());
+        }
         if (balanceAmount.compareTo(BigDecimal.ZERO) <= 0) {
             throw exception(BALANCE_NOT_REQUIRED);
         }
@@ -869,7 +930,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
         int updated = enrollmentOrderMapper.updateStatusIfPending(order.getId(), OrderStatusEnum.PAID.getStatus());
         if (updated == 0) {
-            log.warn("[handleBalancePaid] 订单已处理，跳过: {}", merchantOrderId);
+            handlePaymentForClosedOrder(order, merchantOrderId, "handleBalancePaid");
             return;
         }
 
@@ -884,13 +945,16 @@ public class EnrollmentServiceImpl implements EnrollmentService {
             return;
         }
 
-        // 更新报名状态 → PAID_OFF（已付清/待开班），尾款清零，累加已付金额
-        EnrollmentDO updateEnrollment = new EnrollmentDO();
-        updateEnrollment.setId(enrollment.getId());
-        updateEnrollment.setEnrollmentStatus(EnrollmentStatusEnum.PAID_OFF.getStatus());
-        updateEnrollment.setPaidAmount(enrollment.getPaidAmount().add(order.getAmount()));
-        updateEnrollment.setBalanceAmount(BigDecimal.ZERO);
-        enrollmentMapper.updateById(updateEnrollment);
+        // 原子更新报名状态 → PAID_OFF（已付清/待开班），尾款清零并累加已付金额
+        int updatedEnrollment = enrollmentMapper.updateStatusAndAddPaidAmountAndClearBalance(
+                enrollment.getId(), EnrollmentStatusEnum.PAID_OFF.getStatus(), order.getAmount());
+        if (updatedEnrollment == 0) {
+            log.error("[handleBalancePaid] 报名已取消，支付无法入账，转人工退款: orderNo={}", merchantOrderId);
+            manualTaskService.createTaskIfAbsent(enrollment.getId(), enrollment.getMemberId(), order.getId(),
+                    "OTHER", order.getId(), ManualTaskTypeEnum.OTHER.getType(),
+                    "尾款支付成功但报名已取消（订单号 " + merchantOrderId + "），请核实并原路退款");
+            return;
+        }
 
         eventPublisher.publishEvent(new BalancePaidEvent(
                 this, enrollment.getId(), enrollment.getMemberId(), enrollment.getSessionId(), order.getAmount()));

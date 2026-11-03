@@ -195,6 +195,8 @@
     if (loginRes) {
       const userInfo = await sheep.$store('user').getInfo();
       closeAuthModal();
+      // 弹窗登录不会触发页面 onShow，广播事件让当前页刷新需要登录的数据
+      uni.$emit('auth:success');
       // 如果用户已经有头像和昵称，不需要再次授权
       if (userInfo.avatar && userInfo.nickname) {
         return;
@@ -227,6 +229,7 @@
     let result = await sheep.$platform.useProvider().mobileLogin(e.detail);
     if (result) {
       closeAuthModal();
+      uni.$emit('auth:success');
     }
   };
 </script>

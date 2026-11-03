@@ -1,0 +1,264 @@
+- generic [ref=f4e3]:
+  - generic [ref=f4e4]:
+    - link "芋道管理系统" [ref=f4e6] [cursor=pointer]:
+      - /url: /
+    - menubar [ref=f4e13]:
+      - menuitem "首页" [ref=f4e14] [cursor=pointer]
+      - menuitem "作者动态" [ref=f4e19] [cursor=pointer]
+      - menuitem "Boot 开发文档" [ref=f4e24] [cursor=pointer]
+      - menuitem "Cloud 开发文档" [ref=f4e29] [cursor=pointer]
+      - menuitem "系统管理" [ref=f4e34]
+      - menuitem "海员培训" [expanded] [ref=f4e43]:
+        - menu [ref=f4e52]:
+          - menuitem "最新动态管理" [ref=f4e53] [cursor=pointer]
+          - menuitem "佣金账户管理" [ref=f4e55] [cursor=pointer]
+          - menuitem "佣金记录管理" [ref=f4e57] [cursor=pointer]
+          - menuitem "报名订单管理" [ref=f4e59] [cursor=pointer]
+          - menuitem "报名管理" [ref=f4e61] [cursor=pointer]
+          - menuitem "拼团成员管理" [ref=f4e63] [cursor=pointer]
+          - menuitem "拼团记录管理" [ref=f4e65] [cursor=pointer]
+          - menuitem "推荐关系管理" [ref=f4e67] [cursor=pointer]
+          - menuitem "退费申请管理" [ref=f4e69] [cursor=pointer]
+          - menuitem "风控黑名单管理" [ref=f4e71] [cursor=pointer]
+          - menuitem "站内消息管理" [ref=f4e73] [cursor=pointer]
+          - menuitem "主页配置" [ref=f4e75] [cursor=pointer]
+          - menuitem "主页配置" [ref=f4e77] [cursor=pointer]
+          - menuitem "海员会员管理" [ref=f4e79] [cursor=pointer]
+          - menuitem "风控事件管理" [ref=f4e81] [cursor=pointer]
+          - menuitem "课程管理" [ref=f4e83] [cursor=pointer]
+          - menuitem "费用模板" [ref=f4e85] [cursor=pointer]
+          - menuitem "班期管理" [ref=f4e87] [cursor=pointer]
+          - menuitem "学校管理" [ref=f4e89] [cursor=pointer]
+      - menuitem "基础设施" [ref=f4e91]
+      - menuitem "支付管理" [ref=f4e100]
+      - menuitem "报表管理" [ref=f4e111]
+      - menuitem "工作流程" [ref=f4e121]
+      - menuitem "会员中心" [ref=f4e130]
+      - menuitem "商城系统" [ref=f4e143]
+      - menuitem "公众号管理" [ref=f4e152]
+      - menuitem "CRM 系统" [ref=f4e162]
+      - menuitem "ERP 系统" [ref=f4e171]
+      - menuitem "AI 大模型" [ref=f4e180]
+      - menuitem "IoT 物联网" [ref=f4e189]
+      - menuitem "MES 系统" [ref=f4e198]
+  - generic [ref=f4e211]:
+    - generic [ref=f4e212]:
+      - generic [ref=f4e213]:
+        - generic [ref=f4e214]:
+          - generic [ref=f4e215] [cursor=pointer]
+          - navigation "面包屑" [ref=f4e219]:
+            - generic [ref=f4e220]:
+              - link "海员培训" [ref=f4e221]
+              - text: /
+            - link "课程管理" [ref=f4e227]
+        - generic [ref=f4e228]:
+          - generic [ref=f4e231]:
+            - generic:
+              - combobox [ref=f4e233]
+              - generic [ref=f4e234]: 请选择租户
+            - generic [ref=f4e236] [cursor=pointer]
+          - generic [ref=f4e239] [cursor=pointer]
+          - generic [ref=f4e247]:
+            - generic:
+              - combobox [ref=f4e249]
+              - generic: 请输入菜单内容
+          - button [ref=f4e251] [cursor=pointer]
+          - button [ref=f4e255] [cursor=pointer]
+          - generic [ref=f4e258] [cursor=pointer]
+          - generic [ref=f4e265] [cursor=pointer]
+          - button "芋道源码" [ref=f4e271] [cursor=pointer]
+      - generic [ref=f4e274]:
+        - generic [ref=f4e275] [cursor=pointer]
+        - generic [ref=f4e283]:
+          - button "首页" [ref=f4e285] [cursor=pointer]
+          - button "课程管理" [ref=f4e291] [cursor=pointer]
+        - generic [ref=f4e293] [cursor=pointer]
+        - generic [ref=f4e297] [cursor=pointer]
+        - button [ref=f4e302] [cursor=pointer]
+    - generic [ref=f4e306]:
+      - generic [ref=f4e309]:
+        - generic [ref=f4e310]:
+          - generic [ref=f4e311]: 课程名称
+          - textbox "课程名称" [ref=f4e315]:
+            - /placeholder: 请输入课程名称
+        - generic [ref=f4e316]:
+          - generic [ref=f4e317]: 证书类型
+          - textbox "证书类型" [ref=f4e321]:
+            - /placeholder: 请输入证书类型
+        - generic [ref=f4e322]:
+          - generic [ref=f4e323]: 状态
+          - generic [ref=f4e326] [cursor=pointer]:
+            - generic:
+              - combobox "状态" [ref=f4e328]
+              - generic [ref=f4e329]: 全部
+        - generic [ref=f4e334]:
+          - generic [ref=f4e335]: 创建时间
+          - generic [ref=f4e337]:
+            - combobox "创建时间" [ref=f4e341]
+            - generic [ref=f4e342]: "-"
+            - combobox "结束日期" [ref=f4e343]
+        - generic [ref=f4e345]:
+          - button "搜索" [ref=f4e346] [cursor=pointer]
+          - button "重置" [ref=f4e351] [cursor=pointer]
+          - button "新增" [ref=f4e356] [cursor=pointer]
+      - generic [ref=f4e362]:
+        - generic [ref=f4e364]:
+          - table [ref=f4e366]:
+            - rowgroup [ref=f4e375]:
+              - row [ref=f4e376]:
+                - columnheader "ID" [ref=f4e377]
+                - columnheader "课程名称" [ref=f4e379]
+                - columnheader "证书类型" [ref=f4e381]
+                - columnheader "状态" [ref=f4e383]
+                - columnheader "排序" [ref=f4e385]
+                - columnheader "创建时间" [ref=f4e387]
+                - columnheader "操作" [ref=f4e389]
+          - table [ref=f4e395]:
+            - rowgroup [ref=f4e404]:
+              - row [ref=f4e405]:
+                - cell "11" [ref=f4e406]
+                - cell "一年制三管轮培训" [ref=f4e408]
+                - cell "适任培训" [ref=f4e410]
+                - cell "上架" [ref=f4e412]
+                - cell "101" [ref=f4e416]
+                - cell "2026-10-22 15:53:42" [ref=f4e418]
+                - cell [ref=f4e420]:
+                  - generic [ref=f4e421]:
+                    - button "编辑" [ref=f4e422] [cursor=pointer]
+                    - button "下架" [ref=f4e424] [cursor=pointer]
+                    - button "添加班期" [ref=f4e426] [cursor=pointer]
+                    - button "删除" [ref=f4e428] [cursor=pointer]
+              - row [ref=f4e430]:
+                - cell "1" [ref=f4e431]
+                - cell "二管轮 / 三管轮航区扩大" [ref=f4e433]
+                - cell "适任培训" [ref=f4e435]
+                - cell "上架" [ref=f4e437]
+                - cell "100" [ref=f4e441]
+                - cell "2026-07-05 08:40:52" [ref=f4e443]
+                - cell [ref=f4e445]:
+                  - generic [ref=f4e446]:
+                    - button "编辑" [ref=f4e447] [cursor=pointer]
+                    - button "下架" [ref=f4e449] [cursor=pointer]
+                    - button "添加班期" [ref=f4e451] [cursor=pointer]
+                    - button "删除" [ref=f4e453] [cursor=pointer]
+              - row [ref=f4e455]:
+                - cell "2" [ref=f4e456]
+                - cell "一年制三副培训" [ref=f4e458]
+                - cell "适任培训" [ref=f4e460]
+                - cell "上架" [ref=f4e462]
+                - cell "90" [ref=f4e466]
+                - cell "2026-07-05 08:40:52" [ref=f4e468]
+                - cell [ref=f4e470]:
+                  - generic [ref=f4e471]:
+                    - button "编辑" [ref=f4e472] [cursor=pointer]
+                    - button "下架" [ref=f4e474] [cursor=pointer]
+                    - button "添加班期" [ref=f4e476] [cursor=pointer]
+                    - button "删除" [ref=f4e478] [cursor=pointer]
+              - row [ref=f4e480]:
+                - cell "5" [ref=f4e481]
+                - cell "三副晋升培训" [ref=f4e483]
+                - cell "适任培训" [ref=f4e485]
+                - cell "上架" [ref=f4e487]
+                - cell "88" [ref=f4e491]
+                - cell "2026-08-13 01:56:41" [ref=f4e493]
+                - cell [ref=f4e495]:
+                  - generic [ref=f4e496]:
+                    - button "编辑" [ref=f4e497] [cursor=pointer]
+                    - button "下架" [ref=f4e499] [cursor=pointer]
+                    - button "添加班期" [ref=f4e501] [cursor=pointer]
+                    - button "删除" [ref=f4e503] [cursor=pointer]
+              - row [ref=f4e505]:
+                - cell "6" [ref=f4e506]
+                - cell "三管轮晋升培训" [ref=f4e508]
+                - cell "适任培训" [ref=f4e510]
+                - cell "上架" [ref=f4e512]
+                - cell "86" [ref=f4e516]
+                - cell "2026-08-13 01:56:41" [ref=f4e518]
+                - cell [ref=f4e520]:
+                  - generic [ref=f4e521]:
+                    - button "编辑" [ref=f4e522] [cursor=pointer]
+                    - button "下架" [ref=f4e524] [cursor=pointer]
+                    - button "添加班期" [ref=f4e526] [cursor=pointer]
+                    - button "删除" [ref=f4e528] [cursor=pointer]
+              - row [ref=f4e530]:
+                - cell "3" [ref=f4e531]
+                - cell "值班水手培训" [ref=f4e533]
+                - cell "适任培训" [ref=f4e535]
+                - cell "上架" [ref=f4e537]
+                - cell "84" [ref=f4e541]
+                - cell "2026-08-13 01:56:41" [ref=f4e543]
+                - cell [ref=f4e545]:
+                  - generic [ref=f4e546]:
+                    - button "编辑" [ref=f4e547] [cursor=pointer]
+                    - button "下架" [ref=f4e549] [cursor=pointer]
+                    - button "添加班期" [ref=f4e551] [cursor=pointer]
+                    - button "删除" [ref=f4e553] [cursor=pointer]
+              - row [ref=f4e555]:
+                - cell "4" [ref=f4e556]
+                - cell "值班机工培训" [ref=f4e558]
+                - cell "适任培训" [ref=f4e560]
+                - cell "上架" [ref=f4e562]
+                - cell "82" [ref=f4e566]
+                - cell "2026-08-13 01:56:41" [ref=f4e568]
+                - cell [ref=f4e570]:
+                  - generic [ref=f4e571]:
+                    - button "编辑" [ref=f4e572] [cursor=pointer]
+                    - button "下架" [ref=f4e574] [cursor=pointer]
+                    - button "添加班期" [ref=f4e576] [cursor=pointer]
+                    - button "删除" [ref=f4e578] [cursor=pointer]
+              - row [ref=f4e580]:
+                - cell "7" [ref=f4e581]
+                - cell "GMDSS 通用操作员培训" [ref=f4e583]
+                - cell "适任培训" [ref=f4e585]
+                - cell "上架" [ref=f4e587]
+                - cell "80" [ref=f4e591]
+                - cell "2026-08-13 01:56:41" [ref=f4e593]
+                - cell [ref=f4e595]:
+                  - generic [ref=f4e596]:
+                    - button "编辑" [ref=f4e597] [cursor=pointer]
+                    - button "下架" [ref=f4e599] [cursor=pointer]
+                    - button "添加班期" [ref=f4e601] [cursor=pointer]
+                    - button "删除" [ref=f4e603] [cursor=pointer]
+              - row [ref=f4e605]:
+                - cell "8" [ref=f4e606]
+                - cell "基本安全更新（Z01）" [ref=f4e608]
+                - cell "合格证" [ref=f4e610]
+                - cell "上架" [ref=f4e612]
+                - cell "70" [ref=f4e616]
+                - cell "2026-08-13 01:56:41" [ref=f4e618]
+                - cell [ref=f4e620]:
+                  - generic [ref=f4e621]:
+                    - button "编辑" [ref=f4e622] [cursor=pointer]
+                    - button "下架" [ref=f4e624] [cursor=pointer]
+                    - button "添加班期" [ref=f4e626] [cursor=pointer]
+                    - button "删除" [ref=f4e628] [cursor=pointer]
+              - row [ref=f4e630]:
+                - cell "9" [ref=f4e631]
+                - cell "精通艇筏和救助艇培训（Z02）" [ref=f4e633]
+                - cell "合格证" [ref=f4e635]
+                - cell "上架" [ref=f4e637]
+                - cell "65" [ref=f4e641]
+                - cell "2026-08-13 01:56:41" [ref=f4e643]
+                - cell [ref=f4e645]:
+                  - generic [ref=f4e646]:
+                    - button "编辑" [ref=f4e647] [cursor=pointer]
+                    - button "下架" [ref=f4e649] [cursor=pointer]
+                    - button "添加班期" [ref=f4e651] [cursor=pointer]
+                    - button "删除" [ref=f4e653] [cursor=pointer]
+        - generic [ref=f4e659]:
+          - generic [ref=f4e660]: 共 11 条
+          - generic [ref=f4e663] [cursor=pointer]:
+            - generic:
+              - combobox [ref=f4e665]
+              - generic [ref=f4e666]: 10条/页
+          - button "上一页" [disabled] [ref=f4e671]
+          - list [ref=f4e672]:
+            - listitem "第 1 页" [ref=f4e673]: "1"
+            - listitem "第 2 页" [ref=f4e674] [cursor=pointer]: "2"
+          - button "下一页" [ref=f4e675] [cursor=pointer]
+          - generic [ref=f4e676]:
+            - generic [ref=f4e677]: 前往
+            - spinbutton "页" [ref=f4e680]: "1"
+            - generic [ref=f4e681]: 页
+    - generic [ref=f4e682]: Copyright ©2026 芋道管理系统
+  - generic [ref=f4e683] [cursor=pointer]

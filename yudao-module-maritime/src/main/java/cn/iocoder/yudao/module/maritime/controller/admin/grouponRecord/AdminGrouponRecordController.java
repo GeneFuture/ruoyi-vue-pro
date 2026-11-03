@@ -17,7 +17,6 @@ import java.io.IOException;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
@@ -26,8 +25,8 @@ import cn.iocoder.yudao.framework.apilog.core.annotation.ApiAccessLog;
 import static cn.iocoder.yudao.framework.apilog.core.enums.OperateTypeEnum.*;
 
 import cn.iocoder.yudao.module.maritime.controller.admin.grouponRecord.vo.*;
-import cn.iocoder.yudao.module.maritime.dal.dataobject.grouponRecord.GrouponRecordDO;
 import cn.iocoder.yudao.module.maritime.service.groupon.GrouponService;
+import cn.iocoder.yudao.module.maritime.service.grouponRecord.AdminGrouponRecordQueryService;
 import cn.iocoder.yudao.module.maritime.service.grouponRecord.GrouponRecordService;
 
 @Tag(name = "管理后台 - 拼团记录")
@@ -41,6 +40,9 @@ public class AdminGrouponRecordController {
 
     @Resource
     private GrouponService grouponService;
+
+    @Resource
+    private AdminGrouponRecordQueryService adminGrouponRecordQueryService;
 
     @PostMapping("/create")
     @Operation(summary = "创建拼团记录")
@@ -80,16 +82,14 @@ public class AdminGrouponRecordController {
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
     @PreAuthorize("@ss.hasPermission('maritime:groupon-record:query')")
     public CommonResult<GrouponRecordRespVO> getGrouponRecord(@RequestParam("id") Long id) {
-        GrouponRecordDO grouponRecord = grouponRecordService.getGrouponRecord(id);
-        return success(BeanUtils.toBean(grouponRecord, GrouponRecordRespVO.class));
+        return success(adminGrouponRecordQueryService.getGrouponRecord(id));
     }
 
     @GetMapping("/page")
     @Operation(summary = "获得拼团记录分页")
     @PreAuthorize("@ss.hasPermission('maritime:groupon-record:query')")
     public CommonResult<PageResult<GrouponRecordRespVO>> getGrouponRecordPage(@Valid GrouponRecordPageReqVO pageReqVO) {
-        PageResult<GrouponRecordDO> pageResult = grouponRecordService.getGrouponRecordPage(pageReqVO);
-        return success(BeanUtils.toBean(pageResult, GrouponRecordRespVO.class));
+        return success(adminGrouponRecordQueryService.getGrouponRecordPage(pageReqVO));
     }
 
     @PutMapping("/force-succeed")
@@ -117,10 +117,9 @@ public class AdminGrouponRecordController {
     public void exportGrouponRecordExcel(@Valid GrouponRecordPageReqVO pageReqVO,
               HttpServletResponse response) throws IOException {
         pageReqVO.setPageSize(PageParam.PAGE_SIZE_NONE);
-        List<GrouponRecordDO> list = grouponRecordService.getGrouponRecordPage(pageReqVO).getList();
-        // 导出 Excel
-        ExcelUtils.write(response, "拼团记录.xls", "数据", GrouponRecordRespVO.class,
-                        BeanUtils.toBean(list, GrouponRecordRespVO.class));
+        List<GrouponRecordRespVO> list = adminGrouponRecordQueryService
+                .getGrouponRecordPage(pageReqVO).getList();
+        ExcelUtils.write(response, "拼团记录.xls", "数据", GrouponRecordRespVO.class, list);
     }
 
 }

@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_MONTH_DAY_HOUR_MINUTE_SECOND;
 
@@ -15,6 +16,18 @@ public class GrouponMemberPageReqVO extends PageParam {
 
     @Schema(description = "拼团记录ID", example = "18827")
     private Long grouponRecordId;
+
+    @Schema(description = "拼团邀请码", example = "GRP-QX1AVE5O")
+    private String inviteCode;
+
+    @Schema(description = "学员姓名", example = "张三")
+    private String realName;
+
+    @Schema(description = "学员手机号", example = "13800000000")
+    private String phone;
+
+    @Schema(description = "报名ID集合（内部筛选使用）", hidden = true)
+    private List<Long> enrollmentIds;
 
     @Schema(description = "报名ID", example = "969")
     private Long enrollmentId;

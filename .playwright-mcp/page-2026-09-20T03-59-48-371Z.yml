@@ -1,0 +1,178 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - heading "课程详情页视觉稿" [level=1] [ref=e5]
+      - paragraph [ref=e6]: 小程序 · pages/maritime-sub/course-detail.vue
+    - generic [ref=e7]: 375px 实尺 · 1px = 2rpx
+  - paragraph [ref=e8]:
+    - text: 本次只改展示层：班期区按数据有无整段隐藏，报名条件与课程详情从「一整块纯文本」改为结构化排版。 配色、字号、圆角、投影全部取自首页
+    - code [ref=e9]: pages/maritime/index.vue
+    - text: 已有的设计令牌，不引入新色值。下方屏幕为真实种子数据。
+  - generic [ref=e10]:
+    - heading "逐条改动" [level=2] [ref=e11]
+    - paragraph [ref=e12]: 对照右侧屏幕，自上而下
+    - generic [ref=e13]:
+      - generic [ref=e14]:
+        - generic [ref=e15]: 班期区
+        - generic [ref=e16]:
+          - heading "没有班期时整段不渲染" [level=3] [ref=e17]
+          - paragraph [ref=e18]:
+            - text: 原来无论有没有班期都会占一块位置，里面放一个「暂无可报名班期」的空态。现在改成
+            - code [ref=e19]: v-if="sessions.length"
+            - text: ：标题、卡片、空态一起消失，后面的报名条件直接接上来。 右屏 B 是这个状态。
+      - generic [ref=e20]:
+        - generic [ref=e21]: 报名条件
+        - generic [ref=e22]:
+          - heading "纯文本 → 带序号的列表" [level=3] [ref=e23]
+          - paragraph [ref=e24]:
+            - text: 后台存的是
+            - code [ref=e25]: 1. xxx；\n2. yyy；
+            - text: 这样一行一条的纯文本，直接塞进
+            - code [ref=e26]: <view>
+            - text: 后换行被折叠成空格，四条挤成一整段——这是「文案乱」的直接原因。 现在按换行拆条、去掉序号和行尾标点，每条一行、序号做成圆形角标。只有一条时不显示角标。
+      - generic [ref=e27]:
+        - generic [ref=e28]: 课程详情
+        - generic [ref=e29]:
+          - heading "rich-text → mp-html + 统一排版" [level=3] [ref=e30]
+          - paragraph [ref=e31]:
+            - text: 原来的
+            - code [ref=e32]: <rich-text>
+            - text: 不继承页面样式，
+            - code [ref=e33]: <h3>
+            - text: 用的是浏览器默认边距， 和卡片内边距叠加后顶部空一大块。改用项目已有的
+            - code [ref=e34]: mp-html
+            - text: ，通过
+            - code [ref=e35]: tag-style
+            - text: 给 h3 / p / ul / li 指定字号行高，并压掉首个标题的上边距。
+      - generic [ref=e36]:
+        - generic [ref=e37]: 整页
+        - generic [ref=e38]:
+          - heading "改用首页那套设计语言" [level=3] [ref=e39]
+          - paragraph [ref=e40]:
+            - text: 原先用的是早期
+            - code [ref=e41]: sessions.vue
+            - text: 的风格（
+            - code [ref=e42]: "#222/#666/#999"
+            - text: 、 16rpx 圆角、无投影）。现改为首页
+            - code [ref=e43]: index.vue
+            - text: 的令牌： 近黑
+            - code [ref=e44]: "#12161f"
+            - text: 、大圆角
+            - code [ref=e45]: 40rpx
+            - text: 、极淡投影、发丝分隔线， 标题字重 600 + 负字距，价格用
+            - code [ref=e46]: tabular-nums
+            - text: 。
+  - generic [ref=e47]:
+    - heading "设计令牌" [level=2] [ref=e48]
+    - paragraph [ref=e49]: 全部来自首页已有的 scoped 变量，未新增
+    - list [ref=e50]:
+      - listitem [ref=e51]: "$ink #12161f"
+      - listitem [ref=e53]: "$ink-2 #5b6472"
+      - listitem [ref=e55]: "$ink-3 #8a93a3"
+      - listitem [ref=e57]: "$line #e8ebf0"
+      - listitem [ref=e59]: "$band #f5f7fa"
+      - listitem [ref=e61]: "brand #1e5eff"
+      - listitem [ref=e63]: card 40rpx 圆角 · 0 4rpx 20rpx rgba(20,30,60,.06)
+  - generic [ref=e64]:
+    - heading "屏幕" [level=2] [ref=e65]
+    - paragraph [ref=e66]: 左右两屏只差「有没有班期」，其余完全相同
+    - generic [ref=e67]:
+      - generic [ref=e68]:
+        - generic [ref=e69]:
+          - generic [ref=e70]: A · 有可报班期
+          - generic [ref=e71]: 2 个 OPEN 班期
+        - generic [ref=e72]:
+          - generic [ref=e73]: 课程详情
+          - generic [ref=e74]: 适任培训
+          - generic [ref=e76]:
+            - generic [ref=e77]: 值班水手适任培训
+            - generic [ref=e78]: 适任培训
+          - generic [ref=e79]:
+            - generic [ref=e80]: 可报班期
+            - generic [ref=e82]:
+              - generic [ref=e83]: 9月一期
+              - generic [ref=e84]: 2026-09-27 ~ 2026-10-03 · 7天
+              - generic [ref=e85]: 青岛
+              - generic [ref=e86]: 报名截止 2026-09-24
+              - generic [ref=e87]: 余 8/30
+              - generic [ref=e91]:
+                - generic [ref=e92]: ¥3800
+                - generic [ref=e93]: 定金 ¥500
+              - generic [ref=e94]: 拼团立减 ¥100
+            - generic [ref=e95]:
+              - generic [ref=e96]: 10月一期
+              - generic [ref=e97]: 2026-10-12 ~ 2026-10-17 · 6天
+              - generic [ref=e98]: 上海
+              - generic [ref=e99]: 报名截止 2026-10-09
+              - generic [ref=e100]: 余 20/25
+              - generic [ref=e104]:
+                - generic [ref=e105]: ¥3200
+                - generic [ref=e106]: 定金 ¥500
+              - generic [ref=e107]: 拼团立减 ¥150
+          - generic [ref=e108]:
+            - generic [ref=e109]: 报名条件
+            - generic [ref=e111]:
+              - generic [ref=e112]:
+                - generic [ref=e113]: "1"
+                - generic [ref=e114]: 年满 16 周岁，符合海船船员健康检查标准（持有有效体检证明）
+              - generic [ref=e115]:
+                - generic [ref=e116]: "2"
+                - generic [ref=e117]: 已完成基本安全培训（Z01）及保安意识、负有指定保安职责船员培训
+              - generic [ref=e118]:
+                - generic [ref=e119]: "3"
+                - generic [ref=e120]: 学历与资历要求按航区（远洋/沿海等）执行《适任考试和发证规则》相关规定
+              - generic [ref=e121]:
+                - generic [ref=e122]: "4"
+                - generic [ref=e123]: 具体材料以现场审核为准
+          - generic [ref=e124]:
+            - generic [ref=e125]: 课程详情
+            - generic [ref=e128]:
+              - heading "课程简介" [level=3] [ref=e129]
+              - paragraph [ref=e130]: 值班水手是甲板部基础值班岗位，承担操舵、航行值班、系离泊作业与船舶保养等职责，是进入远洋甲板职业的起点。本课程依据《海船船员培训大纲（2021 版）》设置，理论结合实操，帮助学员系统掌握甲板值班核心技能，一次性通过海事局适任考试与评估。
+              - heading "培训内容" [level=3] [ref=e131]
+              - list [ref=e132]:
+                - listitem [ref=e133]: 船舶基础知识与船舶避碰基本知识
+                - listitem [ref=e134]: 航海基础知识与航行值班规范
+                - listitem [ref=e135]: 锚泊作业、系泊操作与值班
+                - listitem [ref=e136]: 货物作业辅助与船舶日常保养
+                - listitem [ref=e137]: 船艺技能（绳结、撇缆、甲板工艺）
+                - listitem [ref=e138]: 海洋环境保护基本知识
+                - listitem [ref=e139]: 水手英语听力与会话
+              - heading "考核方式" [level=3] [ref=e140]
+              - paragraph [ref=e141]: 理论考试 + 实操评估（船艺评估、水手英语听力与会话评估）。
+      - generic [ref=e143]:
+        - generic [ref=e144]:
+          - generic [ref=e145]: B · 无可报班期
+          - generic [ref=e146]: openSessions 为空
+        - generic [ref=e147]:
+          - generic [ref=e148]: 课程详情
+          - generic [ref=e149]: 适任培训
+          - generic [ref=e151]:
+            - generic [ref=e152]: 值班水手适任培训
+            - generic [ref=e153]: 适任培训
+          - generic [ref=e154]: 「可报班期」整段不渲染 —— 标题、卡片、空态都不占位
+          - generic [ref=e156]:
+            - generic [ref=e157]: 报名条件
+            - generic [ref=e159]:
+              - generic [ref=e160]:
+                - generic [ref=e161]: "1"
+                - generic [ref=e162]: 年满 16 周岁，符合海船船员健康检查标准（持有有效体检证明）
+              - generic [ref=e163]:
+                - generic [ref=e164]: "2"
+                - generic [ref=e165]: 已完成基本安全培训（Z01）及保安意识、负有指定保安职责船员培训
+              - generic [ref=e166]:
+                - generic [ref=e167]: "3"
+                - generic [ref=e168]: 学历与资历要求按航区（远洋/沿海等）执行《适任考试和发证规则》相关规定
+              - generic [ref=e169]:
+                - generic [ref=e170]: "4"
+                - generic [ref=e171]: 具体材料以现场审核为准
+          - generic [ref=e172]:
+            - generic [ref=e173]: 课程详情
+            - generic [ref=e176]:
+              - heading "课程简介" [level=3] [ref=e177]
+              - paragraph [ref=e178]: 值班水手是甲板部基础值班岗位，承担操舵、航行值班、系离泊作业与船舶保养等职责，是进入远洋甲板职业的起点。
+              - heading "培训内容" [level=3] [ref=e179]
+              - list [ref=e180]:
+                - listitem [ref=e181]: 船舶基础知识与船舶避碰基本知识
+                - listitem [ref=e182]: 航海基础知识与航行值班规范
+                - listitem [ref=e183]: 锚泊作业、系泊操作与值班

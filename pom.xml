@@ -18,9 +18,6 @@
         <module>yudao-module-member</module>
         <module>yudao-module-mp</module>
         <module>yudao-module-pay</module>
-        <module>yudao-module-mall</module>
-        <!-- 请参考 https://doc.iocoder.cn/ai/build/ 文档，完成 AI 模块的启动！！！ -->
-        <module>yudao-module-ai</module>
         <!-- 海员培训平台 -->
         <module>yudao-module-maritime</module>
     </modules>

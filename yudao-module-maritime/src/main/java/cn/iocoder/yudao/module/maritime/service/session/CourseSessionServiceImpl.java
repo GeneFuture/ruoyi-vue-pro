@@ -107,6 +107,8 @@ public class CourseSessionServiceImpl implements CourseSessionService {
         CourseSessionDO updateObj = BeanUtils.toBean(updateReqVO, CourseSessionDO.class);
         // 班期编号由系统生成，创建后不允许修改；显式置空，避免前端回传的值覆盖
         updateObj.setSessionCode(null);
+        // 已报名人数由报名/取消流程维护，编辑班期时不能覆盖，否则会冲掉实时人数
+        updateObj.setEnrolledCount(null);
         courseSessionMapper.updateById(updateObj);
     }
 

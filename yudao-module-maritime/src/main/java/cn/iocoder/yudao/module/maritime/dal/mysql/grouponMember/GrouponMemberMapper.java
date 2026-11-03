@@ -24,6 +24,7 @@ public interface GrouponMemberMapper extends BaseMapperX<GrouponMemberDO> {
         return selectPage(reqVO, new LambdaQueryWrapperX<GrouponMemberDO>()
                 .eqIfPresent(GrouponMemberDO::getGrouponRecordId, reqVO.getGrouponRecordId())
                 .eqIfPresent(GrouponMemberDO::getEnrollmentId, reqVO.getEnrollmentId())
+                .inIfPresent(GrouponMemberDO::getEnrollmentId, reqVO.getEnrollmentIds())
                 .eqIfPresent(GrouponMemberDO::getMemberId, reqVO.getMemberId())
                 .betweenIfPresent(GrouponMemberDO::getJoinTime, reqVO.getJoinTime())
                 .eqIfPresent(GrouponMemberDO::getMemberStatus, reqVO.getMemberStatus())
@@ -58,5 +59,10 @@ public interface GrouponMemberMapper extends BaseMapperX<GrouponMemberDO> {
     /** 记录定金支付时间 */
     @Update("UPDATE maritime_groupon_member SET deposit_paid_at = #{paidAt} WHERE enrollment_id = #{enrollmentId} AND member_status = 'ACTIVE' AND deleted = 0")
     int updateDepositPaidAt(@Param("enrollmentId") Long enrollmentId, @Param("paidAt") LocalDateTime paidAt);
+
+    /** 成员退出（CAS，重复调用不会重复扣减拼团人数） */
+    @Update("UPDATE maritime_groupon_member SET member_status = 'CANCELLED' " +
+            "WHERE id = #{id} AND member_status = 'ACTIVE' AND deleted = 0")
+    int updateStatusToCancelled(@Param("id") Long id);
 
 }

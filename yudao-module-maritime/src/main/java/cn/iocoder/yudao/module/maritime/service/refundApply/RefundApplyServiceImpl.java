@@ -15,6 +15,7 @@ import cn.iocoder.yudao.module.maritime.enums.ManualTaskTypeEnum;
 import cn.iocoder.yudao.module.maritime.enums.OrderStatusEnum;
 import cn.iocoder.yudao.module.maritime.enums.OrderTypeEnum;
 import cn.iocoder.yudao.module.maritime.mq.event.RefundResultEvent;
+import cn.iocoder.yudao.module.maritime.service.groupon.GrouponService;
 import cn.iocoder.yudao.module.maritime.service.manualTask.ManualTaskService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +58,9 @@ public class RefundApplyServiceImpl implements RefundApplyService {
 
     @Resource
     private ManualTaskService manualTaskService;
+
+    @Resource
+    private GrouponService grouponService;
 
     // ========== Admin CRUD ==========
 
@@ -118,6 +122,10 @@ public class RefundApplyServiceImpl implements RefundApplyService {
         if (enrollment == null) {
             throw exception(ENROLLMENT_NOT_EXISTS);
         }
+        // 退款金额不得超过该报名实际已支付金额，避免后台误填导致超额退款
+        if (refundAmount.compareTo(enrollment.getPaidAmount()) > 0) {
+            throw exception(REFUND_AMOUNT_EXCEEDED);
+        }
 
         // 1. 找要退款的订单
         EnrollmentOrderDO targetOrder = enrollmentOrderMapper.selectById(apply.getOrderId());
@@ -125,10 +133,14 @@ public class RefundApplyServiceImpl implements RefundApplyService {
             throw exception(ENROLLMENT_ORDER_NOT_EXISTS);
         }
 
-        // 2. 更新退费申请（退款由人工在微信商户平台完成后，后台登记结果）
+        // 2. CAS 抢占申请状态，避免审核与拒绝并发时重复退款/重复归还名额
+        if (refundApplyMapper.updateStatusIfPending(id, "REFUNDED") == 0) {
+            throw exception(REFUND_NOT_ALLOWED);
+        }
+
+        // 3. 登记退款结果（退款由人工在微信商户平台完成后，后台登记结果）
         RefundApplyDO updateApply = new RefundApplyDO();
         updateApply.setId(id);
-        updateApply.setApplyStatus("REFUNDED");
         updateApply.setRefundAmount(refundAmount);
         updateApply.setApproverId(approverId);
         updateApply.setApproveTime(LocalDateTime.now());
@@ -136,7 +148,7 @@ public class RefundApplyServiceImpl implements RefundApplyService {
         updateApply.setRefundTime(LocalDateTime.now());
         refundApplyMapper.updateById(updateApply);
 
-        // 3. 标记订单已退款：全额退款标记所有已支付订单，部分退款标记对应订单
+        // 4. 标记订单已退款：全额退款标记所有已支付订单，部分退款标记对应订单
         List<EnrollmentOrderDO> orders = enrollmentOrderMapper.selectListByEnrollmentId(enrollment.getId());
         boolean refundAll = refundAmount.compareTo(enrollment.getPaidAmount()) >= 0;
         for (EnrollmentOrderDO order : orders) {
@@ -147,24 +159,24 @@ public class RefundApplyServiceImpl implements RefundApplyService {
                     || (order.getId().equals(targetOrder.getId())
                     && refundAmount.compareTo(order.getAmount()) >= 0);
             if (shouldMark) {
-                EnrollmentOrderDO updateOrder = new EnrollmentOrderDO();
-                updateOrder.setId(order.getId());
-                updateOrder.setOrderStatus(OrderStatusEnum.REFUNDED.getStatus());
-                enrollmentOrderMapper.updateById(updateOrder);
+                enrollmentOrderMapper.updateStatusIfPaid(order.getId(), OrderStatusEnum.REFUNDED.getStatus());
             }
         }
 
-        // 4. 更新报名状态 → CANCELLED
+        // 5. 更新报名状态 → CANCELLED
         EnrollmentDO updateEnrollment = new EnrollmentDO();
         updateEnrollment.setId(enrollment.getId());
         updateEnrollment.setEnrollmentStatus(EnrollmentStatusEnum.CANCELLED.getStatus());
         updateEnrollment.setCancelReason("退费申请通过，退款金额：" + refundAmount + " 元");
         enrollmentMapper.updateById(updateEnrollment);
 
-        // 5. 归还班期名额
-        courseSessionMapper.decrementEnrolledCount(enrollment.getSessionId());
+        // 6. 释放拼团席位 + 归还班期名额（报名若已是取消状态，说明已处理过，避免重复 -1）
+        if (!EnrollmentStatusEnum.CANCELLED.getStatus().equals(enrollment.getEnrollmentStatus())) {
+            grouponService.releaseMember(enrollment.getId());
+            courseSessionMapper.decrementEnrolledCount(enrollment.getSessionId());
+        }
 
-        // 6. 关闭该报名下的人工处理单
+        // 7. 关闭该报名下的人工处理单
         manualTaskService.closeAllOpenTasks(enrollment.getId(),
                 "退费已处理，退款金额 " + refundAmount + " 元", approverId);
 
@@ -183,9 +195,13 @@ public class RefundApplyServiceImpl implements RefundApplyService {
             throw exception(REFUND_NOT_ALLOWED);
         }
 
+        // CAS 抢占申请状态，避免与审核并发时状态互相覆盖
+        if (refundApplyMapper.updateStatusIfPending(id, "REJECTED") == 0) {
+            throw exception(REFUND_NOT_ALLOWED);
+        }
+
         RefundApplyDO updateApply = new RefundApplyDO();
         updateApply.setId(id);
-        updateApply.setApplyStatus("REJECTED");
         updateApply.setApproverId(approverId);
         updateApply.setApproveTime(LocalDateTime.now());
         updateApply.setAdminRemark(rejectReason);
@@ -196,8 +212,11 @@ public class RefundApplyServiceImpl implements RefundApplyService {
         if (enrollment == null) {
             return;
         }
+        String rejectHandleResult = "退费申请被拒绝：" + rejectReason;
         manualTaskService.closeOpenTask(enrollment.getId(), ManualTaskTypeEnum.REFUND_APPLY.getType(),
-                "退费申请被拒绝：" + rejectReason, approverId);
+                rejectHandleResult, approverId);
+        manualTaskService.closeOpenTask(enrollment.getId(), ManualTaskTypeEnum.REFUND_AMOUNT_CONFIRM.getType(),
+                rejectHandleResult, approverId);
         eventPublisher.publishEvent(new RefundResultEvent(this, enrollment.getId(),
                 enrollment.getMemberId(), enrollment.getSessionId(),
                 apply.getRefundAmount(), false, rejectReason));

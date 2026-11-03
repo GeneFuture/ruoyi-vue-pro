@@ -243,7 +243,7 @@
 
 <script setup>
   import { computed, reactive } from 'vue';
-  import { onLoad } from '@dcloudio/uni-app';
+  import { onLoad, onShow } from '@dcloudio/uni-app';
   import sheep from '@/sheep';
   import { h5Url } from '@/sheep/config';
   import EnrollmentApi from '@/sheep/api/maritime/enrollment';
@@ -258,6 +258,8 @@
     showRefundModal: false,
     showGrouponModal: false,
     refundReason: '',
+    cancelling: false,
+    submittingRefund: false,
   });
 
   const STATUS_TEXT = {
@@ -528,31 +530,61 @@
       title: '确认取消',
       content: '取消后定金订单将关闭，确定取消报名吗？',
       success: async (res) => {
-        if (!res.confirm) return;
-        const { code } = await EnrollmentApi.cancelEnrollment(state.detail.id);
-        if (code === 0) getDetail(state.detail.id);
+        if (!res.confirm || state.cancelling) return;
+        state.cancelling = true;
+        try {
+          const { code } = await EnrollmentApi.cancelEnrollment(state.detail.id);
+          if (code === 0) getDetail(state.detail.id);
+        } catch (e) {
+          // 请求层已提示，避免未处理 Promise
+        } finally {
+          state.cancelling = false;
+        }
       },
     });
   }
 
   async function submitRefund() {
+    if (state.submittingRefund) return;
     if (!state.refundReason) {
       sheep.$helper.toast('请填写退费原因');
       return;
     }
-    const { code } = await EnrollmentApi.applyRefund({
-      enrollmentId: state.detail.id,
-      applyReason: state.refundReason,
-    });
-    if (code === 0) {
-      state.showRefundModal = false;
-      getDetail(state.detail.id);
+    state.submittingRefund = true;
+    try {
+      const { code } = await EnrollmentApi.applyRefund({
+        enrollmentId: state.detail.id,
+        applyReason: state.refundReason,
+      });
+      if (code === 0) {
+        state.showRefundModal = false;
+        getDetail(state.detail.id);
+      }
+    } catch (e) {
+      // 请求层已提示，避免未处理 Promise
+    } finally {
+      state.submittingRefund = false;
     }
   }
 
+  let currentId = '';
+  let firstShow = true;
+
   onLoad((options) => {
-    if (options.id) {
-      getDetail(options.id);
+    currentId = options.id || '';
+    if (currentId) {
+      getDetail(currentId);
+    }
+  });
+
+  // 从支付页返回时刷新报名状态，避免仍显示“待付定金/去支付”
+  onShow(() => {
+    if (firstShow) {
+      firstShow = false;
+      return;
+    }
+    if (currentId) {
+      getDetail(currentId);
     }
   });
 </script>

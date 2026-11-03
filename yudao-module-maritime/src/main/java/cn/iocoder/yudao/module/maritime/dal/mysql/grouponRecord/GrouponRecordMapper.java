@@ -60,9 +60,19 @@ public interface GrouponRecordMapper extends BaseMapperX<GrouponRecordDO> {
     @Select("SELECT * FROM maritime_groupon_record WHERE id = #{id} AND deleted = 0 FOR UPDATE")
     GrouponRecordDO selectByIdForUpdate(@Param("id") Long id);
 
-    /** CAS 原子递增当前人数（人数已满时返回 0，用于加入已有拼团） */
-    @Update("UPDATE maritime_groupon_record SET current_count = current_count + 1 WHERE id = #{id} AND current_count < required_count AND deleted = 0")
+    /**
+     * CAS 原子递增当前人数：同时校验进行中、未过期、未满员，
+     * 避免预检通过后拼团刚好成团/超时/关闭仍被加入。
+     */
+    @Update("UPDATE maritime_groupon_record SET current_count = current_count + 1 " +
+            "WHERE id = #{id} AND current_count < required_count " +
+            "AND groupon_status = 'IN_PROGRESS' AND expire_time > NOW() AND deleted = 0")
     int incrementCount(@Param("id") Long id);
+
+    /** 成员退出时原子递减人数（至少保留 1 人，进行中的拼团才允许操作） */
+    @Update("UPDATE maritime_groupon_record SET current_count = current_count - 1 " +
+            "WHERE id = #{id} AND current_count > 1 AND groupon_status = 'IN_PROGRESS' AND deleted = 0")
+    int decrementCountForRelease(@Param("id") Long id);
 
     /** CAS IN_PROGRESS → DEGRADED（幂等，定时任务降级 / 管理员关闭 / 提前付清尾款用） */
     @Update("UPDATE maritime_groupon_record SET groupon_status = #{newStatus}, degrade_reason = #{reason} " +

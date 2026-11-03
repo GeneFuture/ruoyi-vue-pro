@@ -26,6 +26,7 @@ public interface EnrollmentOrderMapper extends BaseMapperX<EnrollmentOrderDO> {
     default PageResult<EnrollmentOrderDO> selectPage(EnrollmentOrderPageReqVO reqVO) {
         return selectPage(reqVO, new LambdaQueryWrapperX<EnrollmentOrderDO>()
                 .eqIfPresent(EnrollmentOrderDO::getEnrollmentId, reqVO.getEnrollmentId())
+                .inIfPresent(EnrollmentOrderDO::getEnrollmentId, reqVO.getEnrollmentIds())
                 .eqIfPresent(EnrollmentOrderDO::getOrderNo, reqVO.getOrderNo())
                 .eqIfPresent(EnrollmentOrderDO::getOrderType, reqVO.getOrderType())
                 .eqIfPresent(EnrollmentOrderDO::getAmount, reqVO.getAmount())
@@ -87,6 +88,10 @@ public interface EnrollmentOrderMapper extends BaseMapperX<EnrollmentOrderDO> {
     @Update("UPDATE maritime_enrollment_order SET order_status = #{newStatus} WHERE id = #{id} AND order_status = 'PENDING' AND deleted = 0")
     int updateStatusIfPending(@Param("id") Long id, @Param("newStatus") String newStatus);
 
+    /** CAS 标记已支付订单为已退款，避免覆盖并发写入的其它状态 */
+    @Update("UPDATE maritime_enrollment_order SET order_status = #{newStatus} WHERE id = #{id} AND order_status = 'PAID' AND deleted = 0")
+    int updateStatusIfPaid(@Param("id") Long id, @Param("newStatus") String newStatus);
+
     /** 绑定 pay 模块订单ID */
     @Update("UPDATE maritime_enrollment_order SET pay_order_id = #{payOrderId} WHERE id = #{id} AND deleted = 0")
     int updatePayOrderId(@Param("id") Long id, @Param("payOrderId") Long payOrderId);
@@ -104,13 +109,34 @@ public interface EnrollmentOrderMapper extends BaseMapperX<EnrollmentOrderDO> {
                 .eq(EnrollmentOrderDO::getOrderStatus, "PAID"));
     }
 
-    /** 统计指定时间段内指定订单类型的已付金额合计（Dashboard/财务汇总用） */
+    /**
+     * 统计指定时间段内指定订单类型的已付金额合计（Dashboard/财务汇总用）
+     *
+     * REFUNDED 订单在支付时同样发生过资金流入，因此这里按毛流入统计；
+     * 退款金额由 RefundApplyMapper 单独统计为资金流出。
+     */
     @Select("SELECT COALESCE(SUM(amount), 0) FROM maritime_enrollment_order " +
-            "WHERE order_type = #{orderType} AND order_status = 'PAID' " +
+            "WHERE order_type = #{orderType} AND order_status IN ('PAID', 'REFUNDED') " +
             "AND pay_time >= #{start} AND pay_time <= #{end} AND deleted = 0")
     BigDecimal sumPaidAmountByTypeAndPayTimeBetween(@Param("orderType") String orderType,
                                                     @Param("start") LocalDateTime start,
                                                     @Param("end") LocalDateTime end);
+
+    /**
+     * 按支付日期汇总资金流入（资金流水页用）
+     */
+    @Select("SELECT DATE(pay_time) AS statDate, " +
+            "COALESCE(SUM(CASE WHEN order_type = 'DEPOSIT' THEN amount ELSE 0 END), 0) AS depositAmount, " +
+            "COALESCE(SUM(CASE WHEN order_type = 'BALANCE' THEN amount ELSE 0 END), 0) AS balanceAmount, " +
+            "COALESCE(SUM(CASE WHEN order_type = 'FULL' THEN amount ELSE 0 END), 0) AS fullAmount, " +
+            "COALESCE(SUM(amount), 0) AS totalInflow, " +
+            "COUNT(*) AS paidOrderCount " +
+            "FROM maritime_enrollment_order " +
+            "WHERE order_status IN ('PAID', 'REFUNDED') AND deleted = 0 " +
+            "AND pay_time >= #{start} AND pay_time < #{end} " +
+            "GROUP BY DATE(pay_time) ORDER BY statDate")
+    List<Map<String, Object>> sumPaidAmountGroupByDateBetween(@Param("start") LocalDateTime start,
+                                                              @Param("end") LocalDateTime end);
 
     /** 汇总所有班期的各类型已付金额（全历史，Dashboard/非月份用途） */
     @Select("SELECT e.session_id AS sessionId, o.order_type AS orderType, COALESCE(SUM(o.amount), 0) AS total " +
@@ -137,16 +163,6 @@ public interface EnrollmentOrderMapper extends BaseMapperX<EnrollmentOrderDO> {
             "WHERE o.order_status = 'REFUNDED' AND o.deleted = 0 " +
             "GROUP BY e.session_id")
     List<Map<String, Object>> sumAllRefundedAmountGroupBySession();
-
-    /** 汇总指定月份内各班期的退款金额（财务汇总月度明细用） */
-    @Select("SELECT e.session_id AS sessionId, COALESCE(SUM(o.amount), 0) AS total " +
-            "FROM maritime_enrollment_order o " +
-            "INNER JOIN maritime_enrollment e ON e.id = o.enrollment_id AND e.deleted = 0 " +
-            "WHERE o.order_status = 'REFUNDED' AND o.deleted = 0 " +
-            "AND o.update_time >= #{start} AND o.update_time <= #{end} " +
-            "GROUP BY e.session_id")
-    List<Map<String, Object>> sumRefundedAmountGroupBySessionBetween(@Param("start") LocalDateTime start,
-                                                                      @Param("end") LocalDateTime end);
 
     /** 批量汇总指定班期列表的各类型已付金额（Dashboard SessionProgress 批量用，避免 N+1） */
     @Select("<script>SELECT e.session_id AS sessionId, o.order_type AS orderType, COALESCE(SUM(o.amount), 0) AS total " +

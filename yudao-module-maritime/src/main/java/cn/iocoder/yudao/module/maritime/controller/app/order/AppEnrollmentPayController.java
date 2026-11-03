@@ -1,6 +1,8 @@
 package cn.iocoder.yudao.module.maritime.controller.app.order;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
+import cn.iocoder.yudao.framework.idempotent.core.annotation.Idempotent;
+import cn.iocoder.yudao.framework.idempotent.core.keyresolver.impl.UserIdempotentKeyResolver;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.maritime.controller.app.order.vo.AppPayBalanceReqVO;
 import cn.iocoder.yudao.module.maritime.controller.app.order.vo.AppPayDepositReqVO;
@@ -34,6 +36,8 @@ public class AppEnrollmentPayController {
 
     @PostMapping("/pay-deposit")
     @Operation(summary = "发起定金支付（创建 pay 模块订单，返回 payOrderId 供前端调用微信支付）")
+    @Idempotent(timeout = 10, message = "支付请求处理中，请勿重复提交",
+            keyResolver = UserIdempotentKeyResolver.class)
     public CommonResult<AppPayOrderRespVO> payDeposit(@Valid @RequestBody AppPayDepositReqVO reqVO) {
         Long memberId = SecurityFrameworkUtils.getLoginUserId();
         AppPayOrderRespVO respVO = enrollmentService.payDeposit(reqVO.getOrderId(), memberId);
@@ -50,6 +54,8 @@ public class AppEnrollmentPayController {
 
     @PostMapping("/pay-balance")
     @Operation(summary = "发起尾款支付（创建 pay 模块订单，返回 payOrderId 供前端调用微信支付）")
+    @Idempotent(timeout = 10, message = "支付请求处理中，请勿重复提交",
+            keyResolver = UserIdempotentKeyResolver.class)
     public CommonResult<AppPayOrderRespVO> payBalance(@Valid @RequestBody AppPayBalanceReqVO reqVO) {
         Long memberId = SecurityFrameworkUtils.getLoginUserId();
         return success(enrollmentService.payBalance(reqVO, memberId));

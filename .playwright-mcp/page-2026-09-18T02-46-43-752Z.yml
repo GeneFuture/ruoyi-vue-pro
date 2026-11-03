@@ -1,0 +1,159 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - paragraph [ref=e3]: 娴峰憳鍩硅灏忕▼搴� 路 璁捐璇勫
+    - heading "棣栭〉瑙嗚绋�" [level=1] [ref=e4]
+    - paragraph [ref=e5]: 杩欑増閽堝銆岀粏鑺備笉澶熺簿蹇冦€嶉噸鍋氫簡 12 澶勩€傚彸鏍忔槸 375px 瀹炲昂绋匡紝鍙洿鎺ユ粴鍔ㄧ湅瀹屽叚灞傛ゼ銆傛枃妗堜笌鏁板瓧涓虹ず渚嬫暟鎹紝鐢ㄤ簬灞曠ず鐪熷疄鎺掑竷銆�
+  - main [ref=e6]:
+    - generic [ref=e7]:
+      - heading "閫愭潯鏀瑰姩" [level=2] [ref=e8]
+      - paragraph [ref=e9]: 瀵瑰簲鍙虫爮锛岃嚜涓婅€屼笅
+      - list [ref=e10]:
+        - listitem [ref=e11]:
+          - generic [ref=e12]: 娓愬彉鏀逛负涓夋 + 鍙犲緞鍚戦珮鍏�
+          - text: 鍘熸潵涓ょ鐩磋繛锛屽彸涓婅鍙戦椃銆傜幇鍦� 165掳 涓夋杩囨浮锛屽啀鍙犱竴灞傚亸鍙充笂瑙掔殑鐧借壊楂樺厜銆�
+        - listitem [ref=e13]:
+          - generic [ref=e14]: 鏍囬鍔犺礋瀛楄窛锛屽壇鏍囬闄嶅埌 72% 鐧�
+          - text: 澶у瓧涓嶅姞瀛楄窛浼氭暎锛涘壇鏍囬鐢� 62%/72% 涓ゆ。鐧斤紝鍜屾爣棰樻媺寮€灞傛鑰屼笉鏄彧闈犲瓧鍙枫€�
+        - listitem [ref=e15]:
+          - generic [ref=e16]: 鎼滅储妗嗕粠鍗婇€忔槑鏀逛负瀹炲績鐧�
+          - text: 鍗婇€忔槑鐧藉帇鍦ㄦ笎鍙樻祬绔嚑涔庢病鏈夎竟鐣岋紝杈撳叆鍖虹湅涓嶅嚭鑼冨洿銆傚疄蹇冪櫧 + 4px 鎶曞奖锛屼綅缃竴鐪煎彲杈ㄣ€�
+        - listitem [ref=e17]:
+          - generic [ref=e18]: 閲戝垰鍖哄浘鏍�/澶栨姣斾緥 0.36 鈫� 0.47
+          - text: 鍘� 132rpx 鏂规閰� 48rpx 鍥炬爣锛屽浘鏍囧闆堕浂鎮湪涓棿銆傜幇鍦� 64px 妗嗛厤 30px 鍥炬爣锛屽苟鍔犲唴楂樺厜璁╃伆鍧楁湁鍘氬害銆�
+        - listitem [ref=e19]:
+          - generic [ref=e20]: 鍊掕鏃舵尓鍒板皝闈㈠浘涓�
+          - text: 鍗＄墖鍐呭皯涓€灞備俊鎭€傚浘鐗囧簳閮ㄥ姞榛戣壊娓愬彉閬僵淇濊瘉鏂囧瓧鍙 鈥斺€� 鍘嬪浘蹇呴厤閬僵锛屼笉鑳界洿鎺ュ帇銆�
+        - listitem [ref=e21]:
+          - generic [ref=e22]: 鍗＄墖闃村奖鏀逛负鍑犱箮涓嶅彲瑙�
+          - code [ref=e23]: 0 2px 10px rgba(20,30,60,.06)
+          - text: "銆傚埢鎰忎繚鐣欒€岄潪鍘绘帀锛氬湪 #F5F7FA 娴呯伆甯︿笂锛岀函鐧藉崱鐗囬渶瑕佷竴鐐圭偣鎶曞奖鎵嶆湁灞傛锛屼絾涓嶈兘閲嶅埌鍙�\"璐寸焊鎰�\"銆�"
+        - listitem [ref=e24]:
+          - generic [ref=e25]: 浣欎綅杩涘害鏉� 8rpx 鈫� 5px锛岃建閬撴敼鍐风伆
+          - text: "鍘熻繘搴︽潯鍜屼环鏍兼姠瑙嗚銆傜幇鍦ㄥ帇浣庨珮搴︺€佽建閬撶敤 #E8EBF0锛屽彧鍋氭皼鍥翠笉鍋氫富瑙掞紱鏁板瓧鐢ㄧ瓑瀹斤紝婊氬姩涓嶆姈銆�"
+        - listitem [ref=e26]:
+          - generic [ref=e27]: 璇剧▼鍒楄〃鍒嗛殧绾垮唴缂╁埌鏂囧瓧宸﹁竟缂�
+          - text: 鍘熸潵閫氭爮鍒嗛殧绾挎í绌跨缉鐣ュ浘锛屾妸涓€琛屽垏涓ゅ崐銆傜幇鍦ㄧ嚎浠庢枃瀛楀垪寮€濮嬶紝瑙嗙嚎鑷劧娌挎枃瀛楄蛋 鈥斺€� 杩欐槸 Apple 鍒楄〃鐨勫父瑙勫仛娉曘€�
+        - listitem [ref=e28]:
+          - generic [ref=e29]: 鎵€鏈夋暟瀛楁敼鐢� tabular-nums
+          - text: 浠锋牸銆佷綑浣嶃€佹棩鏈熴€佹椂闂达細绛夊鏁板瓧锛屽垪琛ㄦ粴鍔ㄥ拰鏁板瓧鍙樺寲鏃跺搴︿笉璺冲姩銆�
+        - listitem [ref=e30]:
+          - generic [ref=e31]: 缂╃暐鍥剧粺涓€ 84px / 鍦嗚 14px锛屼笌鏂囧瓧椤跺榻�
+          - text: 鍘熸潵缂╃暐鍥惧拰鏂囧瓧鍧楃瓑楂橈紝鏂囧瓧灏戞椂浠锋牸琚�
+          - code [ref=e32]: margin-top:auto
+          - text: 椤跺埌搴曢儴锛岃楂樺弬宸€�
+        - listitem [ref=e33]:
+          - generic [ref=e34]: 娴佺▼鑺傜偣 32px銆佽繛鎺ョ嚎 1px銆佽妭鐐圭敤杩戦粦
+          - text: 鍘熸潵鑺傜偣鏄搧鐗岃摑銆佺嚎鏄� 2rpx銆傛祦绋嬫槸缁撴瀯淇℃伅涓嶆槸鎿嶄綔鍏ュ彛锛屼笉璇ョ敤寮鸿皟鑹诧紱绾跨粏涓€妗ｆ洿鍒╄惤銆�
+        - listitem [ref=e35]:
+          - generic [ref=e36]: 闂磋窛鏀舵暃鍒� 4px 鍩哄噯
+          - text: 鍏ㄩ儴闂磋窛鍙栬嚜 4 / 8 / 12 / 16 / 24 / 32 / 48 涓冩。锛屼笉鍐嶅嚭鐜� 5銆�6銆�14銆�18 杩欑被闅忔墜鍊笺€�
+    - generic [ref=e37]:
+      - paragraph [ref=e38]: 375 脳 812 路 瀹炲昂
+      - generic [ref=e40]:
+        - generic [ref=e41]:
+          - generic [ref=e42]: 9:41
+          - generic [ref=e48]:
+            - generic [ref=e49]: 鈥�
+            - generic [ref=e51]: 鈥⑩€⑩€�
+          - paragraph [ref=e52]: 娴峰憳鍩硅骞冲彴
+          - heading "鎸佽瘉涓婂矖 浠庤繖閲屽紑濮�" [level=2] [ref=e53]: 鎸佽瘉涓婂矖浠庤繖閲屽紑濮�
+          - paragraph [ref=e54]: STCW 鍥涘皬璇� 路 閫備换璇佷功 路 鐗圭鍩硅
+          - generic [ref=e55]: 鎼滅储涓婅鍦扮偣锛屽锛氶潚宀�
+        - generic [ref=e61]:
+          - generic [ref=e62]: 鎵捐绋�
+          - generic [ref=e68]: 寮€鐝鍒�
+          - generic [ref=e74]: 鎴戠殑鎶ュ悕
+          - generic [ref=e80]: 鎺ㄨ崘鏈夌ぜ
+        - generic [ref=e88]:
+          - generic [ref=e89]: 9 鏈堟柊鐝湡寮€鏀炬姤鍚�
+          - generic [ref=e90]: 闈掑矝 路 澶ц繛 路 涓婃捣 涓夊湴鍚屾寮€鐝�
+        - generic [ref=e91]:
+          - generic [ref=e92]:
+            - heading "杩戞湡寮€鐝�" [level=3] [ref=e93]
+            - generic [ref=e94]: 鍏ㄩ儴 鈥�
+          - generic [ref=e95]:
+            - article [ref=e96]:
+              - generic [ref=e97]:
+                - generic [ref=e98]: STCW 鍩烘湰瀹夊叏鍩硅
+                - emphasis [ref=e99]: 9 澶╁悗寮€鐝�
+              - generic [ref=e100]:
+                - heading "STCW 鍩烘湰瀹夊叏鍩硅" [level=4] [ref=e101]
+                - paragraph [ref=e102]: 9 鏈堜竴鏈� 路 闈掑矝 路 7 澶�
+                - generic [ref=e103]: 浣� 8/30
+                - generic [ref=e107]:
+                  - generic [ref=e108]: 楼3800
+                  - generic [ref=e109]: 瀹氶噾 楼500
+            - article [ref=e110]:
+              - generic [ref=e111]:
+                - generic [ref=e112]: 绮鹃€氭€ユ晳鍩硅
+                - emphasis [ref=e113]: 16 澶╁悗寮€鐝�
+              - generic [ref=e114]:
+                - heading "绮鹃€氭€ユ晳鍩硅" [level=4] [ref=e115]
+                - paragraph [ref=e116]: 9 鏈堜簩鏈� 路 澶ц繛 路 5 澶�
+                - generic [ref=e117]: 浣� 18/30
+                - generic [ref=e121]:
+                  - generic [ref=e122]: 楼2600
+                  - generic [ref=e123]: 瀹氶噾 楼400
+        - generic [ref=e124]:
+          - heading "鍏ㄩ儴璇剧▼" [level=3] [ref=e126]
+          - generic [ref=e127]:
+            - generic [ref=e128]: 鍏ㄩ儴
+            - generic [ref=e129]: STCW
+            - generic [ref=e130]: 閫備换璇佷功
+            - generic [ref=e131]: 鐗圭鍩硅
+          - generic [ref=e132]:
+            - generic [ref=e133]: 灏侀潰
+            - generic [ref=e134]:
+              - heading "STCW 鍩烘湰瀹夊叏鍩硅锛堝洓灏忚瘉锛�" [level=4] [ref=e135]
+              - paragraph [ref=e136]: STCW 路 7 澶�
+              - paragraph [ref=e137]: 09-20 寮€鐝� 路 闈掑矝
+              - generic [ref=e138]:
+                - generic [ref=e139]: 楼3800 璧�
+                - generic [ref=e140]: 鎷涚敓涓�
+          - generic [ref=e141]:
+            - generic [ref=e142]: 灏侀潰
+            - generic [ref=e143]:
+              - heading "绮鹃€氭晳鐢熻墖绛忓拰鏁戝姪鑹囧煿璁�" [level=4] [ref=e144]
+              - paragraph [ref=e145]: 閫備换璇佷功 路 5 澶�
+              - paragraph [ref=e146]: 09-24 寮€鐝� 路 澶ц繛
+              - generic [ref=e147]:
+                - generic [ref=e148]: 楼2600 璧�
+                - generic [ref=e149]: 鎷涚敓涓�
+          - generic [ref=e150]:
+            - generic [ref=e151]: 灏侀潰
+            - generic [ref=e152]:
+              - heading "楂樼骇娑堥槻鍩硅" [level=4] [ref=e153]
+              - paragraph [ref=e154]: 鐗圭鍩硅 路 4 澶�
+              - paragraph [ref=e155]: 10-08 寮€鐝� 路 涓婃捣
+              - generic [ref=e156]:
+                - generic [ref=e157]: 楼3200 璧�
+                - generic [ref=e158]: 鎷涚敓涓�
+        - generic [ref=e159]:
+          - heading "骞冲彴鍏憡" [level=3] [ref=e161]
+          - generic [ref=e162]:
+            - generic [ref=e163]:
+              - generic [ref=e164]: 9 鏈堟柊鐝湡寮€鏀炬姤鍚�
+              - time [ref=e165]: 09-01
+            - generic [ref=e166]:
+              - generic [ref=e167]: 鍏充簬璋冩暣灏炬缂寸撼鏃堕棿鐨勯€氱煡
+              - time [ref=e168]: 08-26
+        - generic [ref=e169]:
+          - heading "鎶ュ悕娴佺▼" [level=3] [ref=e171]
+          - generic [ref=e172]:
+            - generic [ref=e173]:
+              - generic [ref=e174]: "1"
+              - generic [ref=e175]: 閫夌彮鏈�
+              - emphasis [ref=e176]: 鎸戞椂闂村湴鐐�
+            - generic [ref=e177]:
+              - generic [ref=e178]: "2"
+              - generic [ref=e179]: 浠樺畾閲�
+              - emphasis [ref=e180]: 閿佸畾鍚嶉
+            - generic [ref=e181]:
+              - generic [ref=e182]: "3"
+              - generic [ref=e183]: 浠樺熬娆�
+              - emphasis [ref=e184]: 寮€鐝墠缁撴竻
+            - generic [ref=e185]:
+              - generic [ref=e186]: "4"
+              - generic [ref=e187]: 鍙傚姞鍩硅
+              - emphasis [ref=e188]: 缁撲笟鎷胯瘉
+          - paragraph [ref=e189]: 鏈粯瀹氶噾鍙洿鎺ュ彇娑堬紱寮€鐝墠鍙敵璇烽€€璐癸紝寮€鐝悗涓嶆敮鎸�

@@ -172,7 +172,7 @@
         class="agreement ss-flex ss-col-center ss-m-x-20 ss-m-t-10"
         @tap="state.agree = !state.agree"
       >
-        <text :class="state.agree ? 'cicon-check-circle' : 'cicon-circle'" class="agree-icon" />
+        <text :class="state.agree ? 'cicon-check-round' : 'cicon-circle'" class="agree-icon" />
         <text class="agreement-text ss-m-l-10">
           我已确认以上班级、学校与学费信息，并同意《报名协议》及退款政策
         </text>

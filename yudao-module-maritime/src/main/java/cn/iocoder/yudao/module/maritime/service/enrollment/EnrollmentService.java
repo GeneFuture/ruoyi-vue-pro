@@ -31,7 +31,7 @@ public interface EnrollmentService {
      *
      * @param updateReqVO 更新信息
      */
-    void updateEnrollment(@Valid EnrollmentSaveReqVO updateReqVO);
+    void updateEnrollment(@Valid EnrollmentUpdateReqVO updateReqVO);
 
     /**
      * 删除报名管理

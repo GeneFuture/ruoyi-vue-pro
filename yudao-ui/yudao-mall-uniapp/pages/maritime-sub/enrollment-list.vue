@@ -4,7 +4,7 @@
     <!-- 快捷入口 -->
     <view class="quick-nav ss-flex ss-m-20">
       <view class="nav-item ss-flex-1" @tap="sheep.$router.go('/pages/maritime/index')">
-        <text class="cicon-fill-similar nav-icon" />
+        <text class="cicon-search nav-icon" />
         <text class="ss-m-l-10">课程列表</text>
       </view>
     </view>

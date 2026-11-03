@@ -1,0 +1,151 @@
+- generic [ref=e149]:
+  - generic [ref=e150]:
+    - link "芋道管理系统" [ref=e152] [cursor=pointer]:
+      - /url: /
+    - menubar [ref=e159]:
+      - menuitem "首页" [ref=e160] [cursor=pointer]
+      - menuitem "作者动态" [ref=e165] [cursor=pointer]
+      - menuitem "Boot 开发文档" [ref=e170] [cursor=pointer]
+      - menuitem "Cloud 开发文档" [ref=e175] [cursor=pointer]
+      - menuitem "系统管理" [ref=e180]
+      - menuitem "海员培训" [ref=e189]
+      - menuitem "基础设施" [ref=e198]
+      - menuitem "支付管理" [ref=e207]
+      - menuitem "报表管理" [ref=e218]
+      - menuitem "工作流程" [ref=e228]
+      - menuitem "会员中心" [ref=e237]
+      - menuitem "商城系统" [ref=e250]
+      - menuitem "公众号管理" [ref=e259]
+      - menuitem "CRM 系统" [ref=e269]
+      - menuitem "ERP 系统" [ref=e278]
+      - menuitem "AI 大模型" [ref=e287]
+      - menuitem "IoT 物联网" [ref=e296]
+      - menuitem "MES 系统" [ref=e305]
+  - generic [ref=e316]:
+    - generic [ref=e318]:
+      - generic [ref=e319]:
+        - generic [ref=e320]:
+          - generic [ref=e321]:
+            - generic [ref=e322] [cursor=pointer]
+            - navigation "面包屑" [ref=e326]:
+              - link "首页" [ref=e328]
+          - generic [ref=e333]:
+            - generic [ref=e336]:
+              - generic:
+                - combobox [ref=e338]
+                - generic [ref=e339]: 请选择租户
+              - generic [ref=e341] [cursor=pointer]
+            - generic [ref=e344] [cursor=pointer]
+            - generic [ref=e352]:
+              - generic:
+                - combobox [ref=e354]
+                - generic: 请输入菜单内容
+            - button [ref=e356] [cursor=pointer]
+            - button [ref=e360] [cursor=pointer]
+            - generic [ref=e363] [cursor=pointer]
+            - generic [ref=e370] [cursor=pointer]
+            - button "芋道源码" [ref=e376] [cursor=pointer]
+        - generic [ref=e379]:
+          - generic [ref=e380] [cursor=pointer]
+          - button "首页" [ref=e390] [cursor=pointer]
+          - generic [ref=e395] [cursor=pointer]
+          - generic [ref=e399] [cursor=pointer]
+          - button [ref=e404] [cursor=pointer]
+      - generic [ref=e408]:
+        - generic [ref=e412]:
+          - generic [ref=e416]:
+            - generic [ref=e417]: 你好 芋道源码 祝你开心每一天!
+            - generic [ref=e418]: 今日晴，20℃ - 32℃！
+          - generic [ref=e420]:
+            - generic [ref=e421]:
+              - generic [ref=e422]: 项目数
+              - text: "31"
+            - separator [ref=e423]
+            - generic [ref=e424]:
+              - generic [ref=e425]: 待办
+              - text: "8"
+            - separator [ref=e426]
+            - generic [ref=e427]:
+              - generic [ref=e428]: 项目访问
+              - text: 1,831
+        - generic [ref=e429]:
+          - generic [ref=e431]:
+            - generic [ref=e433]:
+              - generic [ref=e434]: 项目数
+              - link "更多" [ref=e435] [cursor=pointer]:
+                - /url: https://github.com/yudaocode
+            - generic [ref=e438]:
+              - generic [ref=e441] [cursor=pointer]:
+                - generic [ref=e442]: ruoyi-vue-pro
+                - generic [ref=e447]: github.com/YunaiV/ruoyi-vue-pro
+                - generic [ref=e448]:
+                  - generic [ref=e449]: Spring Boot 单体架构
+                  - generic [ref=e450]: 2025-01-02
+              - generic [ref=e453] [cursor=pointer]:
+                - generic [ref=e454]: yudao-ui-admin-vue3
+                - generic [ref=e459]: github.com/yudaocode/yudao-ui-admin-vue3
+                - generic [ref=e460]:
+                  - generic [ref=e461]: Vue3 + element-plus 管理后台
+                  - generic [ref=e462]: 2025-02-03
+              - generic [ref=e465] [cursor=pointer]:
+                - generic [ref=e466]: yudao-ui-mall-uniapp
+                - generic [ref=e473]: github.com/yudaocode/yudao-ui-mall-uniapp
+                - generic [ref=e474]:
+                  - generic [ref=e475]: Vue3 + uniapp 商城手机端
+                  - generic [ref=e476]: 2025-03-04
+              - generic [ref=e479] [cursor=pointer]:
+                - generic [ref=e480]: yudao-cloud
+                - generic [ref=e485]: github.com/YunaiV/yudao-cloud
+                - generic [ref=e486]:
+                  - generic [ref=e487]: Spring Cloud 微服务架构
+                  - generic [ref=e488]: 2025-04-05
+              - generic [ref=e491] [cursor=pointer]:
+                - generic [ref=e492]: yudao-ui-admin-vben
+                - generic [ref=e500]: github.com/yudaocode/yudao-ui-admin-vben
+                - generic [ref=e501]:
+                  - generic [ref=e502]: Vue3 + vben5(antd) 管理后台
+                  - generic [ref=e503]: 2025-05-06
+              - generic [ref=e506] [cursor=pointer]:
+                - generic [ref=e507]: yudao-ui-admin-uniapp
+                - generic [ref=e512]: github.com/yudaocode/yudao-ui-admin-uniapp
+                - generic [ref=e513]:
+                  - generic [ref=e514]: Vue3 + uniapp 管理手机端
+                  - generic [ref=e515]: 2025-06-01
+          - generic [ref=e531]:
+            - generic [ref=e532]:
+              - generic [ref=e533]: 快捷入口
+              - generic [ref=e537]:
+                - generic [ref=e538]: 首页
+                - generic [ref=e546]: 商城中心
+                - generic [ref=e553]: AI 大模型
+                - generic [ref=e560]: ERP 系统
+                - generic [ref=e567]: CRM 系统
+                - generic [ref=e574]: IoT 物联网
+            - generic [ref=e581]:
+              - generic [ref=e583]:
+                - generic [ref=e584]: 通知公告
+                - generic [ref=e585] [cursor=pointer]: 更多
+              - generic [ref=e587]:
+                - generic [ref=e588]:
+                  - generic [ref=e591]:
+                    - generic [ref=e592]: "技术兼容性 : 系统支持 JDK 8/17/21，Vue 2/3"
+                    - generic [ref=e594]: 2026-10-23
+                  - separator [ref=e595]
+                - generic [ref=e596]:
+                  - generic [ref=e599]:
+                    - generic [ref=e600]: "架构灵活性 : 后端提供 Spring Boot 2.7/3.2 + Cloud 双架构"
+                    - generic [ref=e602]: 2026-10-23
+                  - separator [ref=e603]
+                - generic [ref=e604]:
+                  - generic [ref=e607]:
+                    - generic [ref=e608]: "开源免授权 : 全部开源，个人与企业可 100% 直接使用，无需授权"
+                    - generic [ref=e610]: 2026-10-23
+                  - separator [ref=e611]
+                - generic [ref=e612]:
+                  - generic [ref=e615]:
+                    - generic [ref=e616]: "广泛企业认可 : 国内使用最广泛的快速开发平台，远超 10w++ 企业使用"
+                    - generic [ref=e618]: 2026-10-23
+                  - separator [ref=e619]
+      - generic [ref=e620]: Copyright ©2026 芋道管理系统
+    - generic [ref=e622] [cursor=pointer]
+  - generic [ref=e623] [cursor=pointer]

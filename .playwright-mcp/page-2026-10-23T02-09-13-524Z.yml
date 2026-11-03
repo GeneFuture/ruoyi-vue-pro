@@ -1,0 +1,466 @@
+- generic [ref=f3e11]:
+  - generic [ref=f3e12]:
+    - link "芋道管理系统" [ref=f3e14] [cursor=pointer]:
+      - /url: /
+    - menubar [ref=f3e21]:
+      - menuitem "首页" [ref=f3e22] [cursor=pointer]
+      - menuitem "作者动态" [ref=f3e27] [cursor=pointer]
+      - menuitem "Boot 开发文档" [ref=f3e32] [cursor=pointer]
+      - menuitem "Cloud 开发文档" [ref=f3e37] [cursor=pointer]
+      - menuitem "系统管理" [ref=f3e42]
+      - menuitem "海员培训" [expanded] [ref=f3e51]:
+        - menu [ref=f3e60]:
+          - menuitem "最新动态管理" [ref=f3e61] [cursor=pointer]
+          - menuitem "佣金账户管理" [ref=f3e63] [cursor=pointer]
+          - menuitem "佣金记录管理" [ref=f3e65] [cursor=pointer]
+          - menuitem "报名订单管理" [ref=f3e67] [cursor=pointer]
+          - menuitem "报名管理" [ref=f3e69] [cursor=pointer]
+          - menuitem "拼团成员管理" [ref=f3e71] [cursor=pointer]
+          - menuitem "拼团记录管理" [ref=f3e73] [cursor=pointer]
+          - menuitem "推荐关系管理" [ref=f3e75] [cursor=pointer]
+          - menuitem "退费申请管理" [ref=f3e77] [cursor=pointer]
+          - menuitem "风控黑名单管理" [ref=f3e79] [cursor=pointer]
+          - menuitem "站内消息管理" [ref=f3e81] [cursor=pointer]
+          - menuitem "主页配置" [ref=f3e83] [cursor=pointer]
+          - menuitem "主页配置" [ref=f3e85] [cursor=pointer]
+          - menuitem "海员会员管理" [ref=f3e87] [cursor=pointer]
+          - menuitem "风控事件管理" [ref=f3e89] [cursor=pointer]
+          - menuitem "课程管理" [ref=f3e91] [cursor=pointer]
+          - menuitem "费用模板" [ref=f3e93] [cursor=pointer]
+          - menuitem "班期管理" [ref=f3e95] [cursor=pointer]
+          - menuitem "学校管理" [ref=f3e97] [cursor=pointer]
+      - menuitem "基础设施" [ref=f3e99]
+      - menuitem "支付管理" [ref=f3e108]
+      - menuitem "报表管理" [ref=f3e119]
+      - menuitem "工作流程" [ref=f3e129]
+      - menuitem "会员中心" [ref=f3e138]
+      - menuitem "商城系统" [ref=f3e151]
+      - menuitem "公众号管理" [ref=f3e160]
+      - menuitem "CRM 系统" [ref=f3e170]
+      - menuitem "ERP 系统" [ref=f3e179]
+      - menuitem "AI 大模型" [ref=f3e188]
+      - menuitem "IoT 物联网" [ref=f3e197]
+      - menuitem "MES 系统" [ref=f3e206]
+  - generic [ref=f3e219]:
+    - generic [ref=f3e220]:
+      - generic [ref=f3e221]:
+        - generic [ref=f3e222]:
+          - generic [ref=f3e223] [cursor=pointer]
+          - navigation "面包屑" [ref=f3e227]:
+            - generic [ref=f3e228]:
+              - link "海员培训" [ref=f3e229]
+              - text: /
+            - link "班期管理" [ref=f3e235]
+        - generic [ref=f3e236]:
+          - generic [ref=f3e239]:
+            - generic:
+              - combobox [ref=f3e241]
+              - generic [ref=f3e242]: 请选择租户
+            - generic [ref=f3e244] [cursor=pointer]
+          - generic [ref=f3e247] [cursor=pointer]
+          - generic [ref=f3e255]:
+            - generic:
+              - combobox [ref=f3e257]
+              - generic: 请输入菜单内容
+          - button [ref=f3e259] [cursor=pointer]
+          - button [ref=f3e263] [cursor=pointer]
+          - generic [ref=f3e266] [cursor=pointer]
+          - generic [ref=f3e273] [cursor=pointer]
+          - button "芋道源码" [ref=f3e279] [cursor=pointer]
+      - generic [ref=f3e282]:
+        - generic [ref=f3e283] [cursor=pointer]
+        - generic [ref=f3e291]:
+          - button "首页" [ref=f3e293] [cursor=pointer]
+          - button "班期管理" [ref=f3e299] [cursor=pointer]
+        - generic [ref=f3e301] [cursor=pointer]
+        - generic [ref=f3e305] [cursor=pointer]
+        - button [ref=f3e310] [cursor=pointer]
+    - generic [ref=f3e314]:
+      - generic [ref=f3e317]:
+        - generic [ref=f3e318]:
+          - generic [ref=f3e319]: 班期编号
+          - textbox "班期编号" [ref=f3e323]:
+            - /placeholder: 请输入班期编号
+        - generic [ref=f3e324]:
+          - generic [ref=f3e325]: 班级名称
+          - textbox "班级名称" [ref=f3e329]:
+            - /placeholder: 请输入班级名称
+        - generic [ref=f3e330]:
+          - generic [ref=f3e331]: 班期状态
+          - generic [ref=f3e334] [cursor=pointer]:
+            - generic:
+              - combobox "班期状态" [ref=f3e336]
+              - generic [ref=f3e337]: 请选择状态
+        - generic [ref=f3e343]:
+          - button "搜索" [ref=f3e344] [cursor=pointer]
+          - button "重置" [ref=f3e349] [cursor=pointer]
+          - button "展开" [ref=f3e354] [cursor=pointer]
+        - generic [ref=f3e360]:
+          - button "新增" [ref=f3e361] [cursor=pointer]
+          - button "导出" [ref=f3e366] [cursor=pointer]
+          - button "批量删除" [disabled] [ref=f3e371]
+      - generic [ref=f3e377]:
+        - generic [ref=f3e379]:
+          - table [ref=f3e381]:
+            - rowgroup [ref=f3e392]:
+              - row [ref=f3e393]:
+                - columnheader [ref=f3e394]:
+                  - generic "选择所有行" [ref=f3e396] [cursor=pointer]:
+                    - generic [ref=f3e397]:
+                      - checkbox "选择所有行"
+                - columnheader "班级 / 班期编号" [ref=f3e399]
+                - columnheader "课程" [ref=f3e401]
+                - columnheader "班期时间" [ref=f3e403]
+                - columnheader "讲师" [ref=f3e405]
+                - columnheader "报名截止" [ref=f3e407]
+                - columnheader "报名进度" [ref=f3e409]
+                - columnheader "状态" [ref=f3e411]
+                - columnheader "操作" [ref=f3e413]
+          - table [ref=f3e419]:
+            - rowgroup [ref=f3e430]:
+              - row [ref=f3e431]:
+                - cell [ref=f3e432]:
+                  - generic "选择当前行" [ref=f3e434] [cursor=pointer]:
+                    - generic [ref=f3e435]:
+                      - checkbox "选择当前行"
+                - cell "值班水手-10月班 2026-10-QD-002" [ref=f3e437]:
+                  - generic [ref=f3e438]:
+                    - generic [ref=f3e439]: 值班水手-10月班
+                    - generic [ref=f3e440]: 2026-10-QD-002
+                - cell "值班水手培训" [ref=f3e441]
+                - cell "2026-10-16 ~ 2026-10-30 共 14 天" [ref=f3e443]:
+                  - generic [ref=f3e444]:
+                    - generic [ref=f3e445]: 2026-10-16 ~ 2026-10-30
+                    - generic [ref=f3e446]: 共 14 天
+                - cell "张船长" [ref=f3e447]
+                - cell "2026-10-13" [ref=f3e449]
+                - cell "3 / 20 15" [ref=f3e451]:
+                  - generic [ref=f3e452]:
+                    - generic [ref=f3e453]: 3 / 20
+                    - progressbar [ref=f3e454]
+                - cell "招生中" [ref=f3e458]
+                - cell [ref=f3e462]:
+                  - generic [ref=f3e463]:
+                    - button "编辑" [ref=f3e464] [cursor=pointer]
+                    - button "删除" [ref=f3e466] [cursor=pointer]
+        - generic [ref=f3e468]:
+          - generic [ref=f3e469]: 共 1 条
+          - generic [ref=f3e472] [cursor=pointer]:
+            - generic:
+              - combobox [ref=f3e474]
+              - generic [ref=f3e475]: 10条/页
+          - button "上一页" [disabled] [ref=f3e480]
+          - list [ref=f3e481]:
+            - listitem "第 1 页" [ref=f3e482]: "1"
+          - button "下一页" [disabled] [ref=f3e483]
+          - generic [ref=f3e484]:
+            - generic [ref=f3e485]: 前往
+            - spinbutton "页" [ref=f3e488]: "1"
+            - generic [ref=f3e489]: 页
+      - dialog [ref=f3e491]:
+        - generic [active] [ref=f3e492]:
+          - generic [ref=f3e494]:
+            - text: 新增
+            - generic [ref=f3e495]:
+              - generic [ref=f3e496] [cursor=pointer]
+              - generic [ref=f3e499] [cursor=pointer]
+          - generic [ref=f3e502]:
+            - generic [ref=f3e504]:
+              - generic [ref=f3e506]:
+                - generic [ref=f3e507]: "* 所属课程"
+                - generic [ref=f3e510]:
+                  - generic:
+                    - combobox "* 所属课程" [ref=f3e512]
+                    - generic [ref=f3e513]: 值班水手培训
+              - generic [ref=f3e515]:
+                - generic [ref=f3e516]: 班期编号
+                - textbox "班期编号" [disabled] [ref=f3e520]:
+                  - /placeholder: 保存后由系统自动生成
+              - generic [ref=f3e522]:
+                - generic [ref=f3e523]: 班级名称
+                - textbox "班级名称" [ref=f3e527]:
+                  - /placeholder: 选填，如：A班
+              - generic [ref=f3e529]:
+                - generic [ref=f3e530]: 讲师信息
+                - textbox "讲师信息" [ref=f3e534]:
+                  - /placeholder: 选填，如：张船长
+              - generic [ref=f3e536]:
+                - generic [ref=f3e537]: "* 开班日期"
+                - combobox "* 开班日期" [ref=f3e545]
+              - generic [ref=f3e547]:
+                - generic [ref=f3e548]: "* 结束日期"
+                - combobox "* 结束日期" [ref=f3e556]
+              - generic [ref=f3e558]:
+                - generic [ref=f3e559]: 报名截止
+                - combobox "报名截止" [ref=f3e567]
+              - generic [ref=f3e569]:
+                - generic [ref=f3e570]: "* 课程天数"
+                - generic [ref=f3e572]:
+                  - button "减少数值" [ref=f3e573] [cursor=pointer]
+                  - button "增加数值" [ref=f3e577] [cursor=pointer]
+                  - spinbutton "* 课程天数" [ref=f3e583]
+              - generic [ref=f3e585]:
+                - generic [ref=f3e586]: "* 招生上限"
+                - generic [ref=f3e588]:
+                  - button "减少数值" [ref=f3e589] [cursor=pointer]
+                  - button "增加数值" [ref=f3e593] [cursor=pointer]
+                  - spinbutton "* 招生上限" [ref=f3e599]
+              - generic [ref=f3e601]:
+                - generic [ref=f3e602]: "* 班期状态"
+                - generic [ref=f3e605] [cursor=pointer]:
+                  - generic:
+                    - combobox "* 班期状态" [ref=f3e607]
+                    - generic [ref=f3e608]: 草稿
+              - group "备注" [ref=f3e614]:
+                - generic [ref=f3e617]:
+                  - generic [ref=f3e619]:
+                    - button "正文" [ref=f3e621]
+                    - button [ref=f3e625]
+                    - button [ref=f3e630]
+                    - button [ref=f3e634]
+                    - button [ref=f3e638]
+                    - button [ref=f3e642]
+                    - button [ref=f3e650]
+                    - button [ref=f3e656]
+                    - button "默认字号" [ref=f3e663]
+                    - button "默认字体" [ref=f3e667]
+                    - button "默认行高" [ref=f3e671]
+                    - button [ref=f3e676]
+                    - button [ref=f3e680]
+                    - button [ref=f3e684]
+                    - button [ref=f3e688]
+                    - button [ref=f3e694]
+                    - button [ref=f3e701]
+                    - button [ref=f3e707]
+                    - button [ref=f3e712]
+                    - button [ref=f3e718]
+                    - button [ref=f3e724]
+                    - button [ref=f3e730]
+                    - button [ref=f3e734]
+                    - button [ref=f3e743]
+                    - button [ref=f3e747]
+                    - button [ref=f3e752]
+                    - button [ref=f3e756] [cursor=pointer]
+                  - generic [ref=f3e760]:
+                    - paragraph [ref=f3e763]
+                    - generic: 请输入内容...
+            - generic [ref=f3e764]:
+              - separator [ref=f3e765]:
+                - generic [ref=f3e766]: 费用方案
+              - generic [ref=f3e767]:
+                - generic [ref=f3e769]:
+                  - generic [ref=f3e770]: 费用模板
+                  - generic [ref=f3e773] [cursor=pointer]:
+                    - generic:
+                      - combobox "费用模板" [ref=f3e775]
+                      - generic [ref=f3e776]: 选填：选择后填充下方费用，可再调整；套用会覆盖当前已填费用
+                - generic [ref=f3e782]:
+                  - generic [ref=f3e783]: "* 学费总额"
+                  - generic [ref=f3e785]:
+                    - button "减少数值" [ref=f3e786] [cursor=pointer]
+                    - button "增加数值" [ref=f3e790] [cursor=pointer]
+                    - spinbutton "* 学费总额" [ref=f3e796]
+                - generic [ref=f3e798]:
+                  - generic [ref=f3e799]: 含住宿费
+                  - radiogroup "含住宿费" [ref=f3e801]:
+                    - generic [ref=f3e802] [cursor=pointer]:
+                      - radio "含住宿" [ref=f3e804]
+                      - generic [ref=f3e806]: 含住宿
+                    - generic [ref=f3e807] [cursor=pointer]:
+                      - radio "不含住宿" [checked] [ref=f3e809]
+                      - generic [ref=f3e811]: 不含住宿
+                - generic [ref=f3e813]:
+                  - generic [ref=f3e814]: "* 定金金额"
+                  - generic [ref=f3e816]:
+                    - button "减少数值" [ref=f3e817] [cursor=pointer]
+                    - button "增加数值" [ref=f3e821] [cursor=pointer]
+                    - spinbutton "* 定金金额" [ref=f3e827]
+                - generic [ref=f3e829]:
+                  - generic [ref=f3e830]: "* 定金可退"
+                  - radiogroup "* 定金可退" [ref=f3e832]:
+                    - generic [ref=f3e833] [cursor=pointer]:
+                      - radio "可退" [checked] [ref=f3e835]
+                      - generic [ref=f3e837]: 可退
+                    - generic [ref=f3e838] [cursor=pointer]:
+                      - radio "不可退" [ref=f3e840]
+                      - generic [ref=f3e842]: 不可退
+                - generic [ref=f3e844]:
+                  - generic [ref=f3e845]: "* 尾款截止"
+                  - generic [ref=f3e847]:
+                    - button "减少数值" [ref=f3e848] [cursor=pointer]
+                    - button "增加数值" [ref=f3e852] [cursor=pointer]
+                    - spinbutton "* 尾款截止" [ref=f3e858]: "7"
+              - generic [ref=f3e859]: 尾款截止：开班前 N 天需付清尾款
+              - separator [ref=f3e860]:
+                - generic [ref=f3e861]: 另行缴费
+              - group "缴费项目" [ref=f3e862]:
+                - generic [ref=f3e865]:
+                  - button "添加项目" [ref=f3e867] [cursor=pointer]
+                  - generic [ref=f3e872]: 另行缴费：需要到校报到时缴纳的项目；必须项学员必缴，可选项按需选择
+              - separator [ref=f3e873]:
+                - generic [ref=f3e874]: 拼团方案
+              - generic [ref=f3e875]:
+                - generic [ref=f3e876]: "* 开启拼团"
+                - generic [ref=f3e878]:
+                  - switch "* 开启拼团"
+                  - generic [ref=f3e879] [cursor=pointer]
+              - separator [ref=f3e881]:
+                - generic [ref=f3e882]: 推荐佣金
+              - generic [ref=f3e885]:
+                - generic [ref=f3e886]: "* 开启佣金"
+                - generic [ref=f3e888]:
+                  - switch "* 开启佣金"
+                  - generic [ref=f3e889] [cursor=pointer]
+              - separator [ref=f3e891]:
+                - generic [ref=f3e892]: 退款政策
+              - generic [ref=f3e893]:
+                - generic [ref=f3e894]: 退费说明
+                - generic [ref=f3e896]:
+                  - textbox "退费说明" [ref=f3e897]:
+                    - /placeholder: 如：开班前 7 天可全额退款；开班后按已上课时比例扣除…
+                  - generic [ref=f3e898]: 0 / 2000
+            - generic [ref=f3e899]:
+              - separator [ref=f3e900]:
+                - generic [ref=f3e901]: 学校信息
+              - generic [ref=f3e902]:
+                - generic [ref=f3e904]:
+                  - generic [ref=f3e905]: 学校名称
+                  - generic [ref=f3e908]:
+                    - generic:
+                      - combobox "学校名称" [ref=f3e910]
+                      - generic [ref=f3e911]: 从学校库选择，自动带出省市区与坐标
+                    - generic [ref=f3e913] [cursor=pointer]
+                - group "经纬度坐标" [ref=f3e917]:
+                  - generic [ref=f3e919]:
+                    - generic [ref=f3e920]:
+                      - generic [ref=f3e921]:
+                        - generic [ref=f3e922]: 经度
+                        - textbox "经度" [ref=f3e924]
+                      - generic [ref=f3e925]:
+                        - generic [ref=f3e926]: 纬度
+                        - textbox "纬度" [ref=f3e928]
+                      - button "坐标拾取" [ref=f3e929] [cursor=pointer]
+                    - generic [ref=f3e935]: 必填：省 / 市 / 区由选择的学校或拾取结果自动填充、不可手工修改，详细地址可再补充； 坐标同时决定小程序端的「导航」入口
+                - generic [ref=f3e937]:
+                  - generic [ref=f3e938]: 省
+                  - textbox "省" [disabled] [ref=f3e942]:
+                    - /placeholder: 地图拾取自动填充
+                - generic [ref=f3e944]:
+                  - generic [ref=f3e945]: 市
+                  - textbox "市" [disabled] [ref=f3e949]:
+                    - /placeholder: 地图拾取自动填充
+                - generic [ref=f3e951]:
+                  - generic [ref=f3e952]: 区
+                  - textbox "区" [disabled] [ref=f3e956]:
+                    - /placeholder: 地图拾取自动填充
+                - generic [ref=f3e958]:
+                  - generic [ref=f3e959]: 详细地址
+                  - textbox "详细地址" [ref=f3e963]:
+                    - /placeholder: 如：某某路 1 号
+              - separator [ref=f3e964]:
+                - generic [ref=f3e965]: 学校概况
+              - generic [ref=f3e968]:
+                - generic [ref=f3e970]:
+                  - button "正文" [ref=f3e972]
+                  - button [ref=f3e976]
+                  - button [ref=f3e981]
+                  - button [ref=f3e985]
+                  - button [ref=f3e989]
+                  - button [ref=f3e993]
+                  - button [ref=f3e1001]
+                  - button [ref=f3e1007]
+                  - button "默认字号" [ref=f3e1014]
+                  - button "默认字体" [ref=f3e1018]
+                  - button "默认行高" [ref=f3e1022]
+                  - button [ref=f3e1027]
+                  - button [ref=f3e1031]
+                  - button [ref=f3e1035]
+                  - button [ref=f3e1039]
+                  - button [ref=f3e1045]
+                  - button [ref=f3e1052]
+                  - button [ref=f3e1058]
+                  - button [ref=f3e1063]
+                  - button [ref=f3e1069]
+                  - button [ref=f3e1075]
+                  - button [ref=f3e1081]
+                  - button [ref=f3e1085]
+                  - button [ref=f3e1094]
+                  - button [ref=f3e1098]
+                  - button [ref=f3e1103]
+                  - button [ref=f3e1107] [cursor=pointer]
+                - generic [ref=f3e1111]:
+                  - paragraph [ref=f3e1114]
+                  - generic: 请输入内容...
+              - separator [ref=f3e1115]:
+                - generic [ref=f3e1116]: 教学条件
+              - generic [ref=f3e1119]:
+                - generic [ref=f3e1121]:
+                  - button "正文" [ref=f3e1123]
+                  - button [ref=f3e1127]
+                  - button [ref=f3e1132]
+                  - button [ref=f3e1136]
+                  - button [ref=f3e1140]
+                  - button [ref=f3e1144]
+                  - button [ref=f3e1152]
+                  - button [ref=f3e1158]
+                  - button "默认字号" [ref=f3e1165]
+                  - button "默认字体" [ref=f3e1169]
+                  - button "默认行高" [ref=f3e1173]
+                  - button [ref=f3e1178]
+                  - button [ref=f3e1182]
+                  - button [ref=f3e1186]
+                  - button [ref=f3e1190]
+                  - button [ref=f3e1196]
+                  - button [ref=f3e1203]
+                  - button [ref=f3e1209]
+                  - button [ref=f3e1214]
+                  - button [ref=f3e1220]
+                  - button [ref=f3e1226]
+                  - button [ref=f3e1232]
+                  - button [ref=f3e1236]
+                  - button [ref=f3e1245]
+                  - button [ref=f3e1249]
+                  - button [ref=f3e1254]
+                  - button [ref=f3e1258] [cursor=pointer]
+                - generic [ref=f3e1262]:
+                  - paragraph [ref=f3e1265]
+                  - generic: 请输入内容...
+              - separator [ref=f3e1266]:
+                - generic [ref=f3e1267]: 住宿条件
+              - generic [ref=f3e1270]:
+                - generic [ref=f3e1272]:
+                  - button "正文" [ref=f3e1274]
+                  - button [ref=f3e1278]
+                  - button [ref=f3e1283]
+                  - button [ref=f3e1287]
+                  - button [ref=f3e1291]
+                  - button [ref=f3e1295]
+                  - button [ref=f3e1303]
+                  - button [ref=f3e1309]
+                  - button "默认字号" [ref=f3e1316]
+                  - button "默认字体" [ref=f3e1320]
+                  - button "默认行高" [ref=f3e1324]
+                  - button [ref=f3e1329]
+                  - button [ref=f3e1333]
+                  - button [ref=f3e1337]
+                  - button [ref=f3e1341]
+                  - button [ref=f3e1347]
+                  - button [ref=f3e1354]
+                  - button [ref=f3e1360]
+                  - button [ref=f3e1365]
+                  - button [ref=f3e1371]
+                  - button [ref=f3e1377]
+                  - button [ref=f3e1383]
+                  - button [ref=f3e1387]
+                  - button [ref=f3e1396]
+                  - button [ref=f3e1400]
+                  - button [ref=f3e1405]
+                  - button [ref=f3e1409] [cursor=pointer]
+                - generic [ref=f3e1413]:
+                  - paragraph [ref=f3e1416]
+                  - generic: 请输入内容...
+          - generic [ref=f3e1418]:
+            - button "确 定" [ref=f3e1419] [cursor=pointer]
+            - button "取 消" [ref=f3e1421] [cursor=pointer]
+    - generic [ref=f3e1423]: Copyright ©2026 芋道管理系统
+  - generic [ref=f3e1424] [cursor=pointer]

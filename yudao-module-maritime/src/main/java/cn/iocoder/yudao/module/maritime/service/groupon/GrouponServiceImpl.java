@@ -83,6 +83,17 @@ public class GrouponServiceImpl implements GrouponService {
 
             int incremented = grouponRecordMapper.incrementCount(grouponRecord.getId());
             if (incremented == 0) {
+                // CAS 同时校验了状态/过期/余量，失败时再读一次给出准确原因
+                GrouponRecordDO latest = grouponRecordMapper.selectById(grouponRecord.getId());
+                if (latest == null) {
+                    throw exception(GROUPON_NOT_EXISTS);
+                }
+                if (!"IN_PROGRESS".equals(latest.getGrouponStatus())) {
+                    throw exception(GROUPON_NOT_IN_PROGRESS);
+                }
+                if (latest.getExpireTime().isBefore(LocalDateTime.now())) {
+                    throw exception(GROUPON_EXPIRED);
+                }
                 throw exception(GROUPON_FULL);
             }
         } else {
@@ -130,6 +141,40 @@ public class GrouponServiceImpl implements GrouponService {
         if (paidCount >= record.getRequiredCount()) {
             // 复用 succeedGroupon 而非重复内联 CAS 逻辑，确保 T09 成团通知事件同样被发布
             succeedGroupon(record.getId());
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void releaseMember(Long enrollmentId) {
+        EnrollmentDO enrollment = enrollmentMapper.selectById(enrollmentId);
+        if (enrollment == null || enrollment.getGrouponRecordId() == null) {
+            return;
+        }
+        GrouponMemberDO member = grouponMemberMapper.selectByGrouponAndEnrollment(
+                enrollment.getGrouponRecordId(), enrollmentId);
+        if (member == null || !"ACTIVE".equals(member.getMemberStatus())) {
+            return;
+        }
+        // CAS 退出：并发重复调用时只有一个能成功，避免人数被扣两次
+        if (grouponMemberMapper.updateStatusToCancelled(member.getId()) == 0) {
+            return;
+        }
+
+        GrouponRecordDO record = grouponRecordMapper.selectById(enrollment.getGrouponRecordId());
+        if (record == null || !"IN_PROGRESS".equals(record.getGrouponStatus())) {
+            return;
+        }
+        int decremented = grouponRecordMapper.decrementCountForRelease(record.getId());
+        if (decremented == 0) {
+            // 人数缓存已到下限或与实际不一致：以活跃成员数为准，无人则结束拼团
+            long activeCount = grouponMemberMapper.selectListByGrouponRecordId(record.getId()).size();
+            if (activeCount <= 0) {
+                degradeGroupon(record.getId(), "拼团成员全部退出，拼团结束");
+            } else {
+                log.warn("[groupon] 拼团人数缓存不一致: recordId={}, currentCount={}, activeCount={}",
+                        record.getId(), record.getCurrentCount(), activeCount);
+            }
         }
     }
 

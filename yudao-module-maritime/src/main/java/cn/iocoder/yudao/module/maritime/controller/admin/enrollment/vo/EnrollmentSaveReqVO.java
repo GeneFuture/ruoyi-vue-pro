@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 
-@Schema(description = "管理后台 - 报名管理新增/修改 Request VO")
+@Schema(description = "管理后台 - 报名记录新增/修改 Request VO")
 @Data
 public class EnrollmentSaveReqVO {
 

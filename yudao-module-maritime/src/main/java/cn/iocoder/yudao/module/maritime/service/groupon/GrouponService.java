@@ -34,6 +34,14 @@ public interface GrouponService {
     void handleMemberPaid(Long enrollmentId);
 
     /**
+     * 报名取消 / 退费后释放拼团席位：
+     * 成员标记为退出，进行中的拼团人数减 1；发起人退出且无其他成员时结束拼团。
+     *
+     * @param enrollmentId 报名ID
+     */
+    void releaseMember(Long enrollmentId);
+
+    /**
      * 拼团成功（CAS 幂等）
      *
      * @param grouponRecordId 拼团记录ID

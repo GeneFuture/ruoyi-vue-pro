@@ -1,0 +1,159 @@
+- generic [active] [ref=f1e1]:
+  - banner [ref=f1e2]:
+    - paragraph [ref=f1e3]: 海员培训小程序 · 设计评审
+    - heading "首页视觉稿" [level=1] [ref=f1e4]
+    - paragraph [ref=f1e5]: 这版针对「细节不够精心」重做了 12 处。右栏是 375px 实尺稿，可直接滚动看完六层楼。文案与数字为示例数据，用于展示真实排布。
+  - main [ref=f1e6]:
+    - generic [ref=f1e7]:
+      - heading "逐条改动" [level=2] [ref=f1e8]
+      - paragraph [ref=f1e9]: 对应右栏，自上而下
+      - list [ref=f1e10]:
+        - listitem [ref=f1e11]:
+          - generic [ref=f1e12]: 渐变改为三段 + 叠径向高光
+          - text: 原来两端直连，右上角发闷。现在 165° 三段过渡，再叠一层偏右上角的白色高光。
+        - listitem [ref=f1e13]:
+          - generic [ref=f1e14]: 标题加负字距，副标题降到 72% 白
+          - text: 大字不加字距会散；副标题用 62%/72% 两档白，和标题拉开层次而不是只靠字号。
+        - listitem [ref=f1e15]:
+          - generic [ref=f1e16]: 搜索框从半透明改为实心白
+          - text: 半透明白压在渐变浅端几乎没有边界，输入区看不出范围。实心白 + 4px 投影，位置一眼可辨。
+        - listitem [ref=f1e17]:
+          - generic [ref=f1e18]: 金刚区图标/外框比例 0.36 → 0.47
+          - text: 原 132rpx 方框配 48rpx 图标，图标孤零零悬在中间。现在 64px 框配 30px 图标，并加内高光让灰块有厚度。
+        - listitem [ref=f1e19]:
+          - generic [ref=f1e20]: 倒计时挪到封面图上
+          - text: 卡片内少一层信息。图片底部加黑色渐变遮罩保证文字可读 —— 压图必配遮罩，不能直接压。
+        - listitem [ref=f1e21]:
+          - generic [ref=f1e22]: 卡片阴影改为几乎不可见
+          - code [ref=f1e23]: 0 2px 10px rgba(20,30,60,.06)
+          - text: "。刻意保留而非去掉：在 #F5F7FA 浅灰带上，纯白卡片需要一点点投影才有层次，但不能重到发\"贴纸感\"。"
+        - listitem [ref=f1e24]:
+          - generic [ref=f1e25]: 余位进度条 8rpx → 5px，轨道改冷灰
+          - text: "原进度条和价格抢视觉。现在压低高度、轨道用 #E8EBF0，只做氛围不做主角；数字用等宽，滚动不抖。"
+        - listitem [ref=f1e26]:
+          - generic [ref=f1e27]: 课程列表分隔线内缩到文字左边缘
+          - text: 原来通栏分隔线横穿缩略图，把一行切两半。现在线从文字列开始，视线自然沿文字走 —— 这是 Apple 列表的常规做法。
+        - listitem [ref=f1e28]:
+          - generic [ref=f1e29]: 所有数字改用 tabular-nums
+          - text: 价格、余位、日期、时间：等宽数字，列表滚动和数字变化时宽度不跳动。
+        - listitem [ref=f1e30]:
+          - generic [ref=f1e31]: 缩略图统一 84px / 圆角 14px，与文字顶对齐
+          - text: 原来缩略图和文字块等高，文字少时价格被
+          - code [ref=f1e32]: margin-top:auto
+          - text: 顶到底部，行高参差。
+        - listitem [ref=f1e33]:
+          - generic [ref=f1e34]: 流程节点 32px、连接线 1px、节点用近黑
+          - text: 原来节点是品牌蓝、线是 2rpx。流程是结构信息不是操作入口，不该用强调色；线细一档更利落。
+        - listitem [ref=f1e35]:
+          - generic [ref=f1e36]: 间距收敛到 4px 基准
+          - text: 全部间距取自 4 / 8 / 12 / 16 / 24 / 32 / 48 七档，不再出现 5、6、14、18 这类随手值。
+    - generic [ref=f1e37]:
+      - paragraph [ref=f1e38]: 375 × 812 · 实尺
+      - generic [ref=f1e40]:
+        - generic [ref=f1e41]:
+          - generic [ref=f1e42]: 9:41
+          - generic [ref=f1e48]:
+            - generic [ref=f1e49]: ‹
+            - generic [ref=f1e51]: •••
+          - paragraph [ref=f1e52]: 海员培训平台
+          - heading "持证上岗 从这里开始" [level=2] [ref=f1e53]: 持证上岗从这里开始
+          - paragraph [ref=f1e54]: STCW 四小证 · 适任证书 · 特种培训
+          - generic [ref=f1e55]: 搜索上课地点，如：青岛
+        - generic [ref=f1e61]:
+          - generic [ref=f1e62]: 找课程
+          - generic [ref=f1e68]: 开班计划
+          - generic [ref=f1e74]: 我的报名
+          - generic [ref=f1e80]: 推荐有礼
+        - generic [ref=f1e88]:
+          - generic [ref=f1e89]: 9 月新班期开放报名
+          - generic [ref=f1e90]: 青岛 · 大连 · 上海 三地同步开班
+        - generic [ref=f1e91]:
+          - generic [ref=f1e92]:
+            - heading "近期开班" [level=3] [ref=f1e93]
+            - generic [ref=f1e94]: 全部 ›
+          - generic [ref=f1e95]:
+            - article [ref=f1e96]:
+              - generic [ref=f1e97]:
+                - generic [ref=f1e98]: STCW 基本安全培训
+                - emphasis [ref=f1e99]: 9 天后开班
+              - generic [ref=f1e100]:
+                - heading "STCW 基本安全培训" [level=4] [ref=f1e101]
+                - paragraph [ref=f1e102]: 9 月一期 · 青岛 · 7 天
+                - generic [ref=f1e103]: 余 8/30
+                - generic [ref=f1e107]:
+                  - generic [ref=f1e108]: ¥3800
+                  - generic [ref=f1e109]: 定金 ¥500
+            - article [ref=f1e110]:
+              - generic [ref=f1e111]:
+                - generic [ref=f1e112]: 精通急救培训
+                - emphasis [ref=f1e113]: 16 天后开班
+              - generic [ref=f1e114]:
+                - heading "精通急救培训" [level=4] [ref=f1e115]
+                - paragraph [ref=f1e116]: 9 月二期 · 大连 · 5 天
+                - generic [ref=f1e117]: 余 18/30
+                - generic [ref=f1e121]:
+                  - generic [ref=f1e122]: ¥2600
+                  - generic [ref=f1e123]: 定金 ¥400
+        - generic [ref=f1e124]:
+          - heading "全部课程" [level=3] [ref=f1e126]
+          - generic [ref=f1e127]:
+            - generic [ref=f1e128]: 全部
+            - generic [ref=f1e129]: STCW
+            - generic [ref=f1e130]: 适任证书
+            - generic [ref=f1e131]: 特种培训
+          - generic [ref=f1e132]:
+            - generic [ref=f1e133]: 封面
+            - generic [ref=f1e134]:
+              - heading "STCW 基本安全培训（四小证）" [level=4] [ref=f1e135]
+              - paragraph [ref=f1e136]: STCW · 7 天
+              - paragraph [ref=f1e137]: 09-20 开班 · 青岛
+              - generic [ref=f1e138]:
+                - generic [ref=f1e139]: ¥3800 起
+                - generic [ref=f1e140]: 招生中
+          - generic [ref=f1e141]:
+            - generic [ref=f1e142]: 封面
+            - generic [ref=f1e143]:
+              - heading "精通救生艇筏和救助艇培训" [level=4] [ref=f1e144]
+              - paragraph [ref=f1e145]: 适任证书 · 5 天
+              - paragraph [ref=f1e146]: 09-24 开班 · 大连
+              - generic [ref=f1e147]:
+                - generic [ref=f1e148]: ¥2600 起
+                - generic [ref=f1e149]: 招生中
+          - generic [ref=f1e150]:
+            - generic [ref=f1e151]: 封面
+            - generic [ref=f1e152]:
+              - heading "高级消防培训" [level=4] [ref=f1e153]
+              - paragraph [ref=f1e154]: 特种培训 · 4 天
+              - paragraph [ref=f1e155]: 10-08 开班 · 上海
+              - generic [ref=f1e156]:
+                - generic [ref=f1e157]: ¥3200 起
+                - generic [ref=f1e158]: 招生中
+        - generic [ref=f1e159]:
+          - heading "平台公告" [level=3] [ref=f1e161]
+          - generic [ref=f1e162]:
+            - generic [ref=f1e163]:
+              - generic [ref=f1e164]: 9 月新班期开放报名
+              - time [ref=f1e165]: 09-01
+            - generic [ref=f1e166]:
+              - generic [ref=f1e167]: 关于调整尾款缴纳时间的通知
+              - time [ref=f1e168]: 08-26
+        - generic [ref=f1e169]:
+          - heading "报名流程" [level=3] [ref=f1e171]
+          - generic [ref=f1e172]:
+            - generic [ref=f1e173]:
+              - generic [ref=f1e174]: "1"
+              - generic [ref=f1e175]: 选班期
+              - emphasis [ref=f1e176]: 挑时间地点
+            - generic [ref=f1e177]:
+              - generic [ref=f1e178]: "2"
+              - generic [ref=f1e179]: 付定金
+              - emphasis [ref=f1e180]: 锁定名额
+            - generic [ref=f1e181]:
+              - generic [ref=f1e182]: "3"
+              - generic [ref=f1e183]: 付尾款
+              - emphasis [ref=f1e184]: 开班前结清
+            - generic [ref=f1e185]:
+              - generic [ref=f1e186]: "4"
+              - generic [ref=f1e187]: 参加培训
+              - emphasis [ref=f1e188]: 结业拿证
+          - paragraph [ref=f1e189]: 未付定金可直接取消；开班前可申请退费，开班后不支持

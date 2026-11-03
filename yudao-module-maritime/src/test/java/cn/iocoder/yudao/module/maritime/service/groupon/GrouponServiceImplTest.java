@@ -261,4 +261,49 @@ public class GrouponServiceImplTest extends BaseDbUnitTest {
         assertEquals(1, created.getCurrentCount());
     }
 
+    @Test
+    public void testReleaseMember_decrementsCountAndCancelsMember() {
+        Long sessionId = randomLongId();
+        GrouponRecordDO record = insertGrouponRecord(sessionId, 3, 2, "IN_PROGRESS");
+        EnrollmentDO enrollment = insertEnrollmentWithGroupon(sessionId, record.getId());
+        addMember(record.getId(), enrollment.getId(), enrollment.getMemberId(), null);
+        EnrollmentDO other = insertEnrollmentWithGroupon(sessionId, record.getId());
+        addMember(record.getId(), other.getId(), other.getMemberId(), null);
+
+        grouponService.releaseMember(enrollment.getId());
+
+        assertEquals(1, grouponRecordMapper.selectById(record.getId()).getCurrentCount());
+        GrouponMemberDO member = grouponMemberMapper.selectByGrouponAndEnrollment(
+                record.getId(), enrollment.getId());
+        assertEquals("CANCELLED", member.getMemberStatus());
+        assertEquals("IN_PROGRESS", grouponRecordMapper.selectById(record.getId()).getGrouponStatus());
+    }
+
+    @Test
+    public void testReleaseMember_lastMember_degradesGroupon() {
+        Long sessionId = randomLongId();
+        GrouponRecordDO record = insertGrouponRecord(sessionId, 3, 1, "IN_PROGRESS");
+        EnrollmentDO enrollment = insertEnrollmentWithGroupon(sessionId, record.getId());
+        addMember(record.getId(), enrollment.getId(), enrollment.getMemberId(), null);
+
+        grouponService.releaseMember(enrollment.getId());
+
+        GrouponRecordDO updated = grouponRecordMapper.selectById(record.getId());
+        assertEquals("DEGRADED", updated.getGrouponStatus());
+        assertEquals("拼团成员全部退出，拼团结束", updated.getDegradeReason());
+    }
+
+    @Test
+    public void testReleaseMember_idempotent_secondCallNoOp() {
+        Long sessionId = randomLongId();
+        GrouponRecordDO record = insertGrouponRecord(sessionId, 3, 2, "IN_PROGRESS");
+        EnrollmentDO enrollment = insertEnrollmentWithGroupon(sessionId, record.getId());
+        addMember(record.getId(), enrollment.getId(), enrollment.getMemberId(), null);
+
+        grouponService.releaseMember(enrollment.getId());
+        grouponService.releaseMember(enrollment.getId());
+
+        assertEquals(1, grouponRecordMapper.selectById(record.getId()).getCurrentCount());
+    }
+
 }
