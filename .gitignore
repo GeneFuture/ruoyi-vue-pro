@@ -53,3 +53,10 @@ application-my.yaml
 /yudao-ui-app/unpackage/
 .DS_Store
 **/.DS_Store
+
+######################################################################
+# 微信云托管运行时镜像产物（由 deploy/prepare-runtime.sh 生成）
+/deploy/runtime/app.jar
+/deploy/runtime/web/
+/deploy/runtime/nginx.conf
+/deploy/runtime/entrypoint.sh

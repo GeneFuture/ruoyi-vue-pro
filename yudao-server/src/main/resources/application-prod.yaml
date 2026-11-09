@@ -1,0 +1,186 @@
+# 生产环境配置（微信云托管）
+#
+# 启动方式：容器环境变量 SPRING_PROFILES_ACTIVE=prod
+#
+# 必填环境变量：
+#   MYSQL_ADDRESS / MYSQL_DATABASE / MYSQL_USERNAME / MYSQL_PASSWORD
+#   REDIS_HOST / REDIS_PORT / REDIS_PASSWORD（VPC 内网地址）
+#   WX_MINIAPP_APPID / WX_MINIAPP_SECRET（小程序登录、订阅消息）
+#   WX_MP_APP_ID / WX_MP_SECRET（公众号相关功能，未使用可留空）
+#
+server:
+  port: 48080
+  shutdown: graceful # 容器收到 SIGTERM 后优雅停机
+
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+  # 与 application-dev.yaml 保持一致：禁用未使用的 AI 向量库 / DashScope 自动配置
+  autoconfigure:
+    # noinspection SpringBootApplicationYaml
+    exclude:
+      - org.springframework.ai.vectorstore.qdrant.autoconfigure.QdrantVectorStoreAutoConfiguration
+      - org.springframework.ai.vectorstore.redis.autoconfigure.RedisVectorStoreAutoConfiguration
+      - org.springframework.ai.vectorstore.milvus.autoconfigure.MilvusVectorStoreAutoConfiguration
+      - org.dromara.trans.config.TransServiceConfig
+      - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeChatAutoConfiguration
+      - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeAgentAutoConfiguration
+      - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeImageAutoConfiguration
+      - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeVideoAutoConfiguration
+      - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeAudioSpeechAutoConfiguration
+      - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeAudioTranscriptionAutoConfiguration
+      - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeRerankAutoConfiguration
+      - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeEmbeddingAutoConfiguration
+      - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeMultimodalEmbeddingAutoConfiguration
+      - com.alibaba.cloud.ai.autoconfigure.dashscope.DashScopeAsyncToolCallingManagerAutoConfiguration
+
+  # 数据源：微信云托管 MySQL 会注入 MYSQL_ADDRESS / MYSQL_USERNAME / MYSQL_PASSWORD
+  datasource:
+    druid:
+      web-stat-filter:
+        enabled: false # 生产环境关闭 Druid 监控
+      stat-view-servlet:
+        enabled: false
+      filter:
+        stat:
+          enabled: true
+          log-slow-sql: true
+          slow-sql-millis: 100
+          merge-sql: true
+        wall:
+          config:
+            multi-statement-allow: true
+    dynamic:
+      druid:
+        initial-size: 5
+        min-idle: 10
+        max-active: 20
+        max-wait: 60000
+        time-between-eviction-runs-millis: 60000
+        min-evictable-idle-time-millis: 600000
+        max-evictable-idle-time-millis: 1800000
+        validation-query: SELECT 1 FROM DUAL
+        test-while-idle: true
+        test-on-borrow: false
+        test-on-return: false
+        pool-prepared-statements: true
+        max-pool-prepared-statement-per-connection-size: 20
+      primary: master
+      datasource:
+        master:
+          url: jdbc:mysql://${MYSQL_ADDRESS:127.0.0.1:3306}/${MYSQL_DATABASE:ruoyi-vue-pro}?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true&rewriteBatchedStatements=true
+          username: ${MYSQL_USERNAME:root}
+          password: ${MYSQL_PASSWORD:123456}
+        slave: # 未使用读写分离时保持懒加载，不会真正建立连接
+          lazy: true
+          url: jdbc:mysql://${MYSQL_ADDRESS:127.0.0.1:3306}/${MYSQL_DATABASE:ruoyi-vue-pro}?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true&rewriteBatchedStatements=true
+          username: ${MYSQL_USERNAME:root}
+          password: ${MYSQL_PASSWORD:123456}
+
+  # Redis：腾讯云 Redis 内网地址，需在云托管服务设置里打通 VPC
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      database: ${REDIS_DATABASE:0}
+      password: ${REDIS_PASSWORD:}
+
+  # Quartz：JDBC 集群模式，多实例部署安全
+  quartz:
+    auto-startup: true
+    scheduler-name: schedulerName
+    job-store-type: jdbc
+    wait-for-jobs-to-complete-on-shutdown: true
+    properties:
+      org:
+        quartz:
+          scheduler:
+            instanceName: schedulerName
+            instanceId: AUTO
+          jobStore:
+            class: org.springframework.scheduling.quartz.LocalDataSourceJobStore
+            isClustered: true
+            clusterCheckinInterval: 15000
+            misfireThreshold: 60000
+          threadPool:
+            threadCount: 25
+            threadPriority: 5
+            class: org.quartz.simpl.SimpleThreadPool
+    jdbc:
+      initialize-schema: NEVER
+
+# 日志：平台采集 stdout；文件写 /tmp，容器重启即丢弃
+logging:
+  file:
+    name: /tmp/logs/${spring.application.name}.log
+  level:
+    root: INFO
+
+# 监控：只暴露健康检查，供云托管探活
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+# 生产关闭在线接口文档（如需临时打开，改成 true 并在 nginx 增加 /doc.html 等代理）
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+knife4j:
+  enable: false
+
+# 微信相关（小程序登录、订阅消息、公众号）
+wx:
+  mp:
+    app-id: ${WX_MP_APP_ID:}
+    secret: ${WX_MP_SECRET:}
+    config-storage:
+      type: RedisTemplate
+      key-prefix: wx
+      http-client-type: HttpComponents
+  miniapp:
+    appid: ${WX_MINIAPP_APPID:}
+    secret: ${WX_MINIAPP_SECRET:}
+    config-storage:
+      type: RedisTemplate
+      key-prefix: wa
+      http-client-type: HttpComponents
+
+justauth:
+  enabled: true
+  type:
+    WECHAT_MINI_PROGRAM:
+      client-id: ${wx.miniapp.appid}
+      client-secret: ${wx.miniapp.secret}
+      ignore-check-redirect-uri: true
+      ignore-check-state: true
+    WECHAT_MP:
+      client-id: ${wx.mp.app-id}
+      client-secret: ${wx.mp.secret}
+      ignore-check-redirect-uri: true
+  cache:
+    type: REDIS
+    prefix: 'social_auth_state:'
+    timeout: 24h
+
+# 芋道业务配置
+yudao:
+  web:
+    admin-ui:
+      url: ${ADMIN_UI_URL:https://your-cloud-run-domain}
+  pay:
+    # 微信支付回调地址，必须是公网可访问的 HTTPS 域名
+    order-notify-url: ${PAY_ORDER_NOTIFY_URL:https://your-cloud-run-domain/admin-api/pay/notify/order}
+    refund-notify-url: ${PAY_REFUND_NOTIFY_URL:https://your-cloud-run-domain/admin-api/pay/notify/refund}
+    transfer-notify-url: ${PAY_TRANSFER_NOTIFY_URL:https://your-cloud-run-domain/admin-api/pay/notify/transfer}
+  demo: false # 关闭演示模式
+  api-encrypt:
+    enable: false # 与前端 VITE_APP_API_ENCRYPT_ENABLE 保持一致

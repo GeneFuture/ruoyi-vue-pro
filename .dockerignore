@@ -1,0 +1,26 @@
+# Git / IDE
+.git
+.github
+.gitee
+.idea
+.vscode
+.playwright-mcp
+.image
+
+# 文档与本地脚本
+docs
+sql
+script
+
+# 依赖与构建产物（运行时镜像单独用 deploy/runtime 作为上下文）
+**/node_modules
+**/target
+**/dist
+**/dist-prod
+**/.DS_Store
+
+# 本地环境变量，避免污染生产构建
+**/.env.local
+
+# 其他前端项目不参与镜像
+yudao-ui/yudao-mall-uniapp
