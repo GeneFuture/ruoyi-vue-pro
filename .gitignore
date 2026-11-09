@@ -60,3 +60,9 @@ application-my.yaml
 /deploy/runtime/web/
 /deploy/runtime/nginx.conf
 /deploy/runtime/entrypoint.sh
+
+######################################################################
+# 调试临时文件（不要提交）
+.playwright-mcp/
+wechat-cloudrun-home.png
+wechat-cloudrun-login-qr.png
