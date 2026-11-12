@@ -69,5 +69,5 @@ wechat-cloudrun-login-qr.png
 
 ######################################################################
 # 数据库导出文件（含业务数据，禁止提交）
-#/deploy/sql/*.sql
-#/deploy/sql/*.sql.sha256
+/deploy/sql/*.sql
+/deploy/sql/*.sql.sha256
