@@ -2,17 +2,25 @@
 #
 # 前置：先在本机完成原生构建：
 #   1) cd yudao-ui/yudao-ui-admin-vue3 && pnpm build:prod      -> dist-prod/
-#   2) mvn -T 4 -DskipTests clean package -pl yudao-server -am -> yudao-server/target/yudao-server.jar
+#   2) mvn -T 4 -Dmaven.test.skip=true clean package -pl yudao-server -am -> yudao-server/target/yudao-server.jar
 #   3) bash deploy/prepare-runtime.sh
 #
 # 构建（必须指定 amd64，腾讯云为 x86_64）：
 #   docker build --platform linux/amd64 -t maritime-app:<tag> deploy/runtime
 #
+# 基础镜像源默认走 DaoCloud 镜像站；已同步到自有 CCR 时可覆盖：
+#   docker build --platform linux/amd64 \
+#     --build-arg JRE_IMAGE=ccr.ccs.tencentyun.com/<ns>/eclipse-temurin:25-jre-alpine \
+#     -t maritime-app:<tag> deploy/runtime
+#
 # 构建上下文就是 deploy/runtime/，不包含源码，构建只需要几秒。
+ARG JRE_IMAGE=docker.m.daocloud.io/library/eclipse-temurin:25-jre-alpine
 
-FROM eclipse-temurin:25-jre-alpine
+FROM ${JRE_IMAGE}
 
-RUN apk add --no-cache nginx tzdata curl \
+# 国内 apk 源，避免 Alpine 官方 CDN 在构建时过慢
+RUN sed -i 's|dl-cdn.alpinelinux.org|mirrors.aliyun.com|g' /etc/apk/repositories \
+ && apk add --no-cache nginx tzdata curl \
  && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
  && echo "Asia/Shanghai" > /etc/timezone \
  && mkdir -p /run/nginx /app

@@ -6,6 +6,8 @@
 #   PUSH=1 bash deploy/build.sh <镜像仓库地址> [tag]        # 构建完成后自动 docker push
 #   SKIP_WEB=1 bash deploy/build.sh <镜像仓库地址> [tag]    # 只改后端时跳过前端构建
 #   SKIP_SERVER=1 bash deploy/build.sh <镜像仓库地址> [tag] # 只改前端时跳过后端构建
+#   JRE_IMAGE=ccr.ccs.tencentyun.com/<ns>/eclipse-temurin:25-jre-alpine bash deploy/build.sh ...
+#                                                          # 覆盖运行时基础镜像（见 sync-base-images.sh）
 #
 # 示例：
 #   bash deploy/build.sh ccr.ccs.tencentyun.com/your-namespace/maritime-app 20261109
@@ -74,7 +76,10 @@ jar_has "$ROOT/deploy/runtime/app.jar" "BOOT-INF/lib/yudao-module-maritime" \
 [ -f "$ROOT/deploy/runtime/web/index.html" ] \
   || { echo "[build] 缺少前端产物 index.html"; exit 1; }
 
-docker build --platform "$PLATFORM" -t "$IMAGE_REPO:$TAG" "$ROOT/deploy/runtime"
+BUILD_ARGS=""
+[ -n "${JRE_IMAGE:-}" ] && BUILD_ARGS="--build-arg JRE_IMAGE=$JRE_IMAGE"
+# shellcheck disable=SC2086
+docker build --platform "$PLATFORM" $BUILD_ARGS -t "$IMAGE_REPO:$TAG" "$ROOT/deploy/runtime"
 
 if [ "$PUSH" = "1" ]; then
   echo "==> 推送镜像"

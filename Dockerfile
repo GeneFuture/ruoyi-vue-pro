@@ -1,4 +1,6 @@
 # syntax=docker/dockerfile:1
+# 若云端构建连 docker/dockerfile:1 前端镜像都拉不下来（429），可把上一行改为：
+# # syntax=docker.m.daocloud.io/docker/dockerfile:1
 #
 # 海员培训平台 —— 管理后台 + Spring Boot 单镜像
 #
@@ -10,12 +12,22 @@
 # 依赖缓存：下面的 RUN --mount=type=cache 需要 BuildKit（Docker 23+ 默认开启）。
 # 若微信云托管构建日志报 "unknown flag: --mount"，说明其构建器不支持 BuildKit，
 # 删掉对应行的 --mount=type=cache 参数即可，其余不受影响。
+#
+# 基础镜像源：默认走 DaoCloud 镜像站，避免云端构建机直连 Docker Hub 被限流（429），
+# 也绕过腾讯云内部镜像站证书过期的问题。
+# 已用 deploy/sync-base-images.sh 同步到自有 CCR 时，用 --build-arg 覆盖：
+#   --build-arg NODE_IMAGE=ccr.ccs.tencentyun.com/<ns>/node:22-alpine
+#   --build-arg MAVEN_IMAGE=ccr.ccs.tencentyun.com/<ns>/maven:3.9-eclipse-temurin-25
+#   --build-arg JRE_IMAGE=ccr.ccs.tencentyun.com/<ns>/eclipse-temurin:25-jre-alpine
+ARG NODE_IMAGE=docker.m.daocloud.io/library/node:22-alpine
+ARG MAVEN_IMAGE=docker.m.daocloud.io/library/maven:3.9-eclipse-temurin-25
+ARG JRE_IMAGE=docker.m.daocloud.io/library/eclipse-temurin:25-jre-alpine
 
 ##############################
 # 1. 构建管理后台前端
 ##############################
 # 如 Alpine 下个别前端原生依赖安装失败，可换成 node:22-bookworm-slim
-FROM node:22-alpine AS web-builder
+FROM ${NODE_IMAGE} AS web-builder
 WORKDIR /build/web
 
 # 国内镜像 + 固定 pnpm 版本（缓存 npm 全局安装包）
@@ -35,7 +47,7 @@ RUN pnpm build:prod
 ##############################
 # 2. 构建后端
 ##############################
-FROM maven:3.9-eclipse-temurin-25 AS server-builder
+FROM ${MAVEN_IMAGE} AS server-builder
 WORKDIR /build
 
 ENV MAVEN_OPTS="-Xmx2g"
@@ -62,10 +74,12 @@ RUN --mount=type=cache,target=/root/.m2 \
 ##############################
 # 3. 运行时：nginx + JRE 25
 ##############################
-FROM eclipse-temurin:25-jre-alpine AS runtime
+FROM ${JRE_IMAGE} AS runtime
 
 # nginx 用于托管前端静态文件 + 反向代理后端；curl 用于容器健康检查
-RUN apk add --no-cache nginx tzdata curl \
+# 国内 apk 源，避免 Alpine 官方 CDN 在构建时过慢
+RUN sed -i 's|dl-cdn.alpinelinux.org|mirrors.aliyun.com|g' /etc/apk/repositories \
+ && apk add --no-cache nginx tzdata curl \
  && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
  && echo "Asia/Shanghai" > /etc/timezone \
  && mkdir -p /run/nginx /app
