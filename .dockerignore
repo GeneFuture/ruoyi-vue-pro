@@ -5,12 +5,16 @@
 .idea
 .vscode
 .playwright-mcp
-.image
+**/.image
 
 # 文档与本地脚本
 docs
 sql
 script
+
+# 部署产物与导出的数据库文件（root Dockerfile 不需要，体积可达数百 MB）
+deploy/runtime
+deploy/sql
 
 # 依赖与构建产物（运行时镜像单独用 deploy/runtime 作为上下文）
 **/node_modules

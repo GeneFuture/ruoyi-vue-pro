@@ -6,6 +6,10 @@
 # Apple Silicon 本机构建完整镜像请加 --platform linux/amd64（会走模拟，较慢）。
 #
 # 更快的本机构建方式见 deploy/runtime/Dockerfile + deploy/prepare-runtime.sh。
+#
+# 依赖缓存：下面的 RUN --mount=type=cache 需要 BuildKit（Docker 23+ 默认开启）。
+# 若微信云托管构建日志报 "unknown flag: --mount"，说明其构建器不支持 BuildKit，
+# 删掉对应行的 --mount=type=cache 参数即可，其余不受影响。
 
 ##############################
 # 1. 构建管理后台前端
@@ -14,13 +18,15 @@
 FROM node:22-alpine AS web-builder
 WORKDIR /build/web
 
-# 国内镜像 + 固定 pnpm 版本
-RUN npm config set registry https://registry.npmmirror.com \
+# 国内镜像 + 固定 pnpm 版本（缓存 npm 全局安装包）
+RUN --mount=type=cache,target=/root/.npm \
+    npm config set registry https://registry.npmmirror.com \
  && npm i -g pnpm@10.33.1
 
-# 先装依赖，利用 Docker 层缓存
+# 先装依赖，利用 Docker 层缓存；缓存 pnpm store 避免每次重新下载依赖
 COPY yudao-ui/yudao-ui-admin-vue3/package.json yudao-ui/yudao-ui-admin-vue3/pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
 
 COPY yudao-ui/yudao-ui-admin-vue3/ ./
 # .env.prod 中 VITE_BASE_URL 必须为空（同源部署），产物目录为 dist-prod
@@ -49,7 +55,9 @@ COPY deploy/settings.xml /build/settings.xml
 
 # -pl yudao-server -am：只构建 server 及其依赖模块
 # 产物：/build/yudao-server/target/yudao-server.jar
-RUN mvn -s /build/settings.xml -T 4 -DskipTests clean package -pl yudao-server -am
+# 缓存 /root/.m2：依赖下载是首次构建最慢的部分，缓存后重建只需要编译
+RUN --mount=type=cache,target=/root/.m2 \
+    mvn -s /build/settings.xml -T 4 -Dmaven.test.skip=true clean package -pl yudao-server -am
 
 ##############################
 # 3. 运行时：nginx + JRE 25
