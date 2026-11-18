@@ -1,9 +1,20 @@
 import { baseUrl, apiPath, tenantId } from '@/sheep/config';
 import request, { getAccessToken } from '@/sheep/request';
 
+// callContainer 私有协议不支持 multipart 上传；本地开发仍可正常上传
+const useCallContainer =
+  process.env.NODE_ENV !== 'development' &&
+  import.meta.env.SHOPRO_USE_CALL_CONTAINER === 'true';
+
 const FileApi = {
   // 上传文件
   uploadFile: (file, directory = '') => {
+    // #ifdef MP-WEIXIN
+    if (useCallContainer) {
+      uni.showToast({ title: '当前版本暂不支持上传文件', icon: 'none' });
+      return Promise.resolve(false);
+    }
+    // #endif
     uni.showLoading({
       title: '上传中',
     });

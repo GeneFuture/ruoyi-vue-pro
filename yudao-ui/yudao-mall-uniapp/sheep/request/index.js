@@ -66,6 +66,216 @@ const http = new Request({
   custom: options,
 });
 
+// ==================== 微信云托管私有协议（callContainer） ====================
+// 小程序通过 wx.cloud.callContainer 走微信专线调用云托管服务，
+// 无需在小程序后台配置服务器域名，也无需 ICP 备案。
+// 通过 .env 的 SHOPRO_USE_CALL_CONTAINER 开关控制，可随时切回普通 HTTPS 请求。
+// #ifdef MP-WEIXIN
+const CLOUD_ENV = import.meta.env.SHOPRO_CLOUD_ENV;
+const CLOUD_SERVICE = import.meta.env.SHOPRO_CLOUD_SERVICE;
+const USE_CALL_CONTAINER =
+  // 本地开发仍然直连 SHOPRO_DEV_BASE_URL，方便调试
+  process.env.NODE_ENV !== 'development' &&
+  import.meta.env.SHOPRO_USE_CALL_CONTAINER === 'true' &&
+  !!CLOUD_ENV &&
+  !!CLOUD_SERVICE &&
+  typeof wx !== 'undefined' &&
+  !!wx.cloud &&
+  typeof wx.cloud.callContainer === 'function';
+
+let cloudInitialized = false;
+
+// 延迟到第一次请求时初始化，避免模块加载早于小程序 onLaunch
+function ensureCloudInit() {
+  if (cloudInitialized) {
+    return;
+  }
+  wx.cloud.init({ env: CLOUD_ENV, traceUser: true });
+  cloudInitialized = true;
+}
+
+// 与 luch-request 的 buildURL 行为保持一致（数组 key[]=x&key[]=y，对象 JSON 化）
+function encode(val) {
+  return encodeURIComponent(val)
+    .replace(/%40/gi, '@')
+    .replace(/%3A/gi, ':')
+    .replace(/%24/g, '$')
+    .replace(/%2C/gi, ',')
+    .replace(/%20/g, '+')
+    .replace(/%5B/gi, '[')
+    .replace(/%5D/gi, ']');
+}
+
+function buildURL(url, params, paramsSerializer) {
+  if (!params) {
+    return url;
+  }
+  let serializedParams;
+  if (paramsSerializer) {
+    serializedParams = paramsSerializer(params);
+  } else {
+    const parts = [];
+    Object.keys(params).forEach((key) => {
+      let val = params[key];
+      if (val === null || typeof val === 'undefined') {
+        return;
+      }
+      if (Array.isArray(val)) {
+        key = key + '[]';
+      } else {
+        val = [val];
+      }
+      val.forEach((v) => {
+        if (v instanceof Date) {
+          v = v.toISOString();
+        } else if (v !== null && typeof v === 'object') {
+          v = JSON.stringify(v);
+        }
+        parts.push(encode(key) + '=' + encode(v));
+      });
+    });
+    serializedParams = parts.join('&');
+  }
+  if (serializedParams) {
+    const hashmarkIndex = url.indexOf('#');
+    if (hashmarkIndex !== -1) {
+      url = url.slice(0, hashmarkIndex);
+    }
+    url += (url.indexOf('?') === -1 ? '?' : '&') + serializedParams;
+  }
+  return url;
+}
+
+/**
+ * 通过 wx.cloud.callContainer 发起请求
+ *
+ * @param config 合并后的请求配置
+ * @returns {Promise<Object>} 与 luch-request 拦截器兼容的 response
+ */
+function cloudDispatch(config, retried = false) {
+  return new Promise((resolve, reject) => {
+    try {
+      ensureCloudInit();
+    } catch (e) {
+      const message = e && e.message ? e.message : String(e);
+      // 云开发初始化存在短暂延迟，遇到 Cloud API isn't enabled 时重试一次
+      if (!retried && /Cloud API isn't enabled/i.test(message)) {
+        setTimeout(() => cloudDispatch(config, true).then(resolve, reject), 300);
+        return;
+      }
+      reject({
+        statusCode: 0,
+        errMsg: '云托管初始化失败：' + message,
+        config,
+      });
+      return;
+    }
+
+    const method = (config.method || 'GET').toUpperCase();
+
+    // callContainer 不支持 multipart 上传 / 文件下载，回退普通请求
+    if (method === 'UPLOAD' || method === 'DOWNLOAD') {
+      http.middleware(config).then(resolve, reject);
+      return;
+    }
+
+    let path = config.url || '';
+    // 兼容绝对 URL 和已经带 /app-api 前缀的写法
+    if (/^https?:\/\//i.test(path)) {
+      path = path.replace(/^https?:\/\/[^/]+/i, '') || '/';
+    }
+    if (path !== apiPath && !path.startsWith(apiPath + '/')) {
+      path = apiPath + (path.startsWith('/') ? path : '/' + path);
+    }
+
+    let params = config.params || {};
+    let data = config.data;
+    // 普通请求 GET 的 data 会被拼到 query，这里保持一致
+    if (method === 'GET' && data && typeof data === 'object' && !(data instanceof ArrayBuffer)) {
+      params = { ...params, ...data };
+      data = undefined;
+    }
+    path = buildURL(path, params, config.paramsSerializer);
+
+    wx.cloud.callContainer({
+      config: { env: CLOUD_ENV },
+      path,
+      method,
+      header: {
+        ...config.header,
+        'X-WX-SERVICE': CLOUD_SERVICE,
+      },
+      data,
+      timeout: config.timeout,
+      success: (res) => {
+        const response = {
+          data: res.data,
+          statusCode: res.statusCode,
+          header: res.header,
+          cookies: res.cookies,
+          errMsg: res.errMsg || '',
+          config,
+        };
+        if (typeof response.data === 'string') {
+          try {
+            response.data = JSON.parse(response.data);
+          } catch (e) {
+            // 非 JSON 响应保持原样
+          }
+        }
+        response.rawData = response.data;
+        config.fullPath = path;
+
+        const validateStatus =
+          config.validateStatus || ((status) => status >= 200 && status < 300);
+        if (!response.statusCode || validateStatus(response.statusCode)) {
+          resolve(response);
+        } else {
+          reject(response);
+        }
+      },
+      fail: (error) => {
+        const errMsg = (error && error.errMsg) || 'callContainer:fail';
+        // 云开发初始化存在短暂延迟，遇到 Cloud API isn't enabled 时重试一次
+        if (!retried && /Cloud API isn't enabled/i.test(errMsg)) {
+          setTimeout(() => cloudDispatch(config, true).then(resolve, reject), 300);
+          return;
+        }
+        reject({ statusCode: 0, errMsg, config });
+      },
+    });
+  });
+}
+
+/**
+ * 与 luch-request 的 middleware 保持一致：合并默认配置 + 复用同一套请求/响应拦截器
+ */
+function cloudMiddleware(config) {
+  config = config || {};
+  config = {
+    ...http.config,
+    ...config,
+    method: (config.method || http.config.method || 'GET').toUpperCase(),
+    params: config.params || {},
+    header: { ...http.config.header, ...(config.header || {}) },
+    custom: { ...http.config.custom, ...(config.custom || {}) },
+  };
+
+  const chain = [cloudDispatch, undefined];
+  let promise = Promise.resolve(config);
+  http.interceptors.request.forEach((interceptor) => {
+    chain.unshift(interceptor.fulfilled, interceptor.rejected);
+  });
+  http.interceptors.response.forEach((interceptor) => {
+    chain.push(interceptor.fulfilled, interceptor.rejected);
+  });
+  while (chain.length) {
+    promise = promise.then(chain.shift(), chain.shift());
+  }
+  return promise;
+}
+// #endif
+
 /**
  * @description 请求拦截器
  */
@@ -305,6 +515,11 @@ export const getTenantId = () => {
 };
 
 const request = (config) => {
+  // #ifdef MP-WEIXIN
+  if (USE_CALL_CONTAINER) {
+    return cloudMiddleware(config);
+  }
+  // #endif
   return http.middleware(config);
 };
 

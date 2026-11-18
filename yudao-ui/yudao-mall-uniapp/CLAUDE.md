@@ -12,14 +12,14 @@ import request from '@/sheep/request';
 
 const CourseApi = {
   // 获取课程列表（分页）
-  getCoursePage: (params) => request({ url: '/app-api/maritime/course/page', method: 'GET', data: params }),
+  getCoursePage: (params) => request({ url: '/maritime/course/page', method: 'GET', params }),
 
   // 获取课程详情
-  getCourse: (id) => request({ url: '/app-api/maritime/course/get', method: 'GET', data: { id } }),
+  getCourse: (id) => request({ url: '/maritime/course/get', method: 'GET', params: { id } }),
 
   // 报名登记
   createEnrollment: (data) => request({
-    url: '/app-api/maritime/enrollment/create',
+    url: '/maritime/enrollment/create',
     method: 'POST',
     data,
     custom: { showSuccess: true, successMsg: '报名成功', loadingMsg: '提交中' }
@@ -29,8 +29,15 @@ export default CourseApi;
 ```
 
 - 文件名：`camelCase.js`，导出对象名：`XxxApi`
-- URL 前缀：App 端接口用 `/app-api/`（框架自动带 `baseUrl`，无需写完整域名）
+- URL 只写相对路径（如 `/maritime/course/page`），`/app-api` 前缀由 `sheep/request` 的 baseURL 自动拼接，**不要再重复写**
 - `custom` 字段控制 loading/成功提示/错误提示
+
+### 请求方式（普通 HTTPS / 云托管私有协议）
+
+- 所有 API 统一走 `sheep/request`，不要在页面里直接 `uni.request`
+- `.env` 的 `SHOPRO_USE_CALL_CONTAINER=true` 时，小程序发行版走 `wx.cloud.callContainer`（无需服务器域名/备案）；本地开发仍走 `SHOPRO_DEV_BASE_URL`
+- callContainer 不支持 multipart 文件上传；涉及文件上传的功能需要单独处理
+- 需要切回普通 HTTPS 请求时，把 `SHOPRO_USE_CALL_CONTAINER` 改为 `false`，并绑定已备案自定义域名
 
 ### Pinia Store 规范
 

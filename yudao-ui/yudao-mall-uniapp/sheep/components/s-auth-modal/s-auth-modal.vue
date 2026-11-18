@@ -204,6 +204,13 @@
 
       // 触发小程序授权信息弹框
       // #ifdef MP-WEIXIN
+      // callContainer 模式下没有可用的上传域名，头像授权流程跳过
+      if (
+        process.env.NODE_ENV !== 'development' &&
+        import.meta.env.SHOPRO_USE_CALL_CONTAINER === 'true'
+      ) {
+        return;
+      }
       showAuthModal('mpAuthorization');
       // #endif
     }

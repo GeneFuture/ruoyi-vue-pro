@@ -20,7 +20,7 @@ FROM ${JRE_IMAGE}
 
 # 国内 apk 源，避免 Alpine 官方 CDN 在构建时过慢
 RUN sed -i 's|dl-cdn.alpinelinux.org|mirrors.aliyun.com|g' /etc/apk/repositories \
- && apk add --no-cache nginx tzdata curl \
+ && apk add --no-cache nginx tzdata curl ca-certificates \
  && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
  && echo "Asia/Shanghai" > /etc/timezone \
  && mkdir -p /run/nginx /app

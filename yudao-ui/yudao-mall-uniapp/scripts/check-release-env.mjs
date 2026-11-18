@@ -15,28 +15,66 @@ const env = Object.fromEntries(
     }),
 );
 
-const checks = [
-  ['SHOPRO_BASE_URL', '生产 API'],
-  ['SHOPRO_TRIAL_BASE_URL', '体验版 API'],
-  ['SHOPRO_STATIC_URL', '远程静态资源'],
-  ['SHOPRO_H5_URL', 'H5 分享域名'],
-];
-
+const useCallContainer = (env.SHOPRO_USE_CALL_CONTAINER || '') === 'true';
 let failed = false;
-for (const [key, label] of checks) {
+
+function checkHttps(key, label, options = {}) {
+  const { allowEmpty = false, allowLocal = false } = options;
   const value = env[key] || '';
+  if (!value) {
+    if (allowEmpty) {
+      console.warn(`[WARN] ${label} ${key} 为空`);
+      return;
+    }
+    failed = true;
+    console.error(`[FAIL] ${label} ${key} 为空`);
+    return;
+  }
+  if (allowLocal && value === 'local') {
+    console.log(`[OK] ${label} ${key}=local`);
+    return;
+  }
   const isHttps = value.startsWith('https://');
   const isLocal = /127\.0\.0\.1|localhost/i.test(value);
   if (!isHttps || isLocal) {
     failed = true;
-    console.error(`[FAIL] ${label} ${key}=${value || '(空)'}，必须是可公网访问的 HTTPS 地址`);
+    console.error(`[FAIL] ${label} ${key}=${value}，必须是可公网访问的 HTTPS 地址`);
   } else {
     console.log(`[OK] ${label} ${key}`);
   }
 }
 
+checkHttps('SHOPRO_BASE_URL', '生产 API');
+checkHttps('SHOPRO_TRIAL_BASE_URL', '体验版 API');
+checkHttps('SHOPRO_STATIC_URL', '静态资源', { allowLocal: true });
+checkHttps('SHOPRO_H5_URL', 'H5 分享域名', { allowEmpty: true });
+
+if (useCallContainer) {
+  for (const [key, label] of [
+    ['SHOPRO_CLOUD_ENV', '云托管环境 ID'],
+    ['SHOPRO_CLOUD_SERVICE', '云托管服务名'],
+  ]) {
+    if (env[key]) {
+      console.log(`[OK] ${label} ${key}=${env[key]}`);
+    } else {
+      failed = true;
+      console.error(`[FAIL] ${label} ${key} 为空`);
+    }
+  }
+  console.log('\n[INFO] 已启用 callContainer 私有协议：小程序无需配置服务器域名');
+} else {
+  const baseUrl = env.SHOPRO_BASE_URL || '';
+  if (/\.sh\.run\.tcloudbase\.com/i.test(baseUrl)) {
+    failed = true;
+    console.error(
+      '[FAIL] 云托管默认域名不能配置为小程序服务器域名：请绑定已备案自定义域名，或启用 SHOPRO_USE_CALL_CONTAINER',
+    );
+  }
+  console.log('\n[INFO] 使用普通 HTTPS 请求：需要在小程序后台配置服务器域名');
+}
+
 if (failed) {
-  console.error('\n微信小程序正式环境不允许 HTTP / localhost，请在 .env 中配置正式域名，并在微信后台配置合法域名。');
+  console.error('\n请在 .env 中修正上述配置后再发布。');
   process.exit(1);
 }
 console.log('\n发布环境检查通过');
