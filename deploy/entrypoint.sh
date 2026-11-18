@@ -8,6 +8,29 @@ set -eu
 # curl/openssl 会信任系统证书，但 JVM 只读 $JAVA_HOME/lib/security/cacerts，
 # 因此启动时把平台 CA 导入 JVM 信任库；否则 JustAuth 等 java.net.http 调用会报
 # PKIX path building failed（WxJava 自带 trust-all，反而不会暴露该问题）。
+#
+# 注意：Alpine 的 busybox ash 对嵌套函数定义兼容性差，函数必须定义在顶层。
+run_keytool() {
+  if command -v timeout >/dev/null 2>&1; then
+    timeout 15 "$keytool_bin" "$@"
+  else
+    "$keytool_bin" "$@"
+  fi
+}
+
+import_ca_file() {
+  i=$((i + 1))
+  alias="cloudrun-ca-$i"
+  # 平台证书可能轮换：每次启动先删旧别名再导入
+  run_keytool -delete -alias "$alias" -keystore "$cacerts" -storepass changeit >/dev/null 2>&1 || true
+  if run_keytool -importcert -noprompt -trustcacerts -alias "$alias" -file "$1" \
+       -keystore "$cacerts" -storepass changeit >/dev/null 2>&1; then
+    echo "[entrypoint] imported platform CA: $1"
+  else
+    echo "[entrypoint] WARN: failed to import CA: $1"
+  fi
+}
+
 import_cloudrun_ca() {
   java_home="${JAVA_HOME:-/opt/java/openjdk}"
   cacerts="$java_home/lib/security/cacerts"
@@ -16,43 +39,15 @@ import_cloudrun_ca() {
   [ -x "$keytool_bin" ] || keytool_bin=keytool
   command -v "$keytool_bin" >/dev/null 2>&1 || return 0
 
+  echo "[entrypoint] checking platform CA (JAVA_HOME=$java_home)"
   found=0
   i=0
-  import_ca_file() {
-    i=$((i + 1))
-    alias="cloudrun-ca-$i"
-    # 平台证书可能轮换：每次启动先删旧别名再导入
-    "$keytool_bin" -delete -alias "$alias" -keystore "$cacerts" -storepass changeit >/dev/null 2>&1 || true
-    if "$keytool_bin" -importcert -noprompt -trustcacerts -alias "$alias" -file "$1" \
-         -keystore "$cacerts" -storepass changeit >/dev/null 2>&1; then
-      echo "[entrypoint] imported platform CA: $1"
-    else
-      echo "[entrypoint] WARN: failed to import CA: $1"
-    fi
-  }
-
   for f in /usr/local/share/ca-certificates/*.crt /usr/local/share/ca-certificates/*.pem \
            /app/cert/*.crt /app/cert/*.pem /certificates/*.crt /certificates/*.pem; do
     [ -f "$f" ] || continue
     found=1
     import_ca_file "$f"
   done
-
-  # 兜底：平台可能只把证书合并进系统 bundle，没有保留单独文件
-  if [ "$found" = "0" ] && [ -f /etc/ssl/certs/ca-certificates.crt ]; then
-    tmpdir="$(mktemp -d)"
-    awk -v dir="$tmpdir" '/BEGIN CERTIFICATE/{n++} {print > (dir "/ca-" n ".crt")}' \
-      /etc/ssl/certs/ca-certificates.crt
-    for f in "$tmpdir"/ca-*.crt; do
-      [ -f "$f" ] || continue
-      # 只导入微信 API 的代理证书，避免把整个系统 CA 重复塞进 JVM
-      if "$keytool_bin" -printcert -file "$f" 2>/dev/null | grep -q "api.weixin.qq.com"; then
-        found=1
-        import_ca_file "$f"
-      fi
-    done
-    rm -rf "$tmpdir"
-  fi
 
   if [ "$found" = "0" ]; then
     echo "[entrypoint] no platform CA found; candidates:"
